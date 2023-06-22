@@ -8,7 +8,7 @@
 
 ## Windows ✅ | Linux ✅ | macOS ✅
 
-* Build passed on all Windows/Linux/macOS with Python 3.9/3.10/3.11 ✅
+* Build passed on all [Windows](https://github.com/rathaROG/lapx/actions/runs/5350963308)/[Linux](https://github.com/rathaROG/lapx/actions/runs/5350961768)/[macOS](https://github.com/rathaROG/lapx/actions/runs/5350962752) with Python 3.9/3.10/3.11 ✅
 
 * Clone and build directly on your machine:
 
@@ -22,7 +22,7 @@
   cd dist
   ```
 
-* Or install from GitHub directly:
+* Or directly install from GitHub:
 
   ```
   python -m pip install --upgrade pip
