@@ -92,10 +92,12 @@ def main_setup():
                      'Programming Language :: Python :: 3.9',
                      'Programming Language :: Python :: 3.10',
                      'Programming Language :: Python :: 3.11',
-                     'Topic :: Software Development',
+                     'Topic :: Education',
+                     'Topic :: Education :: Testing',
                      'Topic :: Scientific/Engineering',
-                     'Topic :: Scientific/Engineering :: Artificial Intelligence',
-                     'Topic :: Scientific/Engineering :: Image Recognition',
+                     'Topic :: Scientific/Engineering :: Mathematics',
+                     'Topic :: Software Development',
+                     'Topic :: Software Development :: Libraries',
                      'Operating System :: Microsoft :: Windows',                                  
                      'Operating System :: POSIX',
                      'Operating System :: Unix',
@@ -107,5 +109,12 @@ def install_requirments():
         subprocess.check_call([sys.executable, "-m", "pip", "install", requirement])  
 
 if __name__ == "__main__":
+    """
+    This setup.py is the only way for installing or generating wheel, so these 
+    packages must be manually installed in advance:
+
+    >>> pip install "setuptools>=67.2.0"
+    >>> pip install wheel build
+    """ 
     install_requirments()
     main_setup()
