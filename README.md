@@ -1,6 +1,5 @@
-[![Build and Upload Wheel Windows](https://github.com/rathaROG/lapx/actions/workflows/build_win.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/build_win.yaml)
-[![Build and Upload Wheel Linux](https://github.com/rathaROG/lapx/actions/workflows/build_linux.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/build_linux.yaml)
-[![Build and Upload Wheel macOS](https://github.com/rathaROG/lapx/actions/workflows/build_mac.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/build_mac.yaml)
+[![Windows/Linux/macOS + Python [3.7-3.11] .](https://github.com/rathaROG/lapx/actions/workflows/build_all.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/build_all.yaml)
+[![Build `tar.gz` PyPI](https://github.com/rathaROG/lapx/actions/workflows/build_pypi.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/build_pypi.yaml)
 
 # Linear Assignment Problem Solver
 
@@ -12,7 +11,7 @@
 
 ## Windows ✅ | Linux ✅ | macOS ✅
 
-* Build passed on all [Windows](https://github.com/rathaROG/lapx/actions/workflows/build_win.yaml)/[Linux](https://github.com/rathaROG/lapx/actions/workflows/build_linux.yaml)/[macOS](https://github.com/rathaROG/lapx/actions/workflows/build_mac.yaml) with Python 3.8/3.9/3.10/3.11 ✅
+* Build passed on all [Windows/Linux/macOS](https://github.com/rathaROG/lapx/actions/workflows/build_all.yaml) with Python 3.7/3.8/3.9/3.10/3.11 ✅
 
 * Download [Python Wheels from releases](https://github.com/rathaROG/lapx/releases), or
 
@@ -24,7 +23,7 @@
   python -m pip install --upgrade pip
   pip install "setuptools>=67.2.0"
   pip install wheel build
-  python -m build --wheel --no-isolation
+  python -m build --wheel
   cd dist
   ```
 
@@ -36,6 +35,16 @@
   pip install wheel build
   pip install git+https://github.com/rathaROG/lapx.git
   ```
+
+## Usage 🧪
+
+Note: `lapx` is just the name for package distribution.
+
+```
+import lap
+import numpy as np
+print(lap.lapjv(np.random.rand(2, 1), extend_cost=True))
+```
 
 <br />
 
