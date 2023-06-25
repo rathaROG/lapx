@@ -1,8 +1,8 @@
 name: Windows/Linux/macOS + Python [3.7-3.11] .
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
 jobs:
   build_and_archive:
     name: "${{ matrix.os }} Python ${{ matrix.python-version }}"

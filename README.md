@@ -13,9 +13,24 @@
 
 * Build passed on all [Windows/Linux/macOS](https://github.com/rathaROG/lapx/actions/workflows/build_all.yaml) with Python 3.7/3.8/3.9/3.10/3.11 ✅
 
-* Download [Python Wheels from releases](https://github.com/rathaROG/lapx/releases), or
+* Install from PyPI:
 
-* Clone and build directly on your machine:
+  ```
+  pip install lapx
+  ```
+
+* Or download [`tar.gz` or Wheels from releases](https://github.com/rathaROG/lapx/releases)
+
+* Or directly install from GitHub:
+
+  ```
+  python -m pip install --upgrade pip
+  pip install "setuptools>=67.2.0"
+  pip install wheel build
+  pip install git+https://github.com/rathaROG/lapx.git
+  ```
+
+* Or clone and build directly on your machine:
 
   ```
   git clone https://github.com/rathaROG/lapx.git
@@ -27,18 +42,9 @@
   cd dist
   ```
 
-* Or directly install from GitHub:
-
-  ```
-  python -m pip install --upgrade pip
-  pip install "setuptools>=67.2.0"
-  pip install wheel build
-  pip install git+https://github.com/rathaROG/lapx.git
-  ```
-
 ## Usage 🧪
 
-Note: `lapx` is just the name for package distribution.
+Note: Use `import lap` to import since `lapx` is just the name for package distribution. 
 
 ```
 import lap

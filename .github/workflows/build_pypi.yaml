@@ -22,6 +22,10 @@ jobs:
           python -m build --sdist
           cd dist
           pip install *.tar.gz
+      - name: Publish 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.MY_PYPI_API_TOKEN_2023_06_22 }}
       - name: Archive Wheels in dist/*.whl
         uses: actions/upload-artifact@v3
         with:
@@ -29,7 +33,3 @@ jobs:
           path: |
             dist
             !dist/**/*.md
-#      - name: Publish 📦 to PyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          password: ${{ secrets.PYPI_API_TOKEN }}
