@@ -11,9 +11,16 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.14.1
+        run: | 
+          python -m pip install --upgrade pip
+          python -m pip install cibuildwheel==2.14.1
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+        env:
+          # Skip building on CPython 3.6 & 3.12 on all platforms
+          CIBW_SKIP: cp36-*
+          CIBW_SKIP: cp312-*
       - uses: actions/upload-artifact@v3
         with:
           name: dist-wheels-all
