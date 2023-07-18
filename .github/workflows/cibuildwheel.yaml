@@ -19,8 +19,7 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
         env:
           # Skip building on CPython 3.6 & 3.12 on all platforms
-          CIBW_SKIP: cp36-*
-          CIBW_SKIP: cp312-*
+          CIBW_SKIP: {cp36-*, cp312-*}
       - uses: actions/upload-artifact@v3
         with:
           name: dist-wheels-all
