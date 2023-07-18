@@ -1,4 +1,4 @@
-name: Windows/Linux/macOS + Python [3.7-3.11] .
+name: Build and Test
 on: [workflow_dispatch]
 jobs:
   build_and_test:
