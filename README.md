@@ -7,7 +7,7 @@
 `lapx` basically is Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) with support for all Windows/Linux/macOS and Python 3.7/3.8/3.9/3.10/3.11.
 
 * License: BSD-2-Clause, see [`LICENSE`](LICENSE)
-* Based source code : [lap05-0.5.1.tar.gz](https://files.pythonhosted.org/packages/05/71/5531017a60f5028c87ce34514f2b55d35a2999f6c6e587d1f56e6ee78b10/lap05-0.5.1.tar.gz)
+* Based source code: [lap05-0.5.1.tar.gz](https://files.pythonhosted.org/packages/05/71/5531017a60f5028c87ce34514f2b55d35a2999f6c6e587d1f56e6ee78b10/lap05-0.5.1.tar.gz)
 * Credits: @[`gatagat`](https://github.com/gatagat) @[`remram44`](https://github.com/gatagat/lap/issues/34#issue-1114097201)
 
 ## Installation: Windows ✅ | Linux ✅ | macOS ✅
@@ -18,13 +18,13 @@
   pip install lapx
   ```
 
-* Or install `.tar.gz` or `.whl` from [GitHub releases](https://github.com/rathaROG/lapx/releases) or install from GitHub repo:
+* Or install `.tar.gz` or `.whl` from [GitHub releases](https://github.com/rathaROG/lapx/releases) or install from GitHub repo directly:
 
   ```
   pip install git+https://github.com/rathaROG/lapx.git
   ```
 
-* Or clone and build directly on your machine:
+* Or clone and build on your local machine:
 
   ```
   git clone https://github.com/rathaROG/lapx.git
