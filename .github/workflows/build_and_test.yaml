@@ -28,7 +28,7 @@ jobs:
           pip install git+https://github.com/rathaROG/lapx.git@2-publish-wheels
       - name: Run simple_test.py
         run: |
-          cd /.githubtest
+          cd .githubtest
           python simple_test.py
       - name: Archive Wheels in dist/*.whl
         uses: actions/upload-artifact@v3
