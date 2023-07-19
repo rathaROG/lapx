@@ -38,13 +38,14 @@
 
 ## Usage 🧪
 
-Note: Use `import lap` to import since `lapx` is just the name for package distribution. 
+* `lapx` is just the name for package distribution.
+* The same as `lap`, use `import lap` to import; for example:
 
-```
-import lap
-import numpy as np
-print(lap.lapjv(np.random.rand(2, 1), extend_cost=True))
-```
+  ```
+  import lap
+  import numpy as np
+  print(lap.lapjv(np.random.rand(2, 1), extend_cost=True))
+  ```
 
 <br />
 
