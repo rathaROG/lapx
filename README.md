@@ -10,7 +10,7 @@
 * Based on: [[ed04ab7752]](https://github.com/gatagat/lap/tree/ed04ab7752c7c9688ddcbae534633f34ce04361f)
 * License: BSD-2-Clause, see [`LICENSE`](LICENSE) @[`gatagat`](https://github.com/gatagat)
 
-## Installation: Windows ✅ | Linux ✅ | macOS ✅
+## 💽 Installation:
 
 * Install from [PyPI](https://pypi.org/project/lapx/):
 
@@ -37,6 +37,8 @@
 
 * Or clone and build on your local machine (Require C++ compiler):
 
+  <details><summary><ins>Click here to expand!</ins></summary>
+  
   ```
   git clone https://github.com/rathaROG/lapx.git
   cd lapx
@@ -46,8 +48,10 @@
   python -m build --wheel
   cd dist
   ```
+  
+  </details>
 
-## Usage 🧪
+## 🧪 Usage:
 
 * `lapx` is just the name for package distribution.
 * The same as `lap`, use `import lap` to import; for example:
