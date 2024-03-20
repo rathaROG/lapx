@@ -144,7 +144,7 @@ jobs:
 
   publish_pypi:
     name: Publish to PyPI
-    needs: [build_wheels, build_source]
+    needs: [build_windows_all, build_macos_intel, build_macos_arm, build_linux_intel, build_linux_arm, build_source]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
