@@ -27,7 +27,7 @@ pip install lapx
 
 <sup>¹ Windows ARM64 is experimental.</sup><br>
 
-<details><summary><ins>Click here to expand!</ins></summary>
+<details><summary>Click here to expand!</summary>
 
 ### Install from GitHub repo (Require C++ compiler):
 
