@@ -7,6 +7,16 @@
 
 `lapx` basically is Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) with support for all Windows/Linux/macOS and Python 3.7-3.12. 
 
+<details><summary>About <code>lap</code></summary><br>
+
+Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) is a [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solver using Jonker-Volgenant algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Both algorithms are implemented from scratch based solely on the papers ¹˒² and the public domain Pascal implementation provided by A. Volgenant ³. The LAPMOD implementation seems to be faster than the LAPJV implementation for matrices with a side of more than ~5000 and with less than 50% finite coefficients.
+
+<sup>¹ R. Jonker and A. Volgenant, "A Shortest Augmenting Path Algorithm for Dense and Sparse Linear Assignment Problems", Computing 38, 325-340 (1987) </sup><br>
+<sup>² A. Volgenant, "Linear and Semi-Assignment Problems: A Core Oriented Approach", Computer Ops Res. 23, 917-932 (1996) </sup><br>
+<sup>³ http://www.assignmentproblems.com/LAPJV.htm </sup><br>
+
+</details>
+
 ## 💽 Installation
 
 ### Install from [PyPI](https://pypi.org/project/lapx/):
@@ -27,7 +37,7 @@ pip install lapx
 
 <sup>¹ Windows ARM64 is experimental.</sup><br>
 
-<details><summary>Click here to expand!</summary>
+<details><summary>Other options</summary>
 
 ### Install from GitHub repo (Require C++ compiler):
 
@@ -58,15 +68,7 @@ import numpy as np
 print(lap.lapjv(np.random.rand(4, 5), extend_cost=True))
 ```
 
-## 🔎 More about LAP
-
-<details><summary>Click here to expand!</summary><br>
-
-Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) is a [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solver using Jonker-Volgenant algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Both algorithms are implemented from scratch based solely on the papers ¹˒² and the public domain Pascal implementation provided by A. Volgenant ³. The LAPMOD implementation seems to be faster than the LAPJV implementation for matrices with a side of more than ~5000 and with less than 50% finite coefficients.
-
-<sup>¹ R. Jonker and A. Volgenant, "A Shortest Augmenting Path Algorithm for Dense and Sparse Linear Assignment Problems", Computing 38, 325-340 (1987) </sup><br>
-<sup>² A. Volgenant, "Linear and Semi-Assignment Problems: A Core Oriented Approach", Computer Ops Res. 23, 917-932 (1996) </sup><br>
-<sup>³ http://www.assignmentproblems.com/LAPJV.htm </sup><br>
+<details><summary>More details</summary>
   
 ### `cost, x, y = lap.lapjv(C)`
 
