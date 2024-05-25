@@ -30,13 +30,13 @@ def test(n, m):
     res_lapx, elapsed_lapx = do_lapx(a)
     print(" lapx completed in " + str(format((elapsed_lapx), '.8f')) + "s")
     if (res_lapx == res_scipy).all():
-        print(" * PASS !!! ✅")
+        print(" * ✅ PASS !!!")
         if elapsed_lapx <= elapsed_scipy:
             print(" * 🏆 lapx is faster by " + str(round((elapsed_scipy/elapsed_lapx), 4)) + "x time.")
         else:
             print(" * 🐌 lapx is slower by " + str(round((elapsed_lapx/elapsed_scipy), 4)) + "x time.")
     else:
-        print(" * FAIL !!! ❌")
+        print(" * ❌ FAIL !!!")
     print("-----------------------------------------")
 
 
