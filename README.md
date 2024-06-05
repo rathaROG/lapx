@@ -13,7 +13,7 @@ Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) is a [linear assignment p
 
 <sup>¹ R. Jonker and A. Volgenant, "A Shortest Augmenting Path Algorithm for Dense and Sparse Linear Assignment Problems", Computing 38, 325-340 (1987) </sup><br>
 <sup>² A. Volgenant, "Linear and Semi-Assignment Problems: A Core Oriented Approach", Computer Ops Res. 23, 917-932 (1996) </sup><br>
-<sup>³ http://www.assignmentproblems.com/LAPJV.htm </sup><br>
+<sup>³ http://www.assignmentproblems.com/LAPJV.htm | [[archive.org](https://web.archive.org/web/20220221010749/http://www.assignmentproblems.com/LAPJV.htm)] </sup><br>
 
 </details>
 
