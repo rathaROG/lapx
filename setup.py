@@ -89,7 +89,7 @@ def main_setup():
         packages=packages,
         package_data=package_data,
         include_package_data=True,
-        install_requires=['numpy>=1.21.6,<2',],
+        install_requires=['numpy>=1.21.6',],
         python_requires=">=3.7",
         classifiers=['Development Status :: 4 - Beta',
                      'Environment :: Console',
