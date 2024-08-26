@@ -12,7 +12,7 @@ jobs:
         os: ["windows-latest", "ubuntu-latest", "macos-13"]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-rc.1"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -24,7 +24,7 @@ jobs:
       - name: Install scipy
         run: |
           pip install scipy
-      - name: Run benchmark.py
+      - name: 📊 Run benchmark.py
         run: |
           cd .githubtest
           python benchmark.py
