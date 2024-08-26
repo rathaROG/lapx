@@ -20,8 +20,7 @@ jobs:
       - name: Install lapx from source
         run: pip install git+https://github.com/rathaROG/lapx.git
       - name: Install scipy
-        run: |
-          pip install scipy
+        run: pip install scipy
       - name: 📊 Run benchmark.py
         run: |
           cd .githubtest
