@@ -23,12 +23,10 @@ jobs:
           pip install "setuptools>=67.2.0"
           pip install wheel build
       - name: Test build from source
-        run: |
-          python -m build --wheel
+        run: python -m build --wheel
       - name: Test direct install from GitHub main
-        run: |
-          pip install git+https://github.com/rathaROG/lapx.git
-      - name: Run test_simple.py
+        run: pip install git+https://github.com/rathaROG/lapx.git
+      - name: 🧪 Run test_simple.py
         run: |
           cd .githubtest
           python test_simple.py
