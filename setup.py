@@ -1,8 +1,7 @@
 # Rewrote on 2023/06/24 by rathaROG
-# Updated on 2024/10/08 by rathaROG
+# Updated on 2025/08/31 by rathaROG
 
-import distutils.cmd
-from setuptools import Extension, setup
+from setuptools import Extension, Command, setup
 
 LICENSE = "BSD-2-Clause"
 DESCRIPTION = "Linear Assignment Problem solver (LAPJV/LAPMOD)."
@@ -38,7 +37,7 @@ def compile_cpp(cython_file):
     if rc != 0: raise Exception('Cythonizing %s failed' % cython_file)
     else: return cpp_file
 
-class ExportCythonCommand(distutils.cmd.Command):
+class ExportCythonCommand(Command):
     description = "Export _lapjv binary from source."
     def run(self):
         super().run()
@@ -95,7 +94,6 @@ def main_setup():
                      'Intended Audience :: Developers',
                      'Intended Audience :: Education',
                      'Intended Audience :: Science/Research',
-                     'License :: OSI Approved :: BSD License',
                      'Programming Language :: Python :: 3',
                      'Programming Language :: Python :: 3.7',
                      'Programming Language :: Python :: 3.8',
