@@ -30,7 +30,7 @@ jobs:
         run: pip install git+https://github.com/rathaROG/lapx.git
       - name: 🧪 Run test_simple.py
         run: |
-          cd .githubtest
+          cd .github/test
           python test_simple.py
       - name: Archive wheels
         uses: actions/upload-artifact@v4
@@ -63,7 +63,7 @@ jobs:
         run: pip install git+https://github.com/rathaROG/lapx.git
       - name: 🧪 Run test_simple.py
         run: |
-          cd .githubtest
+          cd .github/test
           python test_simple.py
       - name: Archive wheels
         uses: actions/upload-artifact@v4
@@ -96,7 +96,7 @@ jobs:
         run: pip install git+https://github.com/rathaROG/lapx.git
       - name: 🧪 Run test_simple.py
         run: |
-          cd .githubtest
+          cd .github/test
           python test_simple.py
       - name: Archive wheels
         uses: actions/upload-artifact@v4
