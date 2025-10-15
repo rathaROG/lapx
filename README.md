@@ -1,8 +1,11 @@
-🆕 December 1, 2024: The original [`lap`](https://github.com/gatagat/lap) and [`lapx`](https://github.com/rathaROG/lapx) have been merged.
+<details><summary>🆕 What's new</summary><br>
+
+- 2025/10/15: Added Python 3.14 support and [more](https://github.com/rathaROG/lapx/pull/15).
+- 2024/12/01: The original [`lap`](https://github.com/gatagat/lap) and [`lapx`](https://github.com/rathaROG/lapx) have been merged.
+
+</details>
 
 ---
-
-<details><summary>See more</summary><br>
 
 [![Test Simple](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml)
 [![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
@@ -11,7 +14,7 @@
 
 # Linear Assignment Problem Solver
 
-`lapx` basically is Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) with support for all Windows/Linux/macOS and Python 3.7-3.13. 
+`lapx` basically is Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) with support for all Windows/Linux/macOS and Python 3.7-3.14. 
 
 <details><summary>About <code>lap</code></summary><br>
 
@@ -39,10 +42,12 @@ pip install lapx
 |:---:|:---:|:---:|:---:|
 | Python 3.7 | AMD64 | x86_64/aarch64 | x86_64 |
 | Python 3.8 | AMD64 | x86_64/aarch64 | x86_64/arm64 |
-| Python 3.9-3.13 ¹ | AMD64/ARM64 ² | x86_64/aarch64 | x86_64/arm64 |
+| Python 3.9-3.14 ¹`² | AMD64/ARM64 ³ | x86_64/aarch64 | x86_64/arm64 |
 
-<sup>¹ v0.5.10+ supports both numpy 1.x and 2.x for Python 3.8-3.13. 🆕 </sup><br>
-<sup>² Windows ARM64 is experimental.</sup><br>
+<sup>¹ v0.5.13+ supports numpy 1.x-2.x and Python 3.14. 🆕 </sup><br>
+<sup>² Pre-built wheels for Python 3.13+ do not support free-threading.</sup><br>
+<sup>³ Windows ARM64 is experimental.</sup><br>
+
 
 <details><summary>Other options</summary>
 
@@ -100,7 +105,5 @@ Finally, note that the outputs are redundant: we can construct `x` from `y`, and
 x = [np.where(y == i)[0][0] for i in range(N)]
 y = [np.where(x == j)[0][0] for j in range(M)]
 ```
-
-</details>
 
 </details>
