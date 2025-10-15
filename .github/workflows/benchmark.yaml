@@ -14,7 +14,7 @@ jobs:
         os: ["windows-latest", "ubuntu-22.04", "macos-13"]
         python-version: ["3.7"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -37,7 +37,7 @@ jobs:
         os: ["windows-latest", "ubuntu-latest", "ubuntu-24.04-arm", "macos-13", "macos-latest"]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -64,9 +64,9 @@ jobs:
   #     fail-fast: false
   #     matrix:
   #       os: ["windows-11-arm"]
-  #       python-version: ["3.11", "3.12", "3.13"]
+  #       python-version: ["3.11", "3.12", "3.13", "3.14"]
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v5
   #     - name: Set up Python ${{ matrix.python-version }}
   #       uses: actions/setup-python@v5
   #       with:
