@@ -25,17 +25,17 @@ jobs:
         run: pip install scipy
       - name: 📊 Run benchmark.py
         run: |
-          cd .githubtest
+          cd .github/test
           python benchmark.py
 
-  build_and_test_p38_p313:
+  build_and_test_p38_p314:
     name: "${{ matrix.os }} + python ${{ matrix.python-version }}"
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
       matrix:
         os: ["windows-latest", "ubuntu-latest", "ubuntu-24.04-arm", "macos-13", "macos-latest"]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -48,7 +48,7 @@ jobs:
         run: pip install scipy
       - name: 📊 Run benchmark.py
         run: |
-          cd .githubtest
+          cd .github/test
           python benchmark.py
 
   # ##############################################################################
@@ -77,7 +77,7 @@ jobs:
   #       run: pip install scipy
   #     - name: 📊 Run benchmark.py
   #       run: |
-  #         cd .githubtest
+  #         cd .github/test
   #         python benchmark.py
 
   # ##############################################################################
