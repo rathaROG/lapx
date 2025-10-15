@@ -1,5 +1,5 @@
 # Rewrote on 2023/06/24 by rathaROG
-# Updated on 2025/10/14 by rathaROG
+# Updated on 2025/10/15 by rathaROG
 
 from setuptools import Extension, setup, find_packages
 
@@ -31,21 +31,14 @@ def main_setup():
     lapjvcpp = os.path.join(SRC_DIR, "lapjv.cpp")
     lapmodcpp = os.path.join(SRC_DIR, "lapmod.cpp")
     _lapjvpyx = os.path.join(SRC_DIR, "_lapjv.pyx")
-    ext = Extension(
-        name='lap._lapjv',
-        sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
-        include_dirs=[include_numpy(), SRC_DIR, PACKAGE_PATH],
-        language="c++",
-    )
+    
     ext_modules = cythonize(
-        [ext],
-        compiler_directives={
-            'language_level': "3",
-            'boundscheck': False,
-            'wraparound': False,
-            'cdivision': True,
-            'initializedcheck': False
-        }
+        Extension(
+            name='lap._lapjv',
+            sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
+            include_dirs=[include_numpy(), SRC_DIR, PACKAGE_PATH],
+            language="c++",
+        )
     )
 
     setup(
