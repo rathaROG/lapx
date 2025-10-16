@@ -86,7 +86,7 @@ total_cost, x, y = lap.lapjv(np.random.rand(4, 5), extend_cost=True, return_cost
 assignments = np.array([[y[i],i] for i in x if i >= 0])
 ```
 
-For detailed documentation of common parameters across assignment functions, see the module docstring in [`lap/__init__.py`](lap/__init__.py).
+For detailed documentation of **common parameters**, see the docstring in [`lap/__init__.py`](lap/__init__.py).
 
 <details><summary>Need more explanation?</summary>
 
