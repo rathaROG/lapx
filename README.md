@@ -15,9 +15,9 @@
 
 # Linear Assignment Problem Solver
 
-`lapx` essentially is Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) **`lapjv()`** with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
+`lapx` is an enhanced Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) **`lapjv()`** with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
 
-<details><summary>About <code>lap</code></summary><br>
+<details><summary>Read more</code></summary><br>
 
 Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) is a [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solver using Jonker-Volgenant algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Both algorithms are implemented from scratch based solely on the papers ¹˒² and the public domain Pascal implementation provided by A. Volgenant ³. The LAPMOD implementation seems to be faster than the LAPJV implementation for matrices with a side of more than ~5000 and with less than 50% finite coefficients.
 
@@ -45,7 +45,7 @@ pip install lapx
 | Python 3.8 | AMD64 | x86_64/aarch64 | x86_64/arm64 |
 | Python 3.9-3.14 ¹`² | AMD64/ARM64 ³ | x86_64/aarch64 | x86_64/arm64 |
 
-<sup>¹ v0.5.13+ supports numpy 1.x-2.x and Python 3.14. 🆕 </sup><br>
+<sup>¹ `lapx` v0.5.13+ supports numpy 1.x-2.x and Python 3.14. 🆕 </sup><br>
 <sup>² Pre-built wheels for Python 3.13+ do not support free-threading.</sup><br>
 <sup>³ Windows ARM64 is experimental.</sup><br>
 
@@ -85,6 +85,8 @@ import numpy as np
 total_cost, x, y = lap.lapjv(np.random.rand(4, 5), extend_cost=True, return_cost=True)
 assignments = np.array([[y[i],i] for i in x if i >= 0])
 ```
+
+For detailed documentation of common parameters across assignment functions, see the module docstring in [`lap/__init__.py`](lap/__init__.py).
 
 <details><summary>Need more explanation?</summary>
 
@@ -142,7 +144,7 @@ total_cost, assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, re
 
 ### 4. The new function ``lap.lapjvc(C)``
 
-This function `lap.lapjvc(C)`, which is the classical implementation of Jonker-Volgenant ([py-lapsolver](https://github.com/cheind/py-lapsolver)), is as fast as (if not faster than) other functions when `n=m` (the cost matrix is square), but it is much slower when `n≠m` (the cost matrix is not square). This function adopts the return style of `lap.lapjvx(C)` — the same as [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
+This function `lap.lapjvc(C)`, which is the classical implementation of Jonker-Volgenant — [py-lapsolver](https://github.com/cheind/py-lapsolver), is as fast as (if not faster than) other functions when `n=m` (the cost matrix is square), but it is much slower when `n≠m` (the cost matrix is not square). This function adopts the return style of `lap.lapjvx(C)` — the same as [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
 
 ```python
 import lap
@@ -365,3 +367,7 @@ Test (5000, 7500)
 ```
 
 </details>
+
+## 📝 License
+
+Please refer to [NOTICE](NOTICE) & [LICENSE](LICENSE).
