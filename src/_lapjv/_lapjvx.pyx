@@ -130,7 +130,7 @@ def lapjvx(cnp.ndarray cost not None, char extend_cost=False,
         return row_indices, col_indices
 
 
-# The function lapjvxa is a wrapper of lapjvxa which returns 
+# The function lapjvxa is a wrapper of lapjvx which returns 
 # assignment pairs as a (K,2) np.ndarray of (row, col).
 
 @cython.boundscheck(False)
