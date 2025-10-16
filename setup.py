@@ -66,6 +66,7 @@ def main_setup():
         sources=[lapjvccpp],
         include_dirs=[include_pybind11(), SRC_DIR_JVC, PACKAGE_PATH],
         language='c++',
+        extra_compile_args=['-std=c++17'],
     )
 
     ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc]
