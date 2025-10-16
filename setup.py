@@ -50,6 +50,7 @@ def main_setup():
         sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
         include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
         language='c++',
+        extra_compile_args=['-std=c++17'],
     )
 
     # Extension for lapjvx/lapjvxa
@@ -58,6 +59,7 @@ def main_setup():
         sources=[_lapjvxpyx, lapjvcpp],
         include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
         language='c++',
+        extra_compile_args=['-std=c++17'],
     )
 
     # Extension for lapjvc
