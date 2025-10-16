@@ -11,10 +11,13 @@ To see some quick benchmark results for these functions, simply run:
 
 ```
 pip install "lapx>=0.6.0"
+pip install scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/.github/test
 python benchmark.py
 ```
+
+Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark.
 
 ## 📊 See some results
 
