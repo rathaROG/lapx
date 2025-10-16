@@ -1,8 +1,9 @@
 # 🏆 Quick Benchmark
 
-The [benchmark.py](.github/test/benchmark.py) is **not** intended for scientific research or competitive evaluation. 
-Instead, it provides a quick and accessible way for you to run benchmark tests on your own machine. 
-You can also find a collection of interesting results gathered from various major platforms and architectures below.
+`lapx` focuses more on real-world applications, and the [benchmark.py](.github/test/benchmark.py) is **not** 
+intended for scientific research or competitive evaluation. Instead, it provides a quick and accessible way for 
+you to run benchmark tests on your own machine. Below, you will also find a collection of interesting results 
+gathered from various major platforms and architectures.
 
 ## 💡 Run the quick benchmark
 
