@@ -18,7 +18,6 @@
 namespace py = pybind11;
 
 template<typename T, int ExtraFlags>
-
 py::tuple solve_dense_wrap(py::array_t<T, ExtraFlags> input1, bool return_cost = true) {
     auto buf1 = input1.request();
 
