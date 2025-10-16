@@ -17,7 +17,7 @@ Portions of the software are derived from two other projects as follows:
     All source files under `src/_lapjv/` and `tests` are derived from the 
     original project and retain their BSD-2-Clause License.
 
-    See `src/_lapjv/LICENSE` or `test/LICENSE` for more details.
+    See `src/_lapjv/LICENSE` or `tests/LICENSE` for more details.
 
 ---
 
