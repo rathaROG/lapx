@@ -17,7 +17,7 @@
 
 `lapx` is an enhanced Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) **`lapjv()`** with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
 
-<details><summary>Read more</code></summary><br>
+<details><summary>Read more</summary><br>
 
 Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) is a [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solver using Jonker-Volgenant algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Both algorithms are implemented from scratch based solely on the papers ¹˒² and the public domain Pascal implementation provided by A. Volgenant ³. The LAPMOD implementation seems to be faster than the LAPJV implementation for matrices with a side of more than ~5000 and with less than 50% finite coefficients.
 
@@ -130,6 +130,8 @@ total_cost, row_indices, col_indices = lap.lapjvx(np.random.rand(4, 5), extend_c
 assignments = np.array(list(zip(row_indices, col_indices)))
 ```
 
+<details><summary>Show <code>lap.lapjvxa(C)</code></summary>
+
 ### 3. The new function ``lap.lapjvxa(C)``
 
 This function `lap.lapjvxa(C)` is essentially the same as `lap.lapjvx(C)`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lap.lapjvxa(C)` is designed for applications like object tracking and similar use cases.
@@ -141,6 +143,10 @@ import numpy as np
 # assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, return_cost=False)
 total_cost, assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, return_cost=True)
 ```
+
+</details>
+
+<details><summary>Show <code>lap.lapjvc(C)</code></summary>
 
 ### 4. The new function ``lap.lapjvc(C)``
 
@@ -154,6 +160,8 @@ import numpy as np
 total_cost, row_indices, col_indices = lap.lapjvc(np.random.rand(4, 5), return_cost=True)
 assignments = np.array(list(zip(row_indices, col_indices)))
 ```
+
+</details>
 
 ## 🏆 Quick Benchmark
 
