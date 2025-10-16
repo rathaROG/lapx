@@ -1,3 +1,5 @@
+# Copyright (c) 2012-2025 Tomas Kazmar | BSD-2-Clause License
+
 import numpy as np
 from bisect import bisect_left
 

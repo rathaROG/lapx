@@ -1,8 +1,8 @@
 # Tomas Kazmar, 2012-2017, BSD 2-clause license, see LICENSE.
 
 # Updated by rathaROG
-# Force compiling with Python 3 
 # cython: language_level=3
+# cython: embedsignature=True
 
 import numpy as np
 cimport numpy as cnp
@@ -47,7 +47,7 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
 
     Parameters
     ----------
-    cost: (N,N) ndarray
+    cost: (N,M) ndarray
         Cost matrix. Entry `cost[i, j]` is the cost of assigning row `i` to
         column `j`.
     extend_cost: bool, optional

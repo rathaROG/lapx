@@ -1,15 +1,13 @@
-# Rewrote on 2023/06/24 by rathaROG
-# Updated on 2025/10/15 by rathaROG
+# Copyright (c) 2025 Ratha SIV | MIT License
 
 from setuptools import Extension, setup, find_packages
 
-LICENSE = "BSD-2-Clause"
+LICENSE = "MIT"
 DESCRIPTION = "Linear Assignment Problem solver (LAPJV/LAPMOD)."
 LONG_DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 PACKAGE_NAME = "lapx"
 PACKAGE_PATH = "lap"
-SRC_DIR = "_lapjv_src"
 
 def get_version_string() -> str:
     with open("lap/__init__.py") as version_file:
@@ -23,34 +21,68 @@ def include_numpy():
     import numpy as np
     return np.get_include()
 
+def include_pybind11():
+    import pybind11
+    return pybind11.get_include()
+
 def main_setup():
-    """Setup the package.
-    """
     import os
     from Cython.Build import cythonize
-    lapjvcpp = os.path.join(SRC_DIR, "lapjv.cpp")
-    lapmodcpp = os.path.join(SRC_DIR, "lapmod.cpp")
-    _lapjvpyx = os.path.join(SRC_DIR, "_lapjv.pyx")
-    
-    ext_modules = cythonize(
-        Extension(
-            name='lap._lapjv',
-            sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
-            include_dirs=[include_numpy(), SRC_DIR, PACKAGE_PATH],
-            language="c++",
-        )
+
+    # Source directories
+    SRC_DIR_JV = os.path.join('src', '_lapjv')
+    SRC_DIR_JVC = os.path.join('src', '_lapjvc')
+
+    # Source files for lapjv/lapmod
+    lapjvcpp = os.path.join(SRC_DIR_JV, 'lapjv.cpp')
+    lapmodcpp = os.path.join(SRC_DIR_JV, 'lapmod.cpp')
+    _lapjvpyx = os.path.join(SRC_DIR_JV, '_lapjv.pyx')
+
+    # Source file for lapjvx/lapjvxa
+    _lapjvxpyx = os.path.join(SRC_DIR_JV, '_lapjvx.pyx')
+
+    # Source files for lapjvc
+    lapjvccpp = os.path.join(SRC_DIR_JVC, 'lapjvc.cpp')
+
+    # Extension for lapjv/lapmod
+    ext_jv = Extension(
+        name='lap._lapjv',
+        sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
+        include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
+        language='c++',
     )
+
+    # Extension for lapjvx/lapjvxa
+    ext_jvx = Extension(
+        name='lap._lapjvx',
+        sources=[_lapjvxpyx, lapjvcpp],
+        include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
+        language='c++',
+    )
+
+    # Extension for  lapjvc
+    ext_jvc = Extension(
+        name='lap._lapjvc',
+        sources=[lapjvccpp],
+        include_dirs=[include_pybind11(), SRC_DIR_JVC, PACKAGE_PATH],
+        language='c++',
+    )
+
+    ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc]
 
     setup(
         name=PACKAGE_NAME,
         version=get_version_string(),
         description=DESCRIPTION,
         license=LICENSE,
+        author="Ratha SIV",
+        maintainer="rathaROG",
+        url="https://github.com/rathaROG/lapx",
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
-        keywords=['Linear Assignment', 'LAPJV', 'LAPMOD', 'lap', 'lapx'],
-        url="https://github.com/rathaROG/lapx",
-        author="rathaROG",
+        keywords=['Linear Assignment Problem Solver', 'LAP solver', 
+                  'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD', 
+                  'lap', 'lapx', 'lapjvx', 'lapjvxa', 'lapjvc'],
         packages=find_packages(include=[PACKAGE_PATH, f"{PACKAGE_PATH}.*"]),
         include_package_data=True,
         install_requires=['numpy>=1.21.6',],
