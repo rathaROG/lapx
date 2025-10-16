@@ -41,7 +41,7 @@ def main_setup():
     # Source file for lapjvx/lapjvxa
     _lapjvxpyx = os.path.join(SRC_DIR_JV, '_lapjvx.pyx')
 
-    # Source files for lapjvc
+    # Source file for lapjvc
     lapjvccpp = os.path.join(SRC_DIR_JVC, 'lapjvc.cpp')
 
     # Extension for lapjv/lapmod
@@ -60,7 +60,7 @@ def main_setup():
         language='c++',
     )
 
-    # Extension for  lapjvc
+    # Extension for lapjvc
     ext_jvc = Extension(
         name='lap._lapjvc',
         sources=[lapjvccpp],
