@@ -15,7 +15,7 @@
 
 # Linear Assignment Problem Solver
 
-`lapx` is an enhanced version of Tomas Kazmar's [`lap`](https://github.com/gatagat/lap), featuring the core **`lapjv()`** function along with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
+`lapx` is an enhanced version of Tomas Kazmar's [`lap`](https://github.com/gatagat/lap), featuring the core **`lapjv()`** and **`lapmod()`** functions along with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
 
 <details><summary>Read more</summary><br>
 
@@ -73,13 +73,12 @@ cd dist
 
 ## 🧪 Usage
 
-### 1. The original function ``lap.lapjv(C)``
+### 1. The original function ``lapjv()``
 
 The same as `lap`, use `import lap` to import; for example:
 
 ```python
-import lap
-import numpy as np
+import numpy as np, lap
 
 # x, y = lap.lapjv(np.random.rand(4, 5), extend_cost=True, return_cost=False)
 total_cost, x, y = lap.lapjv(np.random.rand(4, 5), extend_cost=True, return_cost=True)
@@ -90,7 +89,7 @@ For detailed documentation of **common parameters**, see the docstring in [`lap/
 
 <details><summary>Need more explanation?</summary>
 
-The function `lapjv(C)` returns the assignment cost `cost` and two arrays `x` and `y`. If cost matrix `C` has shape NxM, then `x` is a size-N array specifying to which column each row is assigned, and `y` is a size-M array specifying to which row each column is assigned. For example, an output of `x = [1, 0]` indicates that row 0 is assigned to column 1 and row 1 is assigned to column 0. Similarly, an output of `x = [2, 1, 0]` indicates that row 0 is assigned to column 2, row 1 is assigned to column 1, and row 2 is assigned to column 0.
+The function `lapjv()` returns the assignment cost `cost` and two arrays `x` and `y`. If cost matrix `C` has shape NxM, then `x` is a size-N array specifying to which column each row is assigned, and `y` is a size-M array specifying to which row each column is assigned. For example, an output of `x = [1, 0]` indicates that row 0 is assigned to column 1 and row 1 is assigned to column 0. Similarly, an output of `x = [2, 1, 0]` indicates that row 0 is assigned to column 2, row 1 is assigned to column 1, and row 2 is assigned to column 0.
 
 Note that this function *does not* return the assignment matrix (as done by scipy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) and lapsolver's [`solve dense`](https://github.com/cheind/py-lapsolver)). The assignment matrix can be constructed from `x` as follows:
 
@@ -117,28 +116,26 @@ y = [np.where(x == j)[0][0] for j in range(M)]
 
 </details>
 
-### 2. The new function ``lap.lapjvx(C)``
+### 2. The new function ``lapjvx()``
 
-This function `lap.lapjvx(C)` basically is `lap.lapjv(C)`, but it matches the return style of [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html). In some specific applications like Object Tracking, `lapjvx` can outperform `lapjv` and even SciPy — See [details here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
+This function `lapjvx()` basically is `lapjv()`, but it matches the return style of [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html). In some specific applications like Object Tracking, `lapjvx()` can outperform `lapjv()` and even SciPy — See [details here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
 
 ```python
-import lap
-import numpy as np
+import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvx(np.random.rand(4, 5), extend_cost=True, return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvx(np.random.rand(4, 5), extend_cost=True, return_cost=True)
 assignments = np.array(list(zip(row_indices, col_indices)))
 ```
 
-<details><summary>Show <code>lap.lapjvxa(C)</code></summary>
+<details><summary>Show <code>lapjvxa()</code></summary>
 
-### 3. The new function ``lap.lapjvxa(C)``
+### 3. The new function ``lapjvxa()``
 
-This function `lap.lapjvxa(C)` is essentially the same as `lap.lapjvx(C)`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lap.lapjvxa(C)` is designed for applications where the `cost_limit` parameter is not important.
+This function `lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is designed for applications where the `cost_limit` parameter is not important.
 
 ```python
-import lap
-import numpy as np
+import numpy as np, lap
 
 # assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, return_cost=False)
 total_cost, assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, return_cost=True)
@@ -146,19 +143,43 @@ total_cost, assignments = lap.lapjvxa(np.random.rand(4, 5), extend_cost=True, re
 
 </details>
 
-<details><summary>Show <code>lap.lapjvc(C)</code></summary>
+<details><summary>Show <code>lapjvc()</code></summary>
 
-### 4. The new function ``lap.lapjvc(C)``
+### 4. The new function ``lapjvc()``
 
-This function `lap.lapjvc(C)`, which is the classical implementation of Jonker-Volgenant — [py-lapsolver](https://github.com/cheind/py-lapsolver), is as fast as (if not faster than) other functions when `n=m` (the cost matrix is square), but it is much slower when `n≠m` (the cost matrix is not square). This function adopts the return style of `lap.lapjvx(C)` — the same as [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
+This function `lapjvc()`, which is the classical implementation of Jonker-Volgenant — [py-lapsolver](https://github.com/cheind/py-lapsolver), is as fast as (if not faster than) other functions when `n=m` (the cost matrix is square), but it is much slower when `n≠m` (the cost matrix is not square). This function adopts the return style of `lapjvx()` — the same as [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
 
 ```python
-import lap
-import numpy as np
+import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvc(np.random.rand(4, 5), return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvc(np.random.rand(4, 5), return_cost=True)
 assignments = np.array(list(zip(row_indices, col_indices)))
+```
+
+</details>
+
+<details><summary>Show <code>lapmod()</code></summary>
+
+### 5. The original function ``lapmod()``
+
+For see [the docstring](https://github.com/rathaROG/lapx/blob/8d56b42265a23c3b5a290b1039dacaac70dfe60d/lap/lapmod.py#L275) for details.
+
+```python
+import numpy as np, lap, time
+
+n, m = 5000, 5000
+cm = np.random.rand(n, m)
+
+t0 = time.time()
+c1, x1, y1 = lap.lapjv(cm, return_cost=True)
+print(f"lapjv:  cost={c1:.6f}, time={time.time()-t0:.4f}s")
+
+cc, kk, ii = cm.ravel(), np.tile(np.arange(m), n), np.arange(0, n*m+1, m)
+t1 = time.time()
+c2, x2, y2 = lap.lapmod(n, cc, ii, kk, return_cost=True)
+print(f"lapmod: cost={c2:.6f}, time={time.time()-t1:.4f}s")
+print("Assignments identical?", (np.all(x1 == x2) and np.all(y1 == y2)))
 ```
 
 </details>
