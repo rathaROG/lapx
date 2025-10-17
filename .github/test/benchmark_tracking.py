@@ -28,6 +28,7 @@ def lapx_jv(cost_matrix, thresh):
     return matches, unmatched_a, unmatched_b
 
 def lapx_jvx(cost_matrix, thresh):
+    # Note: Passing `cost_limit=thresh` & `return_cost=True` will slow down `lapjvx` significantly.
     x, y  = lap.lapjvx(cost_matrix, extend_cost=True, return_cost=False)
     matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
     if len(matches) == 0:
