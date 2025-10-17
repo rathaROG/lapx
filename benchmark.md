@@ -19,9 +19,9 @@ python benchmark.py
 
 Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark.
 
-## 📊 See some results
+### 📊 See some results
 
-📅 Using `lapx` [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) (2025/10/16):
+Using `lapx` [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) (2025/10/16):
 
 <details><summary>A quick benchmark on my local Windows AMD64 + Python 3.11:</summary>
 
@@ -614,6 +614,96 @@ Test (5000, 7500)
 
 </details>
 
-## 🔍 See more results
+### 🔍 See more results
 
 See more benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
+
+## 🕵️‍♂️ Other Benchmarks
+
+### 👣 Object Tracking
+
+This [benchmark_tracking.py](.github/test/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline in the benchmark.
+
+```
+pip install "lapx>=0.6.0"
+pip install scipy
+git clone https://github.com/rathaROG/lapx.git
+cd lapx/.github/test
+python benchmark_tracking.py
+```
+
+As shown in the results below, the new function [`lapjvx`](https://github.com/rathaROG/lapx#2-the-new-function-laplapjvxc) (LAPX JVX in the benchmark) consistently produces the same outputs as the baseline SciPy (See the column: Diff From Scipy) compared to the baseline SciPy and also outperforms SciPy in most cases. To achieve the best performance with `lapjvx`, follow [the implementation in the benchmark_tracking.py script](https://github.com/rathaROG/lapx/blob/5ba6813881f23cd30e0482fa554ab0b76327102c/.github/test/benchmark_tracking.py#L30).
+
+<details><summary>Show the results:</summary>
+
+```
+
+D:\DEV\new\tmp\lapx\.github\test>python benchmark_tracking.py
+
+Benchmark with threshold = 1000000.0
+
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+--------------------------------------------------------------------------------
+   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
+   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
+   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
+  100x150  |       1.24 |       0.00 |       0.00 |       0.00 |
+  200x200  |       0.40 |       0.00 |       0.40 |       1.20 |
+  550x500  |      82.12 |      12.70 |      19.04 |       9.17 |
+ 1000x1000 |      38.46 |      16.29 |      19.74 |      21.00 |
+ 5000x5000 |    1997.13 |     934.24 |    1157.93 |    1042.41 |
+
+Benchmark with threshold = 0.1
+
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+--------------------------------------------------------------------------------
+   10x10   |       0.00 |       0.00 |       0.00 |       0.00 | JV
+   25x25   |       0.00 |       0.00 |       0.00 |       0.00 | JV
+   50x50   |       0.00 |       0.00 |       0.00 |       0.00 | JV
+  100x150  |       0.40 |       0.00 |       0.00 |       0.00 |
+  200x200  |       0.40 |       0.00 |       0.00 |       0.00 |
+  550x500  |      55.14 |      12.69 |      15.86 |       5.39 |
+ 1000x1000 |      30.38 |      12.63 |      31.84 |      27.74 |
+ 5000x5000 |    2552.10 |    1110.07 |    1330.09 |    1143.90 |
+
+Benchmark with threshold = 0.5
+
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+--------------------------------------------------------------------------------
+   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
+   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
+   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
+  100x150  |       0.85 |       0.00 |       1.08 |       0.00 |
+  200x200  |       3.18 |       0.00 |       0.00 |       0.00 |
+  550x500  |      94.82 |       6.33 |      19.14 |       3.22 |
+ 1000x1000 |      31.71 |       6.31 |      28.56 |      25.40 |
+ 5000x5000 |    1966.58 |     935.69 |    1362.20 |    1237.79 |
+
+Benchmark with threshold = 0.7
+
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+--------------------------------------------------------------------------------
+   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
+   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
+   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
+  100x150  |       0.00 |       0.00 |       2.77 |       0.00 |
+  200x200  |       1.05 |       1.64 |       0.00 |       0.40 |
+  550x500  |      90.49 |       2.44 |      21.58 |       4.85 |
+ 1000x1000 |      45.58 |      16.26 |      22.33 |      19.27 |
+ 5000x5000 |    2217.60 |    1013.12 |    1153.75 |    1155.17 |
+
+Benchmark with threshold = 0.9
+
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+--------------------------------------------------------------------------------
+   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
+   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
+   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
+  100x150  |       0.00 |       3.20 |       0.00 |       0.00 |
+  200x200  |       1.27 |       1.13 |       0.00 |       0.00 |
+  550x500  |      86.16 |       6.30 |      25.31 |       5.63 |
+ 1000x1000 |      27.84 |      16.01 |      21.96 |      23.30 |
+ 5000x5000 |    2120.86 |     981.26 |    1137.83 |    1059.29 |
+```
+
+</details>
