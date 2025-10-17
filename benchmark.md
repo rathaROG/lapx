@@ -637,73 +637,77 @@ As shown in the results below, the new function [`lapjvx`](https://github.com/ra
 <details><summary>Show the results:</summary>
 
 ```
+Microsoft Windows [Version 10.0.26200.6899]
+(c) Microsoft Corporation. All rights reserved.
 
 D:\DEV\new\tmp\lapx\.github\test>python benchmark_tracking.py
 
-Benchmark with threshold = 1000000.0
+# Benchmark with threshold (cost_limit) = 1000000.0
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
 --------------------------------------------------------------------------------
-   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
-   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
-   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
-  100x150  |       1.24 |       0.00 |       0.00 |       0.00 |
-  200x200  |       0.40 |       0.00 |       0.40 |       1.20 |
-  550x500  |      82.12 |      12.70 |      19.04 |       9.17 |
- 1000x1000 |      38.46 |      16.29 |      19.74 |      21.00 |
- 5000x5000 |    1997.13 |     934.24 |    1157.93 |    1042.41 |
+   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
+   25x25   |     0.00ms |     0.00ms |     0.20ms |     0.00ms | -
+   50x50   |     0.20ms |     0.00ms |     0.00ms |     0.00ms | -
+  100x150  |     0.40ms |     0.00ms |     0.89ms |     0.08ms | -
+  200x200  |     1.20ms |     0.40ms |     0.68ms |     0.61ms | -
+  550x500  |    94.35ms |     6.86ms |    22.80ms |     3.84ms | -
+ 1000x1000 |    35.04ms |    16.17ms |    26.89ms |    24.25ms | -
+ 5000x5000 |  1396.36ms |   600.57ms |  1219.04ms |   999.22ms | -
 
-Benchmark with threshold = 0.1
+# Benchmark with threshold (cost_limit) = 0.1
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
 --------------------------------------------------------------------------------
-   10x10   |       0.00 |       0.00 |       0.00 |       0.00 | JV
-   25x25   |       0.00 |       0.00 |       0.00 |       0.00 | JV
-   50x50   |       0.00 |       0.00 |       0.00 |       0.00 | JV
-  100x150  |       0.40 |       0.00 |       0.00 |       0.00 |
-  200x200  |       0.40 |       0.00 |       0.00 |       0.00 |
-  550x500  |      55.14 |      12.69 |      15.86 |       5.39 |
- 1000x1000 |      30.38 |      12.63 |      31.84 |      27.74 |
- 5000x5000 |    2552.10 |    1110.07 |    1330.09 |    1143.90 |
+   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
+   25x25   |     0.00ms |     0.00ms |     0.00ms |     0.20ms | JV
+   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
+  100x150  |     0.61ms |     0.20ms |     0.80ms |     0.00ms | -
+  200x200  |     1.23ms |     0.40ms |     0.73ms |     0.20ms | -
+  550x500  |    60.28ms |     6.83ms |    20.19ms |     3.73ms | -
+ 1000x1000 |    29.94ms |    15.74ms |    27.60ms |    24.97ms | -
+ 5000x5000 |  1604.68ms |   747.57ms |  1396.55ms |  1179.87ms | -
 
-Benchmark with threshold = 0.5
+# Benchmark with threshold (cost_limit) = 0.5
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
 --------------------------------------------------------------------------------
-   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
-   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
-   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
-  100x150  |       0.85 |       0.00 |       1.08 |       0.00 |
-  200x200  |       3.18 |       0.00 |       0.00 |       0.00 |
-  550x500  |      94.82 |       6.33 |      19.14 |       3.22 |
- 1000x1000 |      31.71 |       6.31 |      28.56 |      25.40 |
- 5000x5000 |    1966.58 |     935.69 |    1362.20 |    1237.79 |
+   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
+   25x25   |     0.00ms |     0.00ms |     0.20ms |     0.00ms | -
+   50x50   |     0.00ms |     0.00ms |     0.20ms |     0.20ms | -
+  100x150  |     0.60ms |     0.00ms |     0.80ms |     0.43ms | -
+  200x200  |     0.69ms |     0.97ms |     0.50ms |     0.76ms | -
+  550x500  |    95.65ms |     6.99ms |    20.57ms |     3.72ms | -
+ 1000x1000 |    36.31ms |    17.40ms |    25.91ms |    23.94ms | -
+ 5000x5000 |  2059.24ms |   949.81ms |  1319.86ms |  1035.32ms | -
 
-Benchmark with threshold = 0.7
+# Benchmark with threshold (cost_limit) = 0.7
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
 --------------------------------------------------------------------------------
-   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
-   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
-   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
-  100x150  |       0.00 |       0.00 |       2.77 |       0.00 |
-  200x200  |       1.05 |       1.64 |       0.00 |       0.40 |
-  550x500  |      90.49 |       2.44 |      21.58 |       4.85 |
- 1000x1000 |      45.58 |      16.26 |      22.33 |      19.27 |
- 5000x5000 |    2217.60 |    1013.12 |    1153.75 |    1155.17 |
+   10x10   |     0.00ms |     0.20ms |     0.00ms |     0.00ms | -
+   25x25   |     0.20ms |     0.00ms |     0.00ms |     0.00ms | -
+   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
+  100x150  |     0.30ms |     0.20ms |     0.80ms |     0.40ms | -
+  200x200  |     0.80ms |     0.20ms |     1.20ms |     0.83ms | -
+  550x500  |    94.60ms |     6.61ms |    18.70ms |     2.90ms | -
+ 1000x1000 |    40.26ms |    18.22ms |    27.11ms |    24.45ms | -
+ 5000x5000 |  1714.89ms |   805.16ms |  1217.87ms |  1200.52ms | -
 
-Benchmark with threshold = 0.9
+# Benchmark with threshold (cost_limit) = 0.9
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      Scipy | Diff From Scipy
+      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
 --------------------------------------------------------------------------------
-   10x10   |       0.00 |       0.00 |       0.00 |       0.00 |
-   25x25   |       0.00 |       0.00 |       0.00 |       0.00 |
-   50x50   |       0.00 |       0.00 |       0.00 |       0.00 |
-  100x150  |       0.00 |       3.20 |       0.00 |       0.00 |
-  200x200  |       1.27 |       1.13 |       0.00 |       0.00 |
-  550x500  |      86.16 |       6.30 |      25.31 |       5.63 |
- 1000x1000 |      27.84 |      16.01 |      21.96 |      23.30 |
- 5000x5000 |    2120.86 |     981.26 |    1137.83 |    1059.29 |
+   10x10   |     0.00ms |     0.00ms |     1.16ms |     0.00ms | -
+   25x25   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
+   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.20ms | -
+  100x150  |     0.80ms |     0.20ms |     0.70ms |     0.00ms | -
+  200x200  |     1.12ms |     0.60ms |     0.61ms |     0.80ms | -
+  550x500  |    96.03ms |     5.57ms |    24.35ms |     4.16ms | -
+ 1000x1000 |    43.43ms |    20.97ms |    28.05ms |    23.46ms | -
+ 5000x5000 |  2023.39ms |   927.44ms |  1183.65ms |  1076.82ms | -
+
+D:\DEV\new\tmp\lapx\.github\test>
 ```
 
 </details>
