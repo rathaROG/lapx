@@ -15,7 +15,7 @@
 
 # Linear Assignment Problem Solver
 
-`lapx` is an enhanced Tomas Kazmar's [`gatagat/lap`](https://github.com/gatagat/lap) **`lapjv()`** with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
+`lapx` is an enhanced version of Tomas Kazmar's [`lap`](https://github.com/gatagat/lap), featuring the core **`lapjv()`** function along with three additional functions — **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`** — introduced in [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0).
 
 <details><summary>Read more</summary><br>
 
@@ -86,7 +86,7 @@ total_cost, x, y = lap.lapjv(np.random.rand(4, 5), extend_cost=True, return_cost
 assignments = np.array([[y[i],i] for i in x if i >= 0])
 ```
 
-For detailed documentation of **common parameters**, see the docstring in [`lap/__init__.py`](lap/__init__.py).
+For detailed documentation of **common parameters**, see the docstring in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
 
 <details><summary>Need more explanation?</summary>
 
@@ -165,8 +165,8 @@ assignments = np.array(list(zip(row_indices, col_indices)))
 
 ## 🏆 Quick Benchmark
 
-To run a quick benchmark or see some interesting results, please check [benchmark.md](benchmark.md).
+To run a quick benchmark or see some interesting results, please check [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md).
 
 ## 📝 License
 
-Please refer to [NOTICE](NOTICE) & [LICENSE](LICENSE).
+Please refer to [NOTICE](https://github.com/rathaROG/lapx/blob/main/NOTICE) & [LICENSE](https://github.com/rathaROG/lapx/blob/main/LICENSE).
