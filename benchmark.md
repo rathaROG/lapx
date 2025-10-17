@@ -632,7 +632,7 @@ cd lapx/.github/test
 python benchmark_tracking.py
 ```
 
-As shown in the results below, the new function [`lapjvx`](https://github.com/rathaROG/lapx#2-the-new-function-laplapjvxc) (LAPX JVX in the benchmark) consistently produces the same outputs as the baseline SciPy (See the column: Diff From Scipy) compared to the baseline SciPy, it also outperforms the old [`lapjv`](https://github.com/rathaROG/lapx#1-the-original-function-laplapjvc) and even SciPy in most cases. To achieve the best performance with `lapjvx`, follow [the implementation in the benchmark_tracking.py script](https://github.com/rathaROG/lapx/blob/5ba6813881f23cd30e0482fa554ab0b76327102c/.github/test/benchmark_tracking.py#L30).
+As shown in the results below, the new function [`lapjvx`](https://github.com/rathaROG/lapx#2-the-new-function-laplapjvxc) (LAPX JVX in the benchmark) consistently produces the same outputs as the baseline SciPy (See the column: Diff From Scipy), and it also outperforms the old [`lapjv`](https://github.com/rathaROG/lapx#1-the-original-function-laplapjvc) and even SciPy in most cases. To achieve the best performance with `lapjvx`, follow [the implementation in the benchmark_tracking.py script](https://github.com/rathaROG/lapx/blob/5ba6813881f23cd30e0482fa554ab0b76327102c/.github/test/benchmark_tracking.py#L30).
 
 <details><summary>Show the results:</summary>
 
