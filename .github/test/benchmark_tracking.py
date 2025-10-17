@@ -99,7 +99,7 @@ def benchmark(sizes, thresh=1e6, repeats=3):
                     diff_names.add(name)
             print(f"  {n}x{m} repeat {i+1}/{r} done...", end="\r")
         diff_names_str = ", ".join(sorted(diff_names)) if diff_names else "-"
-        print(f"{n:>5}x{m:<4} | {t_jv/r:>9.2f}s | {t_jvx/r:>9.2f}s | {t_jvc/r:>9.2f}s | {t_sp/r:>9.2f}s | {diff_names_str}")
+        print(f"{n:>5}x{m:<4} | {t_jv/r:>8.2f}ms | {t_jvx/r:>8.2f}ms | {t_jvc/r:>8.2f}ms | {t_sp/r:>8.2f}ms | {diff_names_str}")
 
 
 if __name__ == "__main__":
