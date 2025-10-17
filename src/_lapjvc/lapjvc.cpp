@@ -39,8 +39,8 @@ Example:
     [(0, 2), (1, 1), (2, 0)]
 
 Notes:
-    - This is the classic O(n³) dense Jonker-Volgenant algorithm, ideal for small to moderately sized dense matrices.
-    - For large, sparse, or rectangular problems, consider lapjv() for better performance.
+    - This is the classic O(n³) dense Jonker-Volgenant algorithm, ideal for only square cost matrices.
+    - For large, sparse, or rectangular problems, consider lapjv() or lapjvx() for better performance.
     - Forbidden assignments can be specified with np.nan (float types).
 
 References:
