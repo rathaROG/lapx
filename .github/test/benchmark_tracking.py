@@ -34,10 +34,14 @@ Notes
   compared to the post-filter approach.
 """
 
+import sys
 import timeit
 import lap
 import numpy as np
 import scipy.optimize
+
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 def _decorate_return(n_rows, n_cols, matches):
     """
