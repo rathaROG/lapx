@@ -118,7 +118,7 @@ y = [np.where(x == j)[0][0] for j in range(M)]
 
 ### 2. The new function ``lapjvx()``
 
-This function `lapjvx()` basically is `lapjv()`, but it matches the return style of [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html). In some specific applications like Object Tracking, `lapjvx()` can outperform `lapjv()` and even SciPy — See [details here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
+This function `lapjvx()` basically is `lapjv()`, but it matches the return style of [`scipy.optimize.linear_sum_assignment()`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html). You can see how it compares to others in the Object Tracking benchmark [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
 
 ```python
 import numpy as np, lap
@@ -132,7 +132,7 @@ assignments = np.array(list(zip(row_indices, col_indices)))
 
 ### 3. The new function ``lapjvxa()``
 
-This function `lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is designed for applications where the `cost_limit` parameter is not important.
+This function `lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is intended for applications that only need the final assignments and do not require control over the `cost_limit` parameter.
 
 ```python
 import numpy as np, lap
