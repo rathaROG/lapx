@@ -632,7 +632,11 @@ cd lapx/.github/test
 python benchmark_tracking.py
 ```
 
-As shown in the results below, the new function [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx) (LAPX JVX in the benchmark) consistently produces the same outputs as the baseline SciPy (See the column: Diff From Scipy), and it also outperforms the old [`lapjv()`](https://github.com/rathaROG/lapx#1-the-original-function-lapjv) and even SciPy in most cases. To achieve the best performance with `lapjvx()`, follow [the implementation in the benchmark_tracking.py script](https://github.com/rathaROG/lapx/blob/d736c9f5258905605d3ead5ce77a829698607ad6/.github/test/benchmark_tracking.py#L32).
+As shown in the updated benchmark results below, the new function [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx) (LAPX LAPJVX in the tables) and the original [`lapjv()`](https://github.com/rathaROG/lapx#1-the-original-function-lapjv) (LAPX LAPJV in the tables) consistently matches the baseline outputs of SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html), as indicated by “✓” and ✅ in the tables.
+
+In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than the baseline SciPy's `linear_sum_assignment`, and they remain competitive with other LAPX variants such as [`lapjvc`](https://github.com/rathaROG/lapx#4-the-new-function-lapjvc) (LAPX LAPJVC in the tables). When in-function filtering with `cost_limit` is used, `lapjv()` (LAPX LAPJV-IFT in the tables) experiences a significant performance impact and can produce different outputs compared to SciPy's baseline, as indicated by “✗” and ⚠️ in the tables.
+
+To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) script.
 
 <details><summary>Show the results:</summary>
 
@@ -640,74 +644,154 @@ As shown in the results below, the new function [`lapjvx()`](https://github.com/
 Microsoft Windows [Version 10.0.26200.6899]
 (c) Microsoft Corporation. All rights reserved.
 
-D:\DEV\new\tmp\lapx\.github\test>python benchmark_tracking.py
+D:\DEV\temp\lapx\.github\test>python benchmark_tracking.py
 
-# Benchmark with threshold (cost_limit) = 1000000.0
+#################################################################
+# Benchmark with threshold (cost_limit) = 0.05
+#################################################################
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
---------------------------------------------------------------------------------
-   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
-   25x25   |     0.00ms |     0.00ms |     0.20ms |     0.00ms | -
-   50x50   |     0.20ms |     0.00ms |     0.00ms |     0.00ms | -
-  100x150  |     0.40ms |     0.00ms |     0.89ms |     0.08ms | -
-  200x200  |     1.20ms |     0.40ms |     0.68ms |     0.61ms | -
-  550x500  |    94.35ms |     6.86ms |    22.80ms |     3.84ms | -
- 1000x1000 |    35.04ms |    16.17ms |    26.89ms |    24.25ms | -
- 5000x5000 |  1396.36ms |   600.57ms |  1219.04ms |   999.22ms | -
+-----------------------------------------------------------------------------------------------------
+Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC
+-----------------------------------------------------------------------------------------------------
+10x10     | 0.000153s 5th  | 0.000148s ✗ 4th | 0.000056s ✓ 1st | 0.000132s ✓ 3rd | 0.000084s ✓ 2nd
+25x20     | 0.000071s 5th  | 0.000064s ✗ 4th | 0.000057s ✓ 2nd | 0.000057s ✓ 1st | 0.000061s ✓ 3rd
+50x50     | 0.000159s 5th  | 0.000106s ✗ 3rd | 0.000075s ✓ 1st | 0.000082s ✓ 2nd | 0.000109s ✓ 4th
+100x150   | 0.000190s 3rd  | 0.000574s ✗ 4th | 0.000132s ✓ 1st | 0.000149s ✓ 2nd | 0.000747s ✓ 5th
+250x250   | 0.001269s 4th  | 0.001361s ✗ 5th | 0.000542s ✓ 2nd | 0.000519s ✓ 1st | 0.001181s ✓ 3rd
+550x500   | 0.003452s 1st  | 0.028483s ✓ 5th | 0.006140s ✓ 3rd | 0.005663s ✓ 2nd | 0.021576s ✓ 4th
+1000x1000 | 0.024557s 4th  | 0.023403s ✓ 3rd | 0.008724s ✓ 1st | 0.013036s ✓ 2nd | 0.026147s ✓ 5th
+2000x2500 | 0.037717s 3rd  | 1.823954s ✓ 5th | 0.016659s ✓ 2nd | 0.016489s ✓ 1st | 1.580175s ✓ 4th
+5000x5000 | 1.047033s 3rd  | 1.628817s ✓ 5th | 0.736356s ✓ 1st | 0.766828s ✓ 2nd | 1.349702s ✓ 4th
+-----------------------------------------------------------------------------------------------------
 
+Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
+
+ 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉
+     1. LAPX LAPJV     :   768.7409 ms | ✅ | 🥇x5 🥈x3 🥉x1
+     2. LAPX LAPJVX    :   802.9538 ms | ✅ | 🥇x3 🥈x5 🥉x1
+     3. BASELINE SciPy :  1114.6007 ms | ⭐ | 🥇x1 🥉x3 🚩x2 🏳️x3
+     4. LAPX LAPJVC    :  2979.7809 ms | ✅ | 🥈x1 🥉x2 🚩x4 🏳️x2
+     5. LAPX LAPJV-IFT :  3506.9110 ms | ⚠️ | 🥉x2 🚩x3 🏳️x4
+ 🎉 ------------------------------------------------------------------- 🎉
+
+
+#################################################################
 # Benchmark with threshold (cost_limit) = 0.1
+#################################################################
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
---------------------------------------------------------------------------------
-   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
-   25x25   |     0.00ms |     0.00ms |     0.00ms |     0.20ms | JV
-   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
-  100x150  |     0.61ms |     0.20ms |     0.80ms |     0.00ms | -
-  200x200  |     1.23ms |     0.40ms |     0.73ms |     0.20ms | -
-  550x500  |    60.28ms |     6.83ms |    20.19ms |     3.73ms | -
- 1000x1000 |    29.94ms |    15.74ms |    27.60ms |    24.97ms | -
- 5000x5000 |  1604.68ms |   747.57ms |  1396.55ms |  1179.87ms | -
+-----------------------------------------------------------------------------------------------------
+Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC
+-----------------------------------------------------------------------------------------------------
+10x10     | 0.000116s 5th  | 0.000042s ✓ 1st | 0.000048s ✓ 3rd | 0.000045s ✓ 2nd | 0.000060s ✓ 4th
+25x20     | 0.000052s 1st  | 0.000056s ✗ 3rd | 0.000056s ✓ 4th | 0.000054s ✓ 2nd | 0.000062s ✓ 5th
+50x50     | 0.000105s 5th  | 0.000104s ✗ 4th | 0.000070s ✓ 1st | 0.000072s ✓ 2nd | 0.000091s ✓ 3rd
+100x150   | 0.000169s 3rd  | 0.000882s ✓ 5th | 0.000168s ✓ 1st | 0.000168s ✓ 2nd | 0.000690s ✓ 4th
+250x250   | 0.001306s 1st  | 0.007618s ✓ 5th | 0.002725s ✓ 3rd | 0.002842s ✓ 4th | 0.001719s ✓ 2nd
+550x500   | 0.003593s 1st  | 0.054599s ✓ 5th | 0.006124s ✓ 2nd | 0.006191s ✓ 3rd | 0.023443s ✓ 4th
+1000x1000 | 0.026108s 3rd  | 0.029221s ✓ 4th | 0.010913s ✓ 1st | 0.011607s ✓ 2nd | 0.031362s ✓ 5th
+2000x2500 | 0.041879s 3rd  | 1.971637s ✓ 5th | 0.016502s ✓ 1st | 0.017959s ✓ 2nd | 1.622495s ✓ 4th
+5000x5000 | 1.197406s 3rd  | 1.463887s ✓ 5th | 0.642493s ✓ 2nd | 0.638527s ✓ 1st | 1.317815s ✓ 4th
+-----------------------------------------------------------------------------------------------------
 
+Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
+
+ 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉
+     1. LAPX LAPJVX    :   677.4637 ms | ✅ | 🥇x1 🥈x6 🥉x1 🚩x1
+     2. LAPX LAPJV     :   679.1001 ms | ✅ | 🥇x4 🥈x2 🥉x2 🚩x1
+     3. BASELINE SciPy :  1270.7361 ms | ⭐ | 🥇x3 🥉x4 🏳️x2
+     4. LAPX LAPJVC    :  2997.7366 ms | ✅ | 🥈x1 🥉x1 🚩x5 🏳️x2
+     5. LAPX LAPJV-IFT :  3528.0464 ms | ⚠️ | 🥇x1 🥉x1 🚩x2 🏳️x5
+ 🎉 ------------------------------------------------------------------- 🎉
+
+
+#################################################################
 # Benchmark with threshold (cost_limit) = 0.5
+#################################################################
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
---------------------------------------------------------------------------------
-   10x10   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | JV
-   25x25   |     0.00ms |     0.00ms |     0.20ms |     0.00ms | -
-   50x50   |     0.00ms |     0.00ms |     0.20ms |     0.20ms | -
-  100x150  |     0.60ms |     0.00ms |     0.80ms |     0.43ms | -
-  200x200  |     0.69ms |     0.97ms |     0.50ms |     0.76ms | -
-  550x500  |    95.65ms |     6.99ms |    20.57ms |     3.72ms | -
- 1000x1000 |    36.31ms |    17.40ms |    25.91ms |    23.94ms | -
- 5000x5000 |  2059.24ms |   949.81ms |  1319.86ms |  1035.32ms | -
+-----------------------------------------------------------------------------------------------------
+Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC
+-----------------------------------------------------------------------------------------------------
+10x10     | 0.000118s 5th  | 0.000049s ✓ 3rd | 0.000047s ✓ 2nd | 0.000045s ✓ 1st | 0.000058s ✓ 4th
+25x20     | 0.000054s 2nd  | 0.000064s ✓ 5th | 0.000058s ✓ 3rd | 0.000054s ✓ 1st | 0.000061s ✓ 4th
+50x50     | 0.000092s 3rd  | 0.000101s ✓ 4th | 0.000081s ✓ 2nd | 0.000078s ✓ 1st | 0.000102s ✓ 5th
+100x150   | 0.000195s 3rd  | 0.000710s ✓ 5th | 0.000157s ✓ 2nd | 0.000147s ✓ 1st | 0.000647s ✓ 4th
+250x250   | 0.001387s 4th  | 0.001640s ✓ 5th | 0.000840s ✓ 2nd | 0.000802s ✓ 1st | 0.001287s ✓ 3rd
+550x500   | 0.004195s 1st  | 0.095603s ✓ 5th | 0.006292s ✓ 3rd | 0.006094s ✓ 2nd | 0.022542s ✓ 4th
+1000x1000 | 0.024699s 3rd  | 0.037791s ✓ 5th | 0.017332s ✓ 1st | 0.017360s ✓ 2nd | 0.030512s ✓ 4th
+2000x2500 | 0.038131s 3rd  | 1.946517s ✓ 5th | 0.016853s ✓ 2nd | 0.016679s ✓ 1st | 1.694409s ✓ 4th
+5000x5000 | 1.132641s 3rd  | 1.679415s ✓ 5th | 0.771842s ✓ 2nd | 0.724689s ✓ 1st | 1.162723s ✓ 4th
+-----------------------------------------------------------------------------------------------------
 
-# Benchmark with threshold (cost_limit) = 0.7
+Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
---------------------------------------------------------------------------------
-   10x10   |     0.00ms |     0.20ms |     0.00ms |     0.00ms | -
-   25x25   |     0.20ms |     0.00ms |     0.00ms |     0.00ms | -
-   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
-  100x150  |     0.30ms |     0.20ms |     0.80ms |     0.40ms | -
-  200x200  |     0.80ms |     0.20ms |     1.20ms |     0.83ms | -
-  550x500  |    94.60ms |     6.61ms |    18.70ms |     2.90ms | -
- 1000x1000 |    40.26ms |    18.22ms |    27.11ms |    24.45ms | -
- 5000x5000 |  1714.89ms |   805.16ms |  1217.87ms |  1200.52ms | -
+ 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉
+     1. LAPX LAPJVX    :   765.9472 ms | ✅ | 🥇x7 🥈x2
+     2. LAPX LAPJV     :   813.5027 ms | ✅ | 🥇x1 🥈x6 🥉x2
+     3. BASELINE SciPy :  1201.5123 ms | ⭐ | 🥇x1 🥈x1 🥉x5 🚩x1 🏳️x1
+     4. LAPX LAPJVC    :  2912.3413 ms | ✅ | 🥉x1 🚩x7 🏳️x1
+     5. LAPX LAPJV-IFT :  3761.8895 ms | ✅ | 🥉x1 🚩x1 🏳️x7
+ 🎉 ------------------------------------------------------------------- 🎉
 
-# Benchmark with threshold (cost_limit) = 0.9
 
-      Size |    LAPX JV |   LAPX JVX |   LAPX JVC |      SciPy | Diff From SciPy
---------------------------------------------------------------------------------
-   10x10   |     0.00ms |     0.00ms |     1.16ms |     0.00ms | -
-   25x25   |     0.00ms |     0.00ms |     0.00ms |     0.00ms | -
-   50x50   |     0.00ms |     0.00ms |     0.00ms |     0.20ms | -
-  100x150  |     0.80ms |     0.20ms |     0.70ms |     0.00ms | -
-  200x200  |     1.12ms |     0.60ms |     0.61ms |     0.80ms | -
-  550x500  |    96.03ms |     5.57ms |    24.35ms |     4.16ms | -
- 1000x1000 |    43.43ms |    20.97ms |    28.05ms |    23.46ms | -
- 5000x5000 |  2023.39ms |   927.44ms |  1183.65ms |  1076.82ms | -
+#################################################################
+# Benchmark with threshold (cost_limit) = 1.0
+#################################################################
 
-D:\DEV\new\tmp\lapx\.github\test>
+-----------------------------------------------------------------------------------------------------
+Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC
+-----------------------------------------------------------------------------------------------------
+10x10     | 0.000121s 5th  | 0.000046s ✓ 1st | 0.000051s ✓ 3rd | 0.000049s ✓ 2nd | 0.000060s ✓ 4th
+25x20     | 0.000055s 1st  | 0.000073s ✓ 5th | 0.000058s ✓ 3rd | 0.000058s ✓ 2nd | 0.000072s ✓ 4th
+50x50     | 0.000104s 4th  | 0.000097s ✓ 3rd | 0.000076s ✓ 1st | 0.000088s ✓ 2nd | 0.000109s ✓ 5th
+100x150   | 0.000190s 3rd  | 0.000723s ✓ 5th | 0.000174s ✓ 2nd | 0.000153s ✓ 1st | 0.000708s ✓ 4th
+250x250   | 0.001418s 4th  | 0.001791s ✓ 5th | 0.000917s ✓ 2nd | 0.000879s ✓ 1st | 0.001381s ✓ 3rd
+550x500   | 0.004009s 1st  | 0.094516s ✓ 5th | 0.006915s ✓ 2nd | 0.007350s ✓ 3rd | 0.025237s ✓ 4th
+1000x1000 | 0.022408s 2nd  | 0.046482s ✓ 5th | 0.022091s ✓ 1st | 0.023886s ✓ 3rd | 0.030067s ✓ 4th
+2000x2500 | 0.038188s 3rd  | 1.932233s ✓ 5th | 0.017298s ✓ 1st | 0.019071s ✓ 2nd | 1.627810s ✓ 4th
+5000x5000 | 1.198616s 3rd  | 1.933270s ✓ 5th | 0.972903s ✓ 2nd | 0.925173s ✓ 1st | 1.355138s ✓ 4th
+-----------------------------------------------------------------------------------------------------
+
+Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
+
+ 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉
+     1. LAPX LAPJVX    :   976.7065 ms | ✅ | 🥇x3 🥈x4 🥉x2
+     2. LAPX LAPJV     :  1020.4816 ms | ✅ | 🥇x3 🥈x4 🥉x2
+     3. BASELINE SciPy :  1265.1097 ms | ⭐ | 🥇x2 🥈x1 🥉x3 🚩x2 🏳️x1
+     4. LAPX LAPJVC    :  3040.5820 ms | ✅ | 🥉x1 🚩x7 🏳️x1
+     5. LAPX LAPJV-IFT :  4009.2317 ms | ✅ | 🥇x1 🥉x1 🏳️x7
+ 🎉 ------------------------------------------------------------------- 🎉
+
+
+#################################################################
+# Benchmark with threshold (cost_limit) = 1000000000.0
+#################################################################
+
+-----------------------------------------------------------------------------------------------------
+Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC
+-----------------------------------------------------------------------------------------------------
+10x10     | 0.000121s 5th  | 0.000048s ✓ 1st | 0.000050s ✓ 3rd | 0.000049s ✓ 2nd | 0.000062s ✓ 4th
+25x20     | 0.000058s 1st  | 0.000086s ✓ 5th | 0.000063s ✓ 3rd | 0.000060s ✓ 2nd | 0.000072s ✓ 4th
+50x50     | 0.000102s 3rd  | 0.000120s ✓ 5th | 0.000085s ✓ 1st | 0.000088s ✓ 2nd | 0.000111s ✓ 4th
+100x150   | 0.000187s 3rd  | 0.000713s ✓ 4th | 0.000183s ✓ 2nd | 0.000154s ✓ 1st | 0.000719s ✓ 5th
+250x250   | 0.001286s 4th  | 0.001058s ✓ 3rd | 0.000481s ✓ 2nd | 0.000435s ✓ 1st | 0.001345s ✓ 5th
+550x500   | 0.004404s 1st  | 0.098839s ✓ 5th | 0.007206s ✓ 3rd | 0.006994s ✓ 2nd | 0.022169s ✓ 4th
+1000x1000 | 0.025491s 3rd  | 0.028937s ✓ 4th | 0.013111s ✓ 1st | 0.013985s ✓ 2nd | 0.030395s ✓ 5th
+2000x2500 | 0.039780s 3rd  | 1.999674s ✓ 5th | 0.018199s ✓ 1st | 0.020531s ✓ 2nd | 1.556668s ✓ 4th
+5000x5000 | 1.142951s 4th  | 1.586818s ✓ 5th | 0.720062s ✓ 1st | 0.723589s ✓ 2nd | 1.141216s ✓ 3rd
+-----------------------------------------------------------------------------------------------------
+
+Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
+
+ 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉
+     1. LAPX LAPJV     :   759.4403 ms | ✅ | 🥇x4 🥈x2 🥉x3
+     2. LAPX LAPJVX    :   765.8850 ms | ✅ | 🥇x2 🥈x7
+     3. BASELINE SciPy :  1214.3801 ms | ⭐ | 🥇x2 🥉x4 🚩x2 🏳️x1
+     4. LAPX LAPJVC    :  2752.7570 ms | ✅ | 🥉x1 🚩x5 🏳️x3
+     5. LAPX LAPJV-IFT :  3716.2938 ms | ✅ | 🥇x1 🥉x1 🚩x2 🏳️x5
+ 🎉 ------------------------------------------------------------------- 🎉
+
+
+D:\DEV\temp\lapx\.github\test>
 ```
 
 </details>
