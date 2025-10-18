@@ -638,6 +638,8 @@ In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than 
 
 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) script.
 
+(See more results on various platforms and architectures [here](https://github.com/rathaROG/lapx/actions/runs/18620330585))
+
 <details><summary>Show the results:</summary>
 
 ```
