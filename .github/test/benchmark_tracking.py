@@ -113,16 +113,16 @@ def lapx_jv_ift(cost_matrix, thresh):
     -------
     matches : ndarray, shape (k, 2), dtype=int
         Array of (row, col) matched index pairs after thresholding.
-    u_a : list of int
+    unmatched_rows : list of int
         List of unmatched row indices.
-    u_b : list of int
+    unmatched_cols : list of int
         List of unmatched column indices.
 
     Notes
     -----
     - In-solver filtering may trigger slower internal code paths depending on the
       solver implementation and options; expect different performance characteristics.
-    - We still normalize the solver output into the common (matches, u_a, u_b)
+    - We still normalize the solver output into the common (matches, unmatched_rows, unmatched_cols)
       format using :func:`_decorate_return` for consistency with other wrappers.
     """
     x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False)
@@ -151,9 +151,9 @@ def lapx_jv(cost_matrix, thresh):
     -------
     matches : ndarray, shape (k, 2), dtype=int
         Array of (row, col) matched index pairs after thresholding.
-    u_a : list of int
+    unmatched_rows : list of int
         List of unmatched row indices.
-    u_b : list of int
+    unmatched_cols : list of int
         List of unmatched column indices.
 
     Notes
@@ -184,9 +184,9 @@ def lapx_jvx(cost_matrix, thresh):
     -------
     matches : ndarray, shape (k, 2), dtype=int
         Array of (row, col) matched index pairs after thresholding.
-    u_a : list of int
+    unmatched_rows : list of int
         List of unmatched row indices.
-    u_b : list of int
+    unmatched_cols : list of int
         List of unmatched column indices.
 
     Notes
@@ -195,8 +195,8 @@ def lapx_jvx(cost_matrix, thresh):
       slower code paths. The benchmark uses post-filtering to measure the wrapper
       end-to-end performance consistently.
     """
-    x, y = lap.lapjvx(cost_matrix, extend_cost=True, return_cost=False)
-    matches = [[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh]
+    rids, cids = lap.lapjvx(cost_matrix, extend_cost=True, return_cost=False)
+    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -215,13 +215,13 @@ def lapx_jvc(cost_matrix, thresh):
     -------
     matches : ndarray, shape (k, 2), dtype=int
         Array of (row, col) matched index pairs after thresholding.
-    u_a : list of int
+    unmatched_rows : list of int
         List of unmatched row indices.
-    u_b : list of int
+    unmatched_cols : list of int
         List of unmatched column indices.
     """
-    x, y = lap.lapjvc(cost_matrix, return_cost=False)
-    matches = [[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh]
+    rids, cids = lap.lapjvc(cost_matrix, return_cost=False)
+    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -241,13 +241,13 @@ def scipy_lsa(cost_matrix, thresh):
     -------
     matches : ndarray, shape (k, 2), dtype=int
         Array of (row, col) matched index pairs after thresholding.
-    u_a : list of int
+    unmatched_rows : list of int
         List of unmatched row indices.
-    u_b : list of int
+    unmatched_cols : list of int
         List of unmatched column indices.
     """
-    x, y = scipy.optimize.linear_sum_assignment(cost_matrix)
-    matches = [[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh]
+    rids, cids = scipy.optimize.linear_sum_assignment(cost_matrix)
+    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 def compare_results_tabular(
