@@ -31,7 +31,7 @@ Notes
 - For details and benchmarks, see the official repo https://github.com/rathaROG/lapx .
 """
 
-__version__ = 'v0.7.0'
+__version__ = '0.7.0'
 
 from .lapmod import lapmod
 from ._lapjv import (
