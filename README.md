@@ -170,7 +170,7 @@ assignments = np.array(list(zip(row_indices, col_indices)))
 
 ### 5. The new function ``lapjvs()``
 
-`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or `(x, y)` mappings. See the docstring [here](https://github.com/rathaROG/lapx/blob/main/lap/lapjvs.py) for more details.
+`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or `(x, y)` mappings. See the [docstring here](https://github.com/rathaROG/lapx/blob/main/lap/lapjvs.py) for more details.
 
 ```python
 import numpy as np, lap
@@ -186,7 +186,7 @@ assignments = np.array(list(zip(row_indices, col_indices)))
 
 ### 6. The original function ``lapmod()``
 
-For see [the docstring](https://github.com/rathaROG/lapx/blob/8d56b42265a23c3b5a290b1039dacaac70dfe60d/lap/lapmod.py#L275) for details.
+For see the [docstring](https://github.com/rathaROG/lapx/blob/8d56b42265a23c3b5a290b1039dacaac70dfe60d/lap/lapmod.py#L275) for details.
 
 ```python
 import numpy as np, lap, time
