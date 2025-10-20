@@ -3,7 +3,7 @@
 from setuptools import Extension, setup, find_packages
 
 LICENSE = "MIT"
-DESCRIPTION = "Linear Assignment Problem solver (LAPJV/LAPMOD)."
+DESCRIPTION = "Linear assignment problem solvers"
 LONG_DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 PACKAGE_NAME = "lapx"
