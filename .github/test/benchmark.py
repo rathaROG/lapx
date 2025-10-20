@@ -7,6 +7,15 @@ from scipy.optimize import linear_sum_assignment
 sys.stdout.reconfigure(encoding='utf-8')
 
 
+def do_lapjvs(input, n_m=None):
+    start_time = timeit.default_timer()
+    ext_cost = input.shape[0] != input.shape[1]
+    x, y = lap.lapjvs(input, extend_cost=ext_cost, return_cost=False, jvx_like=True)
+    r = np.array(list(zip(x, y)))
+    if n_m is not None: r = filter_assignment(r, n_m)
+    t = timeit.default_timer() - start_time
+    return r, t
+
 def do_lapjvc(input, n_m=None):
     start_time = timeit.default_timer()
     x, y = lap.lapjvc(input, return_cost=False)
@@ -78,7 +87,7 @@ def compare_results(baseline, candidates, debug=False):
                 print(f" * {c[2]} : ✅ Passed 🐌 {round((c[1]/baseline[1]), 2)} x slower ")
         else:
             print(f" * {c[2]} : ❌ Failed!")
-    
+
     # print ranking by time
     ranking = sorted(candidates + [baseline], key=lambda x: x[1])
     print("\n ----- 🎉 SPEED RANKING 🎉 ----- ")
@@ -96,10 +105,12 @@ def test(n, m, debug=False):
     (r_c2, t_c2), n_c2 = do_lapjv(a), "lapjv"
     (r_c3, t_c3), n_c3 = do_lapjvx(a), "lapjvx"
     (r_c4, t_c4), n_c4 = do_lapjvxa(a), "lapjvxa"
+    (r_c5, t_c5), n_c5 = do_lapjvs(a), "lapjvs"
     compare_results(
         (r_b, t_b, n_b), 
         [(r_c1, t_c1, n_c1), (r_c2, t_c2, n_c2), 
-         (r_c3, t_c3, n_c3), (r_c4, t_c4, n_c4)], 
+         (r_c3, t_c3, n_c3), (r_c4, t_c4, n_c4),
+         (r_c5, t_c5, n_c5)], 
         debug=debug
     )
 
