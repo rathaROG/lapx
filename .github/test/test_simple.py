@@ -15,3 +15,6 @@ print(lap.lapjvxa(cost_matrix, extend_cost=True, return_cost=True))
 
 print("\n---------- lap.lapjvc() ----------\n")
 print(lap.lapjvc(cost_matrix, return_cost=True))
+
+print("\n---------- lap.lapjvs() ----------\n")
+print(lap.lapjvs(cost_matrix, extend_cost=True, return_cost=True))
