@@ -1,13 +1,14 @@
 # Copyright (c) 2025 Ratha SIV | MIT License
 
 import numpy as np
+from typing import Optional, Tuple
 
 from ._lapjvs import lapjvs as _lapjvs_raw
 
 
 def lapjvs(
     cost: np.ndarray,
-    extend_cost: bool | None = None,
+    extend_cost: Optional[bool] = None,
     return_cost: bool = True,
     jvx_like: bool = True,
     prefer_float32: bool = False,
@@ -23,7 +24,7 @@ def lapjvs(
     ----------
     cost : np.ndarray
         Cost matrix of shape (n, m). dtype should be a floating type.
-    extend_cost : bool | None
+    extend_cost : Optional[bool]
         If True, treat rectangular inputs by extending (zero-padding) to square.
         If False, require square input.
         If None (default), auto-detect: extend if n != m.
@@ -65,7 +66,7 @@ def lapjvs(
     n, m = a.shape
     extend = (n != m) if (extend_cost is None) else bool(extend_cost)
 
-    def _rows_cols_from_x(x_vec: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _rows_cols_from_x(x_vec: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if x_vec.size == 0:
             return np.empty((0,), dtype=np.int64), np.empty((0,), dtype=np.int64)
         mask = x_vec >= 0
