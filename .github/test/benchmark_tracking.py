@@ -200,6 +200,37 @@ def lapx_jvx(cost_matrix, thresh):
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
+def lapx_jvs(cost_matrix, thresh):
+    """
+    Run :func:`lap.lapjvs` (LAPX JVS) and post-filter assignments by cost threshold.
+
+    Parameters
+    ----------
+    cost_matrix : ndarray, shape (n_rows, n_cols)
+        Cost matrix for assignment.
+    thresh : float
+        Cost threshold. Matches with cost > thresh will be discarded.
+
+    Returns
+    -------
+    matches : ndarray, shape (k, 2), dtype=int
+        Array of (row, col) matched index pairs after thresholding.
+    unmatched_rows : list of int
+        List of unmatched row indices.
+    unmatched_cols : list of int
+        List of unmatched column indices.
+
+    Notes
+    -----
+    - Passing ``cost_limit`` and/or ``return_cost=True`` into ``lapjvs`` may trigger
+      slower code paths. The benchmark uses post-filtering to measure the wrapper
+      end-to-end performance consistently.
+    """
+    rids, cids = lap.lapjvs(cost_matrix, extend_cost=True, return_cost=False)
+    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
+
+
 def lapx_jvc(cost_matrix, thresh):
     """
     Run :func:`lap.lapjvc` (LAPX JVC) and post-filter assignments by cost threshold.
@@ -280,7 +311,7 @@ def compare_results_tabular(
     all_methods = [baseline] + candidates
     times = [x[3] for x in all_methods]
     idx_sorted = sorted(range(len(times)), key=lambda i: times[i])
-    positions = ["1st", "2nd", "3rd", "4th", "5th"]
+    positions = ["1st", "2nd", "3rd", "4th", "5th", "6th"]
     position_by_idx = {i: positions[j] for j, i in enumerate(idx_sorted)}
 
     # Build row: test size, baseline (time+rank+remark), candidates (time+rank+remark)
@@ -312,7 +343,7 @@ def print_overall_ranking(header, all_results, position_records):
     sorted_idx = sorted(range(method_count), key=lambda i: total_times[i])
 
     # Map rank index to emoji
-    pos_map = {0: "🥇", 1: "🥈", 2: "🥉", 3: "🚩", 4: "🏳️"}
+    pos_map = {0: "🥇", 1: "🥈", 2: "🥉", 3: "🚩", 4: "🏳️", 5: "🥴"}
     # Compose emoji summary per method
     emoji_summaries = []
     for idx in range(method_count):
@@ -335,13 +366,13 @@ def print_overall_ranking(header, all_results, position_records):
         emoji_summaries.append((summary_str, extra))
 
     # Compose output lines
-    print("\n 🎉 ------------------------  OVERALL RANKING  ------------------------ 🎉 ")
+    print("\n 🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 ")
     for rank, idx in enumerate(sorted_idx, 1):
         name = method_names[idx]
         ms = total_times[idx] * 1000
         medals, extra = emoji_summaries[idx]
         print(f"     {rank}. {name:<15}: {ms:10.4f} ms | {extra} | {medals}")
-    print(" 🎉 ------------------------------------------------------------------- 🎉 \n")
+    print(" 🎉 ------------------------------------------------------------------------- 🎉 \n")
 
 
 def benchmark_tabular(sizes, thresh=1e6, debug=False):
@@ -357,6 +388,7 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False):
         "LAPX LAPJV",
         "LAPX LAPJVX",
         "LAPX LAPJVC",
+        "LAPX LAPJVS",
     ]
     # For summary: accumulate times and remarks per method
     all_results = [
@@ -365,6 +397,7 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False):
         {"times": [], "remarks": []},  # LAPX LAPJV
         {"times": [], "remarks": []},  # LAPX LAPJVX
         {"times": [], "remarks": []},  # LAPX LAPJVC
+        {"times": [], "remarks": []},  # LAPX LAPJVS
     ]
     # For overall medal/flag counts per method
     position_records = [[] for _ in range(len(header) - 1)]
@@ -398,11 +431,17 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False):
         m_jvx, u_a_jvx, u_b_jvx = lapx_jvx(a, thresh)
         t_jvx = timeit.default_timer() - start
 
+        # lapjvs
+        start = timeit.default_timer()
+        m_jvs, u_a_jvs, u_b_jvs = lapx_jvs(a, thresh)
+        t_jvs = timeit.default_timer() - start
+
         candidates = [
             (m_jv_ift, u_a_jv_ift, u_b_jv_ift, t_jv_ift, "LAPX LAPJV-IFT"),
             (m_jv, u_a_jv, u_b_jv, t_jv, "LAPX LAPJV"),
             (m_jvx, u_a_jvx, u_b_jvx, t_jvx, "LAPX LAPJVX"),
             (m_jvc, u_a_jvc, u_b_jvc, t_jvc, "LAPX LAPJVC"),
+            (m_jvs, u_a_jvs, u_b_jvs, t_jvs, "LAPX LAPJVS"),
         ]
 
         compare_results_tabular((n, m), baseline, candidates, table_rows, all_results)
