@@ -27,11 +27,13 @@ def include_pybind11():
 
 def main_setup():
     import os
+    import sys
     from Cython.Build import cythonize
 
     # Source directories
     SRC_DIR_JV = os.path.join('src', '_lapjv')
     SRC_DIR_JVC = os.path.join('src', '_lapjvc')
+    SRC_DIR_JVS = os.path.join('src', '_lapjvs')
 
     # Source files for lapjv/lapmod
     lapjvcpp = os.path.join(SRC_DIR_JV, 'lapjv.cpp')
@@ -44,13 +46,23 @@ def main_setup():
     # Source file for lapjvc
     lapjvccpp = os.path.join(SRC_DIR_JVC, 'lapjvc.cpp')
 
+    # Source file for lapjvs
+    lapjvscpp = os.path.join(SRC_DIR_JVS, 'lapjvs.cpp')
+
+    # C++ standard on different platforms
+    if sys.platform == "win32":
+        # extra_compile_args = ["/std:c++17"]
+        extra_compile_args = ["/std:c++latest"]
+    else:
+        extra_compile_args = ["-std=c++17"]
+
     # Extension for lapjv/lapmod
     ext_jv = Extension(
         name='lap._lapjv',
         sources=[_lapjvpyx, lapjvcpp, lapmodcpp],
         include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
         language='c++',
-        extra_compile_args=['-std=c++17'],
+        extra_compile_args=extra_compile_args,
     )
 
     # Extension for lapjvx/lapjvxa
@@ -59,7 +71,7 @@ def main_setup():
         sources=[_lapjvxpyx, lapjvcpp],
         include_dirs=[include_numpy(), SRC_DIR_JV, PACKAGE_PATH],
         language='c++',
-        extra_compile_args=['-std=c++17'],
+        extra_compile_args=extra_compile_args,
     )
 
     # Extension for lapjvc
@@ -68,10 +80,19 @@ def main_setup():
         sources=[lapjvccpp],
         include_dirs=[include_pybind11(), SRC_DIR_JVC, PACKAGE_PATH],
         language='c++',
-        extra_compile_args=['-std=c++17'],
+        extra_compile_args=extra_compile_args,
     )
 
-    ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc]
+    # Extension for lapjvs
+    ext_jvs = Extension(
+        name='lap._lapjvs',
+        sources=[lapjvscpp],
+        include_dirs=[include_numpy(), SRC_DIR_JVS, PACKAGE_PATH],
+        language='c++',
+        extra_compile_args=extra_compile_args,
+    )
+
+    ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc, ext_jvs]
 
     setup(
         name=PACKAGE_NAME,
@@ -83,11 +104,12 @@ def main_setup():
         url="https://github.com/rathaROG/lapx",
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
-        keywords=['Linear Assignment Problem Solver', 'LAP solver', 
-                  'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD', 
-                  'lap', 'lapx', 'lapjvx', 'lapjvxa', 'lapjvc'],
+        keywords=['Linear Assignment Problem Solver', 'LAP solver',
+                  'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD',
+                  'lap', 'lapx', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs'],
         packages=find_packages(include=[PACKAGE_PATH, f"{PACKAGE_PATH}.*"]),
         include_package_data=True,
+        package_data={'lap': ['default_autotune.json']},
         install_requires=['numpy>=1.21.6',],
         python_requires=">=3.7",
         classifiers=['Development Status :: 4 - Beta',
@@ -110,7 +132,7 @@ def main_setup():
                      'Topic :: Scientific/Engineering :: Mathematics',
                      'Topic :: Software Development',
                      'Topic :: Software Development :: Libraries',
-                     'Operating System :: Microsoft :: Windows',                                  
+                     'Operating System :: Microsoft :: Windows',
                      'Operating System :: POSIX',
                      'Operating System :: Unix',
                      'Operating System :: MacOS',],
@@ -119,11 +141,11 @@ def main_setup():
 
 if __name__ == "__main__":
     """
-    Recommend using :py:mod:`build` to build the package as it does not 
+    Recommend using :py:mod:`build` to build the package as it does not
     disrupt your current environment.
 
     >>> pip install wheel build
     >>> python -m build --sdist
     >>> python -m build --wheel
-    """ 
+    """
     main_setup()

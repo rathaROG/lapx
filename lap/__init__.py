@@ -1,13 +1,7 @@
 # Copyright (c) 2025 Ratha SIV | MIT License
 
-"""LAPX
-
-A linear assignment problem solver using the Jonker-Volgenant
-algorithm, providing:
-
-- Sparse (lapmod)
-- Enhanced dense (lapjv, lapjvx, lapjvxa)
-- Classic dense (lapjvc)
+"""
+LAPX — Jonker-Volgenant (JV) linear assignment solvers.
 
 Common Parameters for lapjv, lapjvx, lapjvxa
 --------------------------------------------
@@ -21,45 +15,25 @@ cost_limit : float, optional
 return_cost : bool, optional
     Whether or not to return the assignment cost.
 
-Assignment API Overview
------------------------
+Provided solvers
+----------------
+- lapmod   : Sparse assignment solver (for sparse cost matrices) by Tomas Kazmar's lap.
+- lapjv    : JV assignment solver by Tomas Kazmar's lap; returns JV-style mappings (x, y).
+- lapjvx   : Enhanced lapjv by lapx; returns with SciPy-like outputs (rows, cols).
+- lapjvxa  : Convenience wrapper of lapjvx by lapx; returns (K, 2) assignment pairs.
+- lapjvc   : Classic JV variant by Christoph Heindl's lapsolver; returns (rows, cols).
+- lapjvs   : Enhanced Vadim Markovtsev's lapjv by lapx; supports; returns either style.
 
-There are *multiple interfaces* for dense assignment problems:
-
-lapmod
-    Find optimal (minimum-cost) assignment for a sparse cost matrix.
-
-lapjv
-    Enhanced Jonker-Volgenant for dense cost matrices.
-    **Returns:** (x, y) or (cost, x, y)
-    - `x[i]`: assigned column for row i (or -1 if unassigned).
-    - `y[j]`: assigned row for column j (or -1 if unassigned).
-    - Not in parallel assignment format—**do not use** `list(zip(x, y))` directly!
-
-lapjvx
-    Enhanced Jonker-Volgenant with practical output.
-    **Returns:** (cost, row_indices, col_indices) or (row_indices, col_indices)
-    - Parallel arrays: row_indices[i] assigned to col_indices[i].
-    - Matches the output style of ``scipy.optimize.linear_sum_assignment`` and ``lapjvc``.
-
-lapjvxa
-    Enhanced Jonker-Volgenant with assignment array output.
-    **Returns:** (cost, assignments) or (assignments)
-    - `assignments`: array of shape (K, 2), each row is (row_index, col_index).
-    - Most convenient for direct iteration or indexing.
-
-lapjvc
-    Classic Jonker-Volgenant for dense cost matrices.
-    **Returns:** (cost, row_indices, col_indices) or (row_indices, col_indices)
-    - `row_indices` and `col_indices` are parallel arrays: row_indices[i] assigned to col_indices[i].
-    - You can do: `assignments = np.array(list(zip(row_indices, col_indices)))`
-
+Notes
+-----
+- All solvers in lapx handle both square and rectangular cost matrices.
+- Output formats may differ by solvers and input parameters.
+- For details and benchmarks, see the official repo https://github.com/rathaROG/lapx .
 """
 
-__version__ = '0.6.2'
+__version__ = 'v0.7.0'
 
 from .lapmod import lapmod
-
 from ._lapjv import (
     lapjv,
     LARGE_ as LARGE,
@@ -67,12 +41,11 @@ from ._lapjv import (
     FP_2_ as FP_2,
     FP_DYNAMIC_ as FP_DYNAMIC
 )
-
 from ._lapjvx import (
     lapjvx,
     lapjvxa
 )
-
 from ._lapjvc import lapjvc
+from .lapjvs import lapjvs
 
-__all__ = ['lapmod', 'lapjv', 'lapjvx', 'lapjvxa', 'lapjvc', 'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE']
+__all__ = ['lapmod', 'lapjv', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE']

@@ -3,7 +3,7 @@ NOTICE
 This product includes software developed by Ratha SIV, licensed under the 
 MIT License. 
 
-Portions of the software are derived from two other projects as follows:
+Portions of the software are derived from three other projects as follows:
 
 ---
 
@@ -33,6 +33,20 @@ Portions of the software are derived from two other projects as follows:
     and retain their MIT License.
 
     See `src/_lapjvc/LICENSE` for more details.
+
+---
+
+3. Project: lajv
+
+    - Author: Vadim Markovtsev (source{d})
+    - License: MIT License
+    - URL: https://github.com/src-d/lapjv
+    - Copyright (c) 2016 Vadim Markovtsev (source{d})
+
+    All source files under `src/_lapjvs/` are derived from the original project 
+    and retain their MIT License.
+
+    See `src/_lapjvs/LICENSE` for more details.
 
 ---
 
