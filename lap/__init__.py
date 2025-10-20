@@ -22,7 +22,7 @@ Provided solvers
 - lapjvx   : Enhanced lapjv by lapx; returns with SciPy-like outputs (rows, cols).
 - lapjvxa  : Convenience wrapper of lapjvx by lapx; returns (K, 2) assignment pairs.
 - lapjvc   : Classic JV variant by Christoph Heindl's lapsolver; returns (rows, cols).
-- lapjvs   : Enhanced Vadim Markovtsev's lapjv by lapx; supports; returns either style.
+- lapjvs   : Enhanced Vadim Markovtsev's lapjv by lapx; returns either style.
 
 Notes
 -----
