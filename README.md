@@ -18,11 +18,11 @@
 
 `lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap), but has since evolved to offer much more.  
 
-`lapx` features the original **`lapjv()`** and **`lapmod()`** functions, and since **v0.6.0**, `lapx` has introduced three additional assignment solvers:  
+`lapx` features the original **`lapjv()`** and **`lapmod()`** functions, and since [**v0.6.0**](https://github.com/rathaROG/lapx/releases/tag/v0.6.0), `lapx` has introduced three additional assignment solvers:  
 - **`lapjvx()`** and **`lapjvxa()`** — enhanced versions of [`lap.lapjv()`](https://github.com/gatagat/lap) with more flexible output formats  
 - **`lapjvc()`** — an enhanced version of Christoph Heindl’s [`lapsolver.solve_dense()`](https://github.com/cheind/py-lapsolver) with unified output formats
 
-`lapx` **v0.7.0** has introduced a new function: **`lapjvs()`** — an enhanced version of Vadim Markovtsev’s [`lapjv`](https://github.com/src-d/lapjv), supporting both rectangular and square cost matrices, with flexible output styles.
+`lapx` [**v0.7.0**](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) has introduced a new function: **`lapjvs()`** — an enhanced version of Vadim Markovtsev’s [`lapjv`](https://github.com/src-d/lapjv), supporting both rectangular and square cost matrices, with flexible output styles.
 
 <details><summary>Read more</summary><br>
 
