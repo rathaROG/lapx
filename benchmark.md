@@ -616,7 +616,7 @@ Test (5000, 7500)
 
 ### 🔍 See more results
 
-See more benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
+See newer benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
 
 ## 🕵️‍♂️ Other Benchmarks
 
@@ -625,7 +625,7 @@ See more benchmark results on all platforms [here on GitHub](https://github.com/
 This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline in the benchmark.
 
 ```
-pip install "lapx>=0.6.0"
+pip install "lapx>=0.7.0"
 pip install scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/.github/test
