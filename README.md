@@ -22,7 +22,7 @@
 - **`lapjvx()`** and **`lapjvxa()`** — enhanced versions of [`lap.lapjv()`](https://github.com/gatagat/lap) with more flexible output formats  
 - **`lapjvc()`** — an enhanced version of Christoph Heindl’s [`lapsolver.solve_dense()`](https://github.com/cheind/py-lapsolver) with unified output formats
 
-`lapx` [**v0.7.0**](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) has introduced a new function: **`lapjvs()`** — an enhanced version of Vadim Markovtsev’s [`lapjv`](https://github.com/src-d/lapjv), supporting both rectangular and square cost matrices, with flexible output styles.
+`lapx` [**v0.7.0**](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) has introduced a new function: **`lapjvs()`** — an enhanced version of Vadim Markovtsev’s [`lapjv()`](https://github.com/src-d/lapjv), supporting both rectangular and square cost matrices, with flexible output styles.
 
 <details><summary>Read more</summary><br>
 
