@@ -36,7 +36,7 @@ Portions of the software are derived from three other projects as follows:
 
 ---
 
-3. Project: lajv
+3. Project: lapjv
 
     - Author: Vadim Markovtsev (source{d})
     - License: MIT License
@@ -51,4 +51,5 @@ Portions of the software are derived from three other projects as follows:
 ---
 
 For a full list of contributors of the project:
+
 https://github.com/rathaROG/lapx/graphs/contributors
