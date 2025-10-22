@@ -3,7 +3,8 @@
 import numpy as np
 from typing import Optional, Tuple
 
-from ._lapjvs import lapjvs as _lapjvs_raw
+from ._lapjvs import lapjvs_native as _lapjvs_native
+from ._lapjvs import lapjvs_float32 as _lapjvs_float32
 
 
 def lapjvs(
@@ -11,7 +12,7 @@ def lapjvs(
     extend_cost: Optional[bool] = None,
     return_cost: bool = True,
     jvx_like: bool = True,
-    prefer_float32: bool = False,
+    prefer_float32: bool = True,
 ):
     """
     Solve the Linear Assignment Problem using the 'lapjvs' algorithm.
@@ -38,33 +39,31 @@ def lapjvs(
           - return_cost=True  -> (total_cost, row_indices, col_indices)
           - return_cost=False -> (row_indices, col_indices)
 
-    Returns
-    -------
-    One of:
-      - (cost, x, y)                   if return_cost and not jvx_like
-      - (x, y)                         if not return_cost and not jvx_like
-      - (cost, row_indices, col_indices) if return_cost and jvx_like
-      - (row_indices, col_indices)     if not return_cost and jvx_like
-
-      Where:
-        - x: np.ndarray shape (n,), dtype=int. x[r] is assigned column for row r, or -1.
-        - y: np.ndarray shape (m,), dtype=int. y[c] is assigned row for column c, or -1.
-        - row_indices, col_indices: 1D int arrays of equal length K, listing matched (row, col) pairs.
-
     Notes
     -----
-    - For square inputs without extension, this wraps the raw C function directly and adapts outputs.
+    - The solver kernel may run in float32 (when prefer_float32=True) or native float64,
+      but the returned total cost is always recomputed from the ORIGINAL input array
+      to preserve previous numeric behavior and parity with lapjv/lapjvx.
     - For rectangular inputs, zero-padding exactly models the rectangular LAP.
     """
+    # Keep the original array to compute the final cost from it (preserves previous behavior)
     a = np.asarray(cost)
     if a.ndim != 2:
         raise ValueError("cost must be a 2D array")
 
-    if prefer_float32 and a.dtype != np.float32:
-        a = a.astype(np.float32, copy=False)
-
     n, m = a.shape
     extend = (n != m) if (extend_cost is None) else bool(extend_cost)
+
+    # Choose backend and working dtype for the solver only (ensure contiguity to avoid hidden copies)
+    use_float32_kernel = not ((prefer_float32 is False) and (a.dtype == np.float64))
+    if use_float32_kernel:
+        # Run float32 kernel (casting as needed)
+        _kernel = _lapjvs_float32
+        work = np.ascontiguousarray(a, dtype=np.float32)
+    else:
+        # Run native kernel on float64 inputs
+        _kernel = _lapjvs_native
+        work = np.ascontiguousarray(a, dtype=np.float64)
 
     def _rows_cols_from_x(x_vec: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if x_vec.size == 0:
@@ -75,9 +74,11 @@ def lapjvs(
         return rows.astype(np.int64, copy=False), cols.astype(np.int64, copy=False)
 
     if not extend:
-        total_raw, x_raw, y_raw = _lapjvs_raw(a)
-        x_raw = np.asarray(x_raw, dtype=np.int64)
-        y_raw = np.asarray(y_raw, dtype=np.int64)
+        # Square: call solver directly on chosen dtype, but compute total from ORIGINAL array
+        x_raw_obj, y_raw_obj = _kernel(work)
+
+        # Convert only what's needed; y conversion deferred if not used
+        x_raw = np.asarray(x_raw_obj, dtype=np.int64)
 
         if jvx_like:
             rows, cols = _rows_cols_from_x(x_raw)
@@ -87,25 +88,24 @@ def lapjvs(
             else:
                 return rows, cols
         else:
+            y_raw = np.asarray(y_raw_obj, dtype=np.int64)
             if return_cost:
                 total = float(a[np.arange(n), x_raw].sum()) if n > 0 else 0.0
                 return total, x_raw, y_raw
             else:
                 return x_raw, y_raw
 
-    # Rectangular: zero-pad to square, solve, then trim back
+    # Rectangular: zero-pad to square, solve, then trim back; compute total from ORIGINAL array
     size = max(n, m)
-    padded = np.empty((size, size), dtype=a.dtype)
-    padded[:n, :m] = a
+    padded = np.empty((size, size), dtype=work.dtype)
+    padded[:n, :m] = work
     if m < size:
         padded[:n, m:] = 0
     if n < size:
         padded[n:, :] = 0
 
-    total_pad, x_pad, y_pad = _lapjvs_raw(padded)
-    x_pad = np.asarray(x_pad, dtype=np.int64)
-    y_pad = np.asarray(y_pad, dtype=np.int64)
-
+    x_pad_obj, y_pad_obj = _kernel(padded)
+    x_pad = np.asarray(x_pad_obj, dtype=np.int64)
     cols_pad_n = x_pad[:n]
 
     if jvx_like:
@@ -121,34 +121,18 @@ def lapjvs(
 
         return (total, rows, cols) if return_cost else (rows, cols)
 
-    # lapjv-like outputs
-    tiny_threshold = 32
-    if max(n, m) <= tiny_threshold:
-        x_out = np.full(n, -1, dtype=np.int64)
-        for r in range(n):
-            c = int(cols_pad_n[r])
-            if 0 <= c < m:
-                x_out[r] = c
+    # lapjv-like outputs (vectorized)
+    x_out = np.full(n, -1, dtype=np.int64)
+    mask_r = (cols_pad_n >= 0) & (cols_pad_n < m)
+    if mask_r.any():
+        x_out[mask_r] = cols_pad_n[mask_r]
 
-        y_out = np.full(m, -1, dtype=np.int64)
-        rows_pad_m = y_pad[:m]
-        for c in range(m):
-            r = int(rows_pad_m[c])
-            if 0 <= r < n:
-                y_out[c] = r
-    else:
-        x_out = np.full(n, -1, dtype=np.int64)
-        mask_r = (cols_pad_n >= 0) & (cols_pad_n < m)
-        if mask_r.any():
-            r_idx = np.nonzero(mask_r)[0]
-            x_out[r_idx] = cols_pad_n[mask_r]
-
-        y_out = np.full(m, -1, dtype=np.int64)
-        rows_pad_m = y_pad[:m]
-        mask_c = (rows_pad_m >= 0) & (rows_pad_m < n)
-        if mask_c.any():
-            c_idx = np.nonzero(mask_c)[0]
-            y_out[c_idx] = rows_pad_m[mask_c]
+    y_pad = np.asarray(y_pad_obj, dtype=np.int64)
+    rows_pad_m = y_pad[:m]
+    y_out = np.full(m, -1, dtype=np.int64)
+    mask_c = (rows_pad_m >= 0) & (rows_pad_m < n)
+    if mask_c.any():
+        y_out[mask_c] = rows_pad_m[mask_c]
 
     if return_cost and n > 0 and m > 0:
         mask = (x_out >= 0)

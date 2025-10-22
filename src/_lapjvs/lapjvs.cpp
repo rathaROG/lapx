@@ -7,14 +7,22 @@
 
 static char module_docstring[] =
     "This module wraps LAPJVS - Jonker-Volgenant linear sum assignment algorithm (Scalar-only, no AVX2/SIMD).";
-static char lapjvs_docstring[] =
-    "Solves the linear sum assignment problem (Scalar-only).";
+static char lapjvs_native_docstring[] =
+    "Solves the linear sum assignment problem following the input dtype (float32 or float64). Returns (row_ind, col_ind).";
+static char lapjvs_float32_docstring[] =
+    "Solves the linear sum assignment problem in float32 (casts inputs if needed). Returns (row_ind, col_ind).";
 
-static PyObject *py_lapjvs(PyObject *self, PyObject *args, PyObject *kwargs);
+static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs);
+static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs);
 
 static PyMethodDef module_functions[] = {
-  {"lapjvs", reinterpret_cast<PyCFunction>(py_lapjvs),
-   METH_VARARGS | METH_KEYWORDS, lapjvs_docstring},
+  // Keep a friendly alias: lapjvs follows native dtype by default
+  {"lapjvs", reinterpret_cast<PyCFunction>(py_lapjvs_native),
+   METH_VARARGS | METH_KEYWORDS, lapjvs_native_docstring},
+  {"lapjvs_native", reinterpret_cast<PyCFunction>(py_lapjvs_native),
+   METH_VARARGS | METH_KEYWORDS, lapjvs_native_docstring},
+  {"lapjvs_float32", reinterpret_cast<PyCFunction>(py_lapjvs_float32),
+   METH_VARARGS | METH_KEYWORDS, lapjvs_float32_docstring},
   {NULL, NULL, 0, NULL}
 };
 
@@ -60,52 +68,46 @@ using pyobj = _pyobj<PyObject>;
 using pyarray = _pyobj<PyArrayObject>;
 
 template <typename F>
-static always_inline double call_lap(int dim, const void *restrict cost_matrix,
-                                     bool verbose,
-                                     int *restrict row_ind, int *restrict col_ind,
-                                     void *restrict u, void *restrict v) {
-  double lapcost;
+static always_inline void call_lap(int dim, const void *restrict cost_matrix,
+                                   bool verbose,
+                                   int *restrict row_ind, int *restrict col_ind,
+                                   void *restrict v) {
   Py_BEGIN_ALLOW_THREADS
   auto cost_matrix_typed = reinterpret_cast<const F*>(cost_matrix);
-  auto u_typed = reinterpret_cast<F*>(u);
   auto v_typed = reinterpret_cast<F*>(v);
   if (verbose) {
-    lapcost = lapjvs<true>(dim, cost_matrix_typed, row_ind, col_ind, u_typed, v_typed);
+    lapjvs<true>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
   } else {
-    lapcost = lapjvs<false>(dim, cost_matrix_typed, row_ind, col_ind, u_typed, v_typed);
+    lapjvs<false>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
   }
   Py_END_ALLOW_THREADS
-  return lapcost;
 }
 
-static PyObject *py_lapjvs(PyObject *self, PyObject *args, PyObject *kwargs) {
+// Native dtype entry point: lapjvs_native(cost_matrix, verbose=False)
+// - Accepts only float32 or float64 without casting; errors otherwise.
+// - Dispatches to float or double kernel based on the input dtype.
+// - Returns (row_ind, col_ind).
+static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs) {
   PyObject *cost_matrix_obj;
   int verbose = 0;
-  int force_doubles = 0;
-  int return_original = 0;
-  static const char *kwlist[] = {
-      "cost_matrix", "verbose", "force_doubles", "return_original", NULL};
+  static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
   if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "O|pbb", const_cast<char**>(kwlist),
-      &cost_matrix_obj, &verbose, &force_doubles, &return_original)) {
+      args, kwargs, "O|p", const_cast<char**>(kwlist),
+      &cost_matrix_obj, &verbose)) {
     return NULL;
   }
 
-  // Restore fast default: process as float32 unless force_doubles is set.
-  pyarray cost_matrix_array;
-  bool float32 = true;
-  cost_matrix_array.reset(PyArray_FROM_OTF(
-      cost_matrix_obj, NPY_FLOAT32,
-      NPY_ARRAY_IN_ARRAY | (force_doubles ? 0 : NPY_ARRAY_FORCECAST)));
+  // Ensure array view; do not cast dtype.
+  pyarray cost_matrix_array(PyArray_FROM_OTF(
+      cost_matrix_obj, NPY_NOTYPE, NPY_ARRAY_IN_ARRAY));
   if (!cost_matrix_array) {
-    PyErr_Clear();
-    float32 = false;
-    cost_matrix_array.reset(PyArray_FROM_OTF(
-        cost_matrix_obj, NPY_FLOAT64, NPY_ARRAY_IN_ARRAY));
-    if (!cost_matrix_array) {
-      PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a numpy array of float32 or float64 dtype");
-      return NULL;
-    }
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a numpy array");
+    return NULL;
+  }
+  int typ = PyArray_TYPE(cost_matrix_array.get());
+  if (typ != NPY_FLOAT32 && typ != NPY_FLOAT64) {
+    PyErr_SetString(PyExc_TypeError, "\"cost_matrix\" must be float32 or float64 for lapjvs_native()");
+    return NULL;
   }
 
   auto ndims = PyArray_NDIM(cost_matrix_array.get());
@@ -132,35 +134,64 @@ static PyObject *py_lapjvs(PyObject *self, PyObject *args, PyObject *kwargs) {
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
-  double lapcost;
-
-  if (return_original) {
-    // Allocate NumPy arrays for u, v only if they are returned.
-    pyarray u_array(PyArray_SimpleNew(
-        1, ret_dims, float32? NPY_FLOAT32 : NPY_FLOAT64));
-    pyarray v_array(PyArray_SimpleNew(
-        1, ret_dims, float32? NPY_FLOAT32 : NPY_FLOAT64));
-    auto u = PyArray_DATA(u_array.get());
-    auto v = PyArray_DATA(v_array.get());
-    if (float32) {
-      lapcost = call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, u, v);
-    } else {
-      lapcost = call_lap<double>(dim, cost_matrix, verbose, row_ind, col_ind, u, v);
-    }
-    return Py_BuildValue("(OO(dOO))",
-                         row_ind_array.get(), col_ind_array.get(), lapcost,
-                         u_array.get(), v_array.get());
+  if (typ == NPY_FLOAT32) {
+    std::unique_ptr<float[]> v(new float[dim]);
+    call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
   } else {
-    // Temporary heap buffers for u, v to avoid NumPy allocation overhead.
-    if (float32) {
-      std::unique_ptr<float[]> u(new float[dim]);
-      std::unique_ptr<float[]> v(new float[dim]);
-      lapcost = call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, u.get(), v.get());
-    } else {
-      std::unique_ptr<double[]> u(new double[dim]);
-      std::unique_ptr<double[]> v(new double[dim]);
-      lapcost = call_lap<double>(dim, cost_matrix, verbose, row_ind, col_ind, u.get(), v.get());
-    }
-    return Py_BuildValue("(dOO)", lapcost, row_ind_array.get(), col_ind_array.get());
+    std::unique_ptr<double[]> v(new double[dim]);
+    call_lap<double>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
   }
+
+  return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
+}
+
+// Float32 entry point: lapjvs_float32(cost_matrix, verbose=False)
+// - Casts to float32 if needed, but avoids a copy when already float32.
+// - Returns (row_ind, col_ind).
+static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs) {
+  PyObject *cost_matrix_obj;
+  int verbose = 0;
+  static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+      args, kwargs, "O|p", const_cast<char**>(kwlist),
+      &cost_matrix_obj, &verbose)) {
+    return NULL;
+  }
+
+  // Allow casting to float32, avoid copy if dtype already matches.
+  pyarray cost_matrix_array(PyArray_FROM_OTF(
+      cost_matrix_obj, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST));
+  if (!cost_matrix_array) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be convertible to float32");
+    return NULL;
+  }
+
+  auto ndims = PyArray_NDIM(cost_matrix_array.get());
+  if (ndims != 2) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
+    return NULL;
+  }
+  auto dims = PyArray_DIMS(cost_matrix_array.get());
+  if (dims[0] != dims[1]) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
+    return NULL;
+  }
+  int dim = static_cast<int>(dims[0]);
+  if (dim <= 0) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is invalid or too large");
+    return NULL;
+  }
+
+  auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
+
+  npy_intp ret_dims[] = {dim, 0};
+  pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
+  auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
+
+  std::unique_ptr<float[]> v(new float[dim]);
+  call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
+
+  return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
 }

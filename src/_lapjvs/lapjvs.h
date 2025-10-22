@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <limits>
 #include <memory>
+#include <vector>
 
 #ifdef __GNUC__
 #define always_inline __attribute__((always_inline)) inline
@@ -55,16 +56,25 @@ find_umins(
 /// @param verbose in indicates whether to report the progress to stdout
 /// @param rowsol out column assigned to row in solution / size dim
 /// @param colsol out row assigned to column in solution / size dim
-/// @param u out dual variables, row reduction numbers / size dim
-/// @param v out dual variables, column reduction numbers / size dim
-/// @return achieved minimum assignment cost
+/// @param v inout dual variables, column reduction numbers / size dim
 template <bool verbose, typename idx, typename cost>
-cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol, 
-    idx *restrict colsol, cost *restrict u, cost *restrict v) {
-  auto collist = std::make_unique<idx[]>(dim);  // list of columns to be scanned in various ways.
-  auto matches = std::make_unique<idx[]>(dim);  // counts how many times a row could be assigned.
-  auto d = std::make_unique<cost[]>(dim);       // 'cost-distance' in augmenting path calculation.
-  auto pred = std::make_unique<idx[]>(dim);     // row-predecessor of column in augmenting/alternating path.
+void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol, 
+    idx *restrict colsol, cost *restrict v) {
+  // Reuse per-thread buffers to avoid per-call allocations
+  static thread_local std::vector<idx> collist_vec;
+  static thread_local std::vector<idx> matches_vec;
+  static thread_local std::vector<idx> pred_vec;
+  static thread_local std::vector<cost> d_vec;
+
+  if ((int)collist_vec.size() < dim) collist_vec.resize(dim);
+  if ((int)matches_vec.size() < dim) matches_vec.resize(dim);
+  if ((int)pred_vec.size() < dim) pred_vec.resize(dim);
+  if ((int)d_vec.size() < dim) d_vec.resize(dim);
+
+  idx *restrict collist = collist_vec.data();  // list of columns to be scanned.
+  idx *restrict matches = matches_vec.data();  // counts how many times a row could be assigned.
+  cost *restrict d = d_vec.data();             // 'cost-distance' in augmenting path calculation.
+  idx *restrict pred = pred_vec.data();        // row-predecessor of column in augmenting/alternating path.
 
   // init how many times a row will be assigned in the column reduction.
   for (idx i = 0; i < dim; i++) {
@@ -86,7 +96,7 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
     v[j] = min;
 
     if (++matches[imin] == 1) {
-      // init assignment if minimum row assigned for first time.
+      // init assignment if minimum row assigned for the first time.
       rowsol[imin] = j;
       colsol[j] = imin;
     } else {
@@ -98,20 +108,19 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   }
 
   // REDUCTION TRANSFER
-  auto free = matches.get();  // list of unassigned rows.
+  idx *restrict free_rows = matches;  // list of unassigned rows (reuse matches' storage).
   idx numfree = 0;
   for (idx i = 0; i < dim; i++) {
     const cost *local_cost = &assign_cost[i * dim];
     if (matches[i] == 0) {  // fill list of unassigned 'free' rows.
-      free[numfree++] = i;
-    } else if (matches[i] == 1) {  // transfer reduction from rows that are assigned once.
+      free_rows[numfree++] = i;
+    } else if (matches[i] == 1) {  // transfer reduction from rows assigned once.
       idx j1 = rowsol[i];
       cost min = std::numeric_limits<cost>::max();
       for (idx j = 0; j < dim; j++) {
         if (j != j1) {
-          if (local_cost[j] - v[j] < min) {
-            min = local_cost[j] - v[j];
-          }
+          cost cand = local_cost[j] - v[j];
+          if (cand < min) min = cand;
         }
       }
       v[j1] = v[j1] - min;
@@ -127,7 +136,7 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
     idx prevnumfree = numfree;
     numfree = 0;  // start list of rows still free after augmenting row reduction.
     while (k < prevnumfree) {
-      idx i = free[k++];
+      idx i = free_rows[k++];
 
       // find minimum and second minimum reduced cost over columns.
       cost umin, usubmin;
@@ -149,9 +158,9 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
 
       if (i0 >= 0) {
         if (vj1_lowers) {
-          free[--k] = i0;
+          free_rows[--k] = i0;
         } else {
-          free[numfree++] = i0;
+          free_rows[numfree++] = i0;
         }
       }
     }
@@ -163,7 +172,7 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   // AUGMENT SOLUTION for each free row.
   for (idx f = 0; f < numfree; f++) {
     idx endofpath;
-    idx freerow = free[f];  // start row of augmenting path.
+    idx freerow = free_rows[f];  // start row of augmenting path.
     if (verbose) {
       printf("lapjvs: AUGMENT SOLUTION row %d [%d / %d]\n",
              freerow, f + 1, numfree);
@@ -253,17 +262,6 @@ cost lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
     printf("lapjvs: AUGMENT SOLUTION finished\n");
   }
 
-  // calculate optimal cost.
-  cost lapcost = 0;
-  for (idx i = 0; i < dim; i++) {
-    const cost *local_cost = &assign_cost[i * dim];
-    idx j = rowsol[i];
-    u[i] = local_cost[j] - v[j];
-    lapcost += local_cost[j];
-  }
-  if (verbose) {
-    printf("lapjvs: optimal cost calculated\n");
-  }
-
-  return lapcost;
+  // Final cost and row duals (u) are not computed here anymore, since the Python
+  // wrapper recomputes the total cost from the original input for numeric parity.
 }
