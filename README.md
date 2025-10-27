@@ -43,25 +43,28 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 pip install lapx
 ```
 
-| **Pre-built Wheels** 🛞 | **Windows** ✅ | **Linux** ✅ | **macOS** ✅ |
+<details><summary>🛞 Pre-built wheel support</summary>
+
+| Python | **Windows** ✅ | **Linux** ✅ | **macOS** ✅ |
 |:---:|:---:|:---:|:---:|
-| Python 3.7 | AMD64 | x86_64/aarch64 | x86_64 |
-| Python 3.8 | AMD64 | x86_64/aarch64 | x86_64/arm64 |
-| Python 3.9-3.14 ¹ | AMD64/ARM64 ² | x86_64/aarch64 | x86_64/arm64 |
+| 3.7 | AMD64 | x86_64/aarch64 | x86_64 |
+| 3.8 | AMD64 | x86_64/aarch64 | x86_64/arm64 |
+| 3.9-3.14 ¹ | AMD64/ARM64 ² | x86_64/aarch64 | x86_64/arm64 |
 
 <sup>¹ ⚠️ Pre-built wheels for Python 3.13+ do not support free-threading. </sup><br>
 <sup>² ⚠️ Windows ARM64 is experimental. </sup><br>
 
+</details>
 
-<details><summary>Other options</summary>
+<details><summary>🛠️ Other installation options</summary>
 
-### Install from GitHub repo (Require C++ compiler):
+### Install from GitHub repo (Requires C++ compiler):
 
 ```
 pip install git+https://github.com/rathaROG/lapx.git
 ```
 
-### Build and install (Require C++ compiler):
+### Build and install (Requires C++ compiler):
 
 ```
 git clone https://github.com/rathaROG/lapx.git
