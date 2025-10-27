@@ -3,7 +3,7 @@
 from setuptools import Extension, setup, find_packages
 
 LICENSE = "MIT"
-DESCRIPTION = "Linear assignment problem solvers, including batch solvers with OpenMP."
+DESCRIPTION = "Linear assignment problem solvers, including single and batch solvers."
 LONG_DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 PACKAGE_NAME = "lapx"
