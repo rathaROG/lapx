@@ -10,6 +10,7 @@
 
 ---
 
+[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
 [![Test Simple](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml)
 [![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
 [![Test PyPI Build](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml)
@@ -35,6 +36,7 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 
 ### Install from [PyPI](https://pypi.org/project/lapx/):
 
+[![Wheels](https://img.shields.io/pypi/wheel/lapx)](https://pypi.org/project/lapx/)
 [![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/project/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/project/lapx)
@@ -307,4 +309,5 @@ To run a quick benchmark or see some interesting results, please check [benchmar
 
 ## 📝 License
 
-Please refer to [NOTICE](https://github.com/rathaROG/lapx/blob/main/NOTICE) & [LICENSE](https://github.com/rathaROG/lapx/blob/main/LICENSE).
+[![NOTICE](https://img.shields.io/badge/NOTICE-present-blue)](https://github.com/rathaROG/lapx/blob/main/NOTICE)
+[![License](https://img.shields.io/pypi/l/lapx.svg)](https://github.com/rathaROG/lapx/blob/main/LICENSE)
