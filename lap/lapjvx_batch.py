@@ -1,4 +1,5 @@
 # Copyright (c) 2025 Ratha SIV | MIT License
+
 import os
 import numpy as np
 from typing import List, Tuple, Union
@@ -114,3 +115,4 @@ def lapjvxa_batch(
     if return_cost:
         return np.asarray(totals, dtype=np.float64), pairs_list  # type: ignore
     return pairs_list
+
