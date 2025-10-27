@@ -17,12 +17,12 @@
 
 # Linear Assignment Problem Solvers
 
-[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more — including flexible output formats and support for both **single** and **batch** inputs, as well as **square** and **rectangular** cost matrices.
+[`lapx`](https://github.com/rathaROG/lapx) supports all Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
 
 
 <details><summary>Click to see highlight features ...</summary><br>
 
-It has been a long journey, and [`lapx`](https://github.com/rathaROG/lapx) has featured **`lapjv()`** and **`lapmod()`** — the original assignment solvers from Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) library including:
+[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more:
 
 Since [**v0.6.0**](https://github.com/rathaROG/lapx/releases/tag/v0.6.0): 
 - **`lapjvx()`** and **`lapjvxa()`** — enhanced versions of Tomas Kazmar's [`lap.lapjv()`](https://github.com/gatagat/lap) with more flexible output formats and no additional overhead.
