@@ -56,7 +56,7 @@ Notes
 - For details and benchmarks, see the official repo: https://github.com/rathaROG/lapx
 """
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 # Single-matrix solvers
 from .lapmod import lapmod
