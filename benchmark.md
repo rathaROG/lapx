@@ -1,6 +1,7 @@
 # 🏆 Quick Benchmark
 
-`lapx` focuses more on real-world applications, and the [benchmark.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark.py) is **not** 
+`lapx` focuses more on real-world applications, and the [benchmark_batch.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_batch.py) 
+and [benchmark.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark.py) are **not** 
 intended for scientific research or competitive evaluation. Instead, it provides a quick and accessible way for 
 you to run benchmark tests on your own machine. Below, you will also find a collection of interesting results 
 gathered from various major platforms and architectures.
@@ -14,616 +15,563 @@ pip install -U lapx
 pip install scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/.github/test
-python benchmark.py
 python benchmark_batch.py
+python benchmark.py
 ```
 
 Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark.
 
-### 📊 See some results
+📊 Some benchmark results using `lapx` [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) (2025/10/27):
 
-Using `lapx` [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) (2025/10/16):
-
-<details><summary>A quick benchmark on my local Windows AMD64 + Python 3.11:</summary>
+<details><summary>🗂️ Batch on my Windows 11 i9-13900KS (8 p-core + 8 e-core) + python 3.9.13:</summary>
 
 ```
-D:\DEV\new\tmp\lapx\.github\test>python benchmark.py
------------------------------------------
-Test (4, 5)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 2.91 x slower
- * lapjv : ✅ Passed 🐌 4.22 x slower
- * lapjvx : ✅ Passed 🐌 1.73 x slower
- * lapjvxa : ✅ Passed 🏆 1.48 x faster
+# 50 x (3000x3000) | n_threads = 24
 
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00000870s
-   2. scipy     : 0.00001290s
-   3. lapjvx    : 0.00002230s
-   4. lapjvc    : 0.00003750s
-   5. lapjv     : 0.00005450s
- -------------------------------
+  CPU lapx-batch-jvx     :  cost=82.08230873, time=1.40321970s
+  CPU lapx-batch-jvs     :  cost=82.08230873, time=0.80294538s
+  CPU lapx-batch-jvxa    :  cost=82.08230873, time=1.40610409s
+  CPU lapx-batch-jvsa    :  cost=82.08230873, time=0.81906796s
+  CPU lapx-batch-jvsa64  :  cost=82.08230873, time=1.42109323s
+  CPU lapx-loop-jvx      :  cost=82.08230873, time=11.01966000s
+  CPU lapx-loop-jvs      :  cost=82.08230873, time=8.18710470s
 
------------------------------------------
-Test (5, 5)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.24 x slower
- * lapjv : ✅ Passed 🏆 1.27 x faster
- * lapjvx : ✅ Passed 🐌 1.08 x slower
- * lapjvxa : ✅ Passed 🏆 2.2 x faster
+# 100 x (2000x2000) | n_threads = 24
 
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00000540s
-   2. lapjv     : 0.00000940s
-   3. scipy     : 0.00001190s
-   4. lapjvx    : 0.00001280s
-   5. lapjvc    : 0.00001480s
- -------------------------------
+  CPU lapx-batch-jvx     :  cost=164.54469568, time=0.81932855s
+  CPU lapx-batch-jvs     :  cost=164.54469568, time=0.58506370s
+  CPU lapx-batch-jvxa    :  cost=164.54469568, time=0.83581567s
+  CPU lapx-batch-jvsa    :  cost=164.54469568, time=0.59467125s
+  CPU lapx-batch-jvsa64  :  cost=164.54469568, time=0.88178015s
+  CPU lapx-loop-jvx      :  cost=164.54469568, time=7.68291450s
+  CPU lapx-loop-jvs      :  cost=164.54469568, time=6.44884777s
 
------------------------------------------
-Test (5, 6)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.94 x slower
- * lapjv : ✅ Passed 🐌 2.79 x slower
- * lapjvx : ✅ Passed 🐌 1.94 x slower
- * lapjvxa : ✅ Passed 🐌 1.23 x slower
+# 500 x (1000x2000) | n_threads = 24
 
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. scipy     : 0.00000520s
-   2. lapjvxa   : 0.00000640s
-   3. lapjvc    : 0.00001010s
-   4. lapjvx    : 0.00001010s
-   5. lapjv     : 0.00001450s
- -------------------------------
+  CPU lapx-batch-jvx     :  cost=291.25078928, time=0.91706204s
+  CPU lapx-batch-jvs     :  cost=291.25078928, time=0.79455686s
+  CPU lapx-batch-jvxa    :  cost=291.25078928, time=0.93096972s
+  CPU lapx-batch-jvsa    :  cost=291.25078928, time=0.79109597s
+  CPU lapx-batch-jvsa64  :  cost=291.25078928, time=1.23274732s
+  CPU lapx-loop-jvx      :  cost=291.25078928, time=5.47222424s
+  CPU lapx-loop-jvs      :  cost=291.25078928, time=5.73832059s
 
------------------------------------------
-Test (45, 50)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.73 x slower
- * lapjv : ✅ Passed 🐌 1.14 x slower
- * lapjvx : ✅ Passed 🏆 1.37 x faster
- * lapjvxa : ✅ Passed 🏆 2.68 x faster
+# 1000 x (1000x1000) | n_threads = 24
 
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00001480s
-   2. lapjvx    : 0.00002900s
-   3. scipy     : 0.00003960s
-   4. lapjv     : 0.00004500s
-   5. lapjvc    : 0.00006860s
- -------------------------------
-
------------------------------------------
-Test (50, 50)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.13 x slower
- * lapjv : ✅ Passed 🏆 1.21 x faster
- * lapjvx : ✅ Passed 🏆 1.15 x faster
- * lapjvxa : ✅ Passed 🏆 1.83 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00003420s
-   2. lapjv     : 0.00005180s
-   3. lapjvx    : 0.00005460s
-   4. scipy     : 0.00006260s
-   5. lapjvc    : 0.00007080s
- -------------------------------
-
------------------------------------------
-Test (50, 55)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.77 x slower
- * lapjv : ✅ Passed 🐌 1.18 x slower
- * lapjvx : ✅ Passed 🏆 1.32 x faster
- * lapjvxa : ✅ Passed 🏆 2.59 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00001860s
-   2. lapjvx    : 0.00003650s
-   3. scipy     : 0.00004810s
-   4. lapjv     : 0.00005670s
-   5. lapjvc    : 0.00008530s
- -------------------------------
-
------------------------------------------
-Test (450, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 4.87 x slower
- * lapjv : ✅ Passed 🏆 2.66 x faster
- * lapjvx : ✅ Passed 🏆 2.91 x faster
- * lapjvxa : ✅ Passed 🏆 3.25 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00070970s
-   2. lapjvx    : 0.00079410s
-   3. lapjv     : 0.00086630s
-   4. scipy     : 0.00230730s
-   5. lapjvc    : 0.01124800s
- -------------------------------
-
------------------------------------------
-Test (500, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.3 x slower
- * lapjv : ✅ Passed 🏆 3.18 x faster
- * lapjvx : ✅ Passed 🏆 3.76 x faster
- * lapjvxa : ✅ Passed 🏆 4.12 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00116460s
-   2. lapjvx    : 0.00127410s
-   3. lapjv     : 0.00150640s
-   4. scipy     : 0.00479300s
-   5. lapjvc    : 0.00623980s
- -------------------------------
-
------------------------------------------
-Test (500, 550)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 4.73 x slower
- * lapjv : ✅ Passed 🏆 2.63 x faster
- * lapjvx : ✅ Passed 🏆 2.79 x faster
- * lapjvxa : ✅ Passed 🏆 3.11 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.00092210s
-   2. lapjvx    : 0.00102750s
-   3. lapjv     : 0.00109070s
-   4. scipy     : 0.00286380s
-   5. lapjvc    : 0.01354680s
- -------------------------------
-
------------------------------------------
-Test (2500, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 188.14 x slower
- * lapjv : ✅ Passed 🐌 1.03 x slower
- * lapjvx : ✅ Passed 🐌 1.19 x slower
- * lapjvxa : ✅ Passed 🐌 1.05 x slower
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. scipy     : 0.05701800s
-   2. lapjv     : 0.05896500s
-   3. lapjvxa   : 0.05976270s
-   4. lapjvx    : 0.06800490s
-   5. lapjvc    : 10.72719050s
- -------------------------------
-
------------------------------------------
-Test (5000, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.1 x slower
- * lapjv : ✅ Passed 🏆 1.35 x faster
- * lapjvx : ✅ Passed 🏆 1.36 x faster
- * lapjvxa : ✅ Passed 🏆 1.44 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.76239620s
-   2. lapjvx    : 0.80476540s
-   3. lapjv     : 0.81221330s
-   4. scipy     : 1.09645880s
-   5. lapjvc    : 1.20319810s
- -------------------------------
-
------------------------------------------
-Test (5000, 7500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 218.31 x slower
- * lapjv : ✅ Passed 🏆 1.41 x faster
- * lapjvx : ✅ Passed 🏆 1.49 x faster
- * lapjvxa : ✅ Passed 🏆 1.6 x faster
-
- ----- 🎉 SPEED RANKING 🎉 -----
-   1. lapjvxa   : 0.12820320s
-   2. lapjvx    : 0.13753590s
-   3. lapjv     : 0.14516780s
-   4. scipy     : 0.20494090s
-   5. lapjvc    : 44.73986530s
- -------------------------------
+  CPU lapx-batch-jvx     :  cost=1641.72891905, time=1.18257976s
+  CPU lapx-batch-jvs     :  cost=1641.72891905, time=1.13616300s
+  CPU lapx-batch-jvxa    :  cost=1641.72891905, time=1.16668177s
+  CPU lapx-batch-jvsa    :  cost=1641.72891905, time=1.11944461s
+  CPU lapx-batch-jvsa64  :  cost=1641.72891905, time=1.23001194s
+  CPU lapx-loop-jvx      :  cost=1641.72891905, time=13.90460992s
+  CPU lapx-loop-jvs      :  cost=1641.72891905, time=14.32015085s
 ```
 
 </details>
 
-<details><summary>A quick benchmark on GitHub ubuntu-24.04-arm + Python 3.14:</summary>
+<details><summary>📄 Single-matrix on ubuntu-latest + python 3.14:</summary>
 
-https://github.com/rathaROG/lapx/actions/runs/18569524446/job/52939508934
-
-```
------------------------------------------
-Test (4, 5)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 2.37 x slower 
- * lapjv : ✅ Passed 🐌 2.69 x slower 
- * lapjvx : ✅ Passed 🐌 1.13 x slower 
- * lapjvxa : ✅ Passed 🏆 1.71 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00001602s
-   2. scipy 	: 0.00002745s
-   3. lapjvx 	: 0.00003089s
-   4. lapjvc 	: 0.00006492s
-   5. lapjv 	: 0.00007387s
- ------------------------------- 
-
------------------------------------------
-Test (5, 5)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.83 x slower 
- * lapjv : ✅ Passed 🐌 1.17 x slower 
- * lapjvx : ✅ Passed 🐌 1.45 x slower 
- * lapjvxa : ✅ Passed 🏆 1.14 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00000748s
-   2. scipy 	: 0.00000850s
-   3. lapjv 	: 0.00000993s
-   4. lapjvx 	: 0.00001229s
-   5. lapjvc 	: 0.00001552s
- ------------------------------- 
-
------------------------------------------
-Test (5, 6)
------------------------------------------
- * lapjvc : ✅ Passed 🏆 2.64 x faster 
- * lapjv : ✅ Passed 🏆 1.43 x faster 
- * lapjvx : ✅ Passed 🏆 2.13 x faster 
-   2. lapjvx 	: 0.00125891s
-   3. lapjv 	: 0.00136634s
-   4. scipy 	: 0.00408691s
-   5. lapjvc 	: 0.01745379s
- ------------------------------- 
-
------------------------------------------
-Test (45, 50)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.36 x slower 
- * lapjv : ✅ Passed 🐌 1.0 x slower 
- * lapjvx : ✅ Passed 🏆 1.25 x faster 
- * lapjvxa : ✅ Passed 🏆 2.7 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00001934s
-   2. lapjvx 	: 0.00004170s
-   3. scipy 	: 0.00005215s
-   4. lapjv 	: 0.00005229s
-   5. lapjvc 	: 0.00007079s
- ------------------------------- 
-
------------------------------------------
-Test (50, 50)
------------------------------------------
- * lapjvc : ✅ Passed 🏆 1.14 x faster 
- * lapjv : ✅ Passed 🏆 1.59 x faster 
- * lapjvx : ✅ Passed 🏆 1.64 x faster 
- * lapjvxa : ✅ Passed 🏆 4.01 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00001652s
-   2. lapjvx 	: 0.00004044s
-   3. lapjv 	: 0.00004173s
-   4. lapjvc 	: 0.00005790s
-   5. scipy 	: 0.00006618s
- ------------------------------- 
-
------------------------------------------
-Test (50, 55)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.57 x slower 
- * lapjv : ✅ Passed 🏆 1.09 x faster 
- * lapjvx : ✅ Passed 🏆 1.36 x faster 
- * lapjvxa : ✅ Passed 🏆 2.7 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00002514s
-   2. lapjvx 	: 0.00004973s
-   3. lapjv 	: 0.00006224s
-   4. scipy 	: 0.00006787s
-   5. lapjvc 	: 0.00010661s
- ------------------------------- 
-
------------------------------------------
-Test (450, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 4.44 x slower 
- * lapjv : ✅ Passed 🏆 1.74 x faster 
- * lapjvx : ✅ Passed 🏆 2.32 x faster 
- * lapjvxa : ✅ Passed 🏆 3.44 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00093354s
-   2. lapjvx 	: 0.00138716s
-   3. lapjv 	: 0.00184813s
-   4. scipy 	: 0.00321414s
-   5. lapjvc 	: 0.01426200s
- ------------------------------- 
-
------------------------------------------
-Test (500, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🏆 1.08 x faster 
- * lapjv : ✅ Passed 🏆 2.13 x faster 
- * lapjvx : ✅ Passed 🏆 2.16 x faster 
- * lapjvxa : ✅ Passed 🏆 2.32 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00286471s
-   2. lapjvx 	: 0.00307023s
-   3. lapjv 	: 0.00311945s
-   4. lapjvc 	: 0.00613955s
-   5. scipy 	: 0.00663450s
- ------------------------------- 
-
------------------------------------------
-Test (500, 550)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 4.27 x slower 
- * lapjv : ✅ Passed 🏆 2.99 x faster 
- * lapjvx : ✅ Passed 🏆 3.25 x faster 
- * lapjvxa : ✅ Passed 🏆 4.14 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00098620s
-   2. lapjvx 	: 0.00125891s
-   3. lapjv 	: 0.00136634s
-   4. scipy 	: 0.00408691s
-   5. lapjvc 	: 0.01745379s
- ------------------------------- 
-
------------------------------------------
-Test (2500, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 253.72 x slower 
- * lapjv : ✅ Passed 🐌 1.02 x slower 
- * lapjvx : ✅ Passed 🏆 1.03 x faster 
- * lapjvxa : ✅ Passed 🏆 1.04 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.07292434s
-   2. lapjvx 	: 0.07376017s
-   3. scipy 	: 0.07572614s
-   4. lapjv 	: 0.07745444s
-   5. lapjvc 	: 19.21297550s
- ------------------------------- 
-
------------------------------------------
-Test (5000, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🏆 1.22 x faster 
- * lapjv : ✅ Passed 🏆 1.38 x faster 
- * lapjvx : ✅ Passed 🏆 1.36 x faster 
- * lapjvxa : ✅ Passed 🏆 1.41 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 1.55721226s
-   2. lapjv 	: 1.59465879s
-   3. lapjvx 	: 1.62343664s
-   4. lapjvc 	: 1.80744283s
-   5. scipy 	: 2.20289654s
- ------------------------------- 
-
------------------------------------------
-Test (5000, 7500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 286.09 x slower 
- * lapjv : ✅ Passed 🏆 1.82 x faster 
- * lapjvx : ✅ Passed 🏆 1.8 x faster 
- * lapjvxa : ✅ Passed 🏆 1.82 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.15763765s
-   2. lapjv 	: 0.15809694s
-   3. lapjvx 	: 0.16012727s
-   4. scipy 	: 0.28752362s
-   5. lapjvc 	: 82.25884137s
- ------------------------------- 
-```
-
-</details>
-
-<details><summary>A quick benchmark on GitHub macos-latest (arm) + python 3.14:</summary>
-
-https://github.com/rathaROG/lapx/actions/runs/18569524446/job/52939508983
+https://github.com/rathaROG/lapx/actions/runs/18851354956/job/53788494991
 
 ```
 -----------------------------------------
 Test (4, 5)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 9.17 x slower 
- * lapjv : ✅ Passed 🐌 5.8 x slower 
- * lapjvx : ✅ Passed 🐌 1.78 x slower 
- * lapjvxa : ✅ Passed 🏆 1.88 x faster 
+ * lapjvc : ✅ Passed 🐌 2.13 x slower 
+ * lapjv : ✅ Passed 🐌 2.85 x slower 
+ * lapjvx : ✅ Passed 🐌 1.17 x slower 
+ * lapjvxa : ✅ Passed 🏆 1.6 x faster 
+ * lapjvs : ✅ Passed 🐌 2.33 x slower 
+ * lapjvsa : ✅ Passed 🐌 2.1 x slower 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00001083s
-   2. scipy 	: 0.00002042s
-   3. lapjvx 	: 0.00003642s
-   4. lapjv 	: 0.00011850s
-   5. lapjvc 	: 0.00018725s
+   1. lapjvxa  	: 0.00001882s
+   2. scipy ⭐ 	: 0.00003012s
+   3. lapjvx  	: 0.00003522s
+   4. lapjvsa  	: 0.00006335s
+   5. lapjvc  	: 0.00006415s
+   6. lapjvs  	: 0.00007016s
+   7. lapjv  	: 0.00008579s
  ------------------------------- 
 
 -----------------------------------------
 Test (5, 5)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 2.0 x slower 
- * lapjv : ✅ Passed 🐌 1.01 x slower 
- * lapjvx : ✅ Passed 🐌 1.28 x slower 
- * lapjvxa : ✅ Passed 🏆 1.32 x faster 
+ * lapjvc : ✅ Passed 🐌 1.5 x slower 
+ * lapjv : ✅ Passed 🐌 1.9 x slower 
+ * lapjvx : ✅ Passed 🐌 1.3 x slower 
+ * lapjvxa : ✅ Passed 🏆 1.15 x faster 
+ * lapjvs : ✅ Passed 🐌 1.92 x slower 
+ * lapjvsa : ✅ Passed 🏆 1.79 x faster 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00000508s
-   2. scipy 	: 0.00000671s
-   3. lapjv 	: 0.00000679s
-   4. lapjvx 	: 0.00000858s
-   5. lapjvc 	: 0.00001342s
+   1. lapjvsa  	: 0.00000646s
+   2. lapjvxa  	: 0.00001002s
+   3. scipy ⭐ 	: 0.00001154s
+   4. lapjvx  	: 0.00001498s
+   5. lapjvc  	: 0.00001732s
+   6. lapjv  	: 0.00002196s
+   7. lapjvs  	: 0.00002215s
  ------------------------------- 
 
 -----------------------------------------
 Test (5, 6)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 1.64 x slower 
- * lapjv : ✅ Passed 🐌 2.71 x slower 
- * lapjvx : ✅ Passed 🐌 1.71 x slower 
- * lapjvxa : ✅ Passed 🐌 1.09 x slower 
-   3. lapjv 	: 0.00147846s
-   4. scipy 	: 0.00379913s
-   5. lapjvc 	: 0.01882146s
+ * lapjvc : ✅ Passed 🐌 1.82 x slower 
+ * lapjv : ✅ Passed 🐌 3.92 x slower 
+ * lapjvx : ✅ Passed 🐌 2.34 x slower 
+ * lapjvxa : ✅ Passed 🐌 1.69 x slower 
+ * lapjvs : ✅ Passed 🐌 3.3 x slower 
+ * lapjvsa : ✅ Passed 🐌 5.28 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. scipy ⭐ 	: 0.00000862s
+   2. lapjvxa  	: 0.00001455s
+   3. lapjvc  	: 0.00001566s
+   4. lapjvx  	: 0.00002017s
+   5. lapjvs  	: 0.00002845s
+   6. lapjv  	: 0.00003373s
+   7. lapjvsa  	: 0.00004552s
  ------------------------------- 
 
 -----------------------------------------
 Test (45, 50)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 5.88 x slower 
- * lapjv : ✅ Passed 🐌 3.87 x slower 
- * lapjvx : ✅ Passed 🐌 2.25 x slower 
- * lapjvxa : ✅ Passed 🏆 1.4 x faster 
+ * lapjvc : ✅ Passed 🐌 1.87 x slower 
+ * lapjv : ✅ Passed 🏆 1.19 x faster 
+ * lapjvx : ✅ Passed 🏆 1.62 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.35 x faster 
+ * lapjvs : ✅ Passed 🏆 1.33 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.32 x faster 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00003196s
-   2. scipy 	: 0.00004483s
-   3. lapjvx 	: 0.00010071s
-   4. lapjv 	: 0.00017346s
-   5. lapjvc 	: 0.00026346s
+   1. lapjvxa  	: 0.00003084s
+   2. lapjvx  	: 0.00004490s
+   3. lapjvs  	: 0.00005469s
+   4. lapjvsa  	: 0.00005475s
+   5. lapjv  	: 0.00006076s
+   6. scipy ⭐ 	: 0.00007253s
+   7. lapjvc  	: 0.00013553s
  ------------------------------- 
 
 -----------------------------------------
 Test (50, 50)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 1.04 x slower 
- * lapjv : ✅ Passed 🏆 1.85 x faster 
- * lapjvx : ✅ Passed 🏆 1.25 x faster 
- * lapjvxa : ✅ Passed 🏆 2.74 x faster 
+ * lapjvc : ✅ Passed 🏆 1.19 x faster 
+ * lapjv : ✅ Passed 🏆 2.1 x faster 
+ * lapjvx : ✅ Passed 🏆 2.77 x faster 
+ * lapjvxa : ✅ Passed 🏆 4.34 x faster 
+ * lapjvs : ✅ Passed 🏆 2.3 x faster 
+ * lapjvsa : ✅ Passed 🏆 5.58 x faster 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00002338s
-   2. lapjv 	: 0.00003467s
-   3. lapjvx 	: 0.00005137s
-   4. scipy 	: 0.00006404s
-   5. lapjvc 	: 0.00006692s
+   1. lapjvsa  	: 0.00001290s
+   2. lapjvxa  	: 0.00001658s
+   3. lapjvx  	: 0.00002601s
+   4. lapjvs  	: 0.00003129s
+   5. lapjv  	: 0.00003426s
+   6. lapjvc  	: 0.00006070s
+   7. scipy ⭐ 	: 0.00007195s
  ------------------------------- 
 
 -----------------------------------------
 Test (50, 55)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 2.15 x slower 
- * lapjv : ✅ Passed 🐌 1.16 x slower 
- * lapjvx : ✅ Passed 🐌 1.7 x slower 
- * lapjvxa : ✅ Passed 🏆 3.02 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00004450s
-   2. scipy 	: 0.00013425s
-   3. lapjv 	: 0.00015537s
-   4. lapjvx 	: 0.00022804s
-   5. lapjvc 	: 0.00028850s
- ------------------------------- 
-
------------------------------------------
-Test (450, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 5.07 x slower 
- * lapjv : ✅ Passed 🏆 3.85 x faster 
- * lapjvx : ✅ Passed 🏆 5.07 x faster 
- * lapjvxa : ✅ Passed 🏆 5.86 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00084317s
-   2. lapjvx 	: 0.00097429s
-   3. lapjv 	: 0.00128471s
-   4. scipy 	: 0.00494200s
-   5. lapjvc 	: 0.02504121s
- ------------------------------- 
-
------------------------------------------
-Test (500, 500)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.58 x slower 
- * lapjv : ✅ Passed 🏆 1.57 x faster 
- * lapjvx : ✅ Passed 🏆 2.31 x faster 
- * lapjvxa : ✅ Passed 🏆 2.45 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00306717s
-   2. lapjvx 	: 0.00324108s
-   3. lapjv 	: 0.00478496s
-   4. scipy 	: 0.00750079s
-   5. lapjvc 	: 0.01186579s
- ------------------------------- 
-
------------------------------------------
-Test (500, 550)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 4.95 x slower 
- * lapjv : ✅ Passed 🏆 2.57 x faster 
- * lapjvx : ✅ Passed 🏆 3.09 x faster 
- * lapjvxa : ✅ Passed 🏆 3.8 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.00100012s
-   2. lapjvx 	: 0.00122762s
-   3. lapjv 	: 0.00147846s
-   4. scipy 	: 0.00379913s
-   5. lapjvc 	: 0.01882146s
- ------------------------------- 
-
------------------------------------------
-Test (2500, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 249.66 x slower 
- * lapjv : ✅ Passed 🐌 1.75 x slower 
- * lapjvx : ✅ Passed 🐌 1.44 x slower 
- * lapjvxa : ✅ Passed 🏆 1.17 x faster 
-
- ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.07092317s
-   2. scipy 	: 0.08262608s
-   3. lapjvx 	: 0.11884879s
-   4. lapjv 	: 0.14426917s
-   5. lapjvc 	: 20.62802196s
- ------------------------------- 
-
------------------------------------------
-Test (5000, 5000)
------------------------------------------
- * lapjvc : ✅ Passed 🐌 1.89 x slower 
- * lapjv : ✅ Passed 🏆 1.65 x faster 
+ * lapjvc : ✅ Passed 🐌 1.59 x slower 
+ * lapjv : ✅ Passed 🏆 1.14 x faster 
  * lapjvx : ✅ Passed 🏆 1.65 x faster 
- * lapjvxa : ✅ Passed 🏆 1.61 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.33 x faster 
+ * lapjvs : ✅ Passed 🏆 1.58 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.37 x faster 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvx 	: 1.10220804s
-   2. lapjv 	: 1.10794012s
-   3. lapjvxa 	: 1.13026450s
-   4. scipy 	: 1.82365146s
-   5. lapjvc 	: 3.44077729s
+   1. lapjvxa  	: 0.00003199s
+   2. lapjvx  	: 0.00004507s
+   3. lapjvs  	: 0.00004723s
+   4. lapjvsa  	: 0.00005446s
+   5. lapjv  	: 0.00006505s
+   6. scipy ⭐ 	: 0.00007443s
+   7. lapjvc  	: 0.00011813s
+ ------------------------------- 
+
+-----------------------------------------
+Test (450, 500)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 4.19 x slower 
+ * lapjv : ✅ Passed 🏆 2.46 x faster 
+ * lapjvx : ✅ Passed 🏆 2.84 x faster 
+ * lapjvxa : ✅ Passed 🏆 3.94 x faster 
+ * lapjvs : ✅ Passed 🏆 4.37 x faster 
+ * lapjvsa : ✅ Passed 🏆 4.45 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.00108461s
+   2. lapjvs  	: 0.00110318s
+   3. lapjvxa  	: 0.00122390s
+   4. lapjvx  	: 0.00169714s
+   5. lapjv  	: 0.00195890s
+   6. scipy ⭐ 	: 0.00482560s
+   7. lapjvc  	: 0.02019986s
+ ------------------------------- 
+
+-----------------------------------------
+Test (500, 500)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.01 x slower 
+ * lapjv : ✅ Passed 🏆 2.0 x faster 
+ * lapjvx : ✅ Passed 🏆 2.06 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.06 x faster 
+ * lapjvs : ✅ Passed 🏆 2.05 x faster 
+ * lapjvsa : ✅ Passed 🏆 2.06 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.00498536s
+   2. lapjvxa  	: 0.00499154s
+   3. lapjvx  	: 0.00499524s
+   4. lapjvs  	: 0.00501234s
+   5. lapjv  	: 0.00512501s
+   6. scipy ⭐ 	: 0.01026616s
+   7. lapjvc  	: 0.01041151s
+ ------------------------------- 
+
+-----------------------------------------
+Test (500, 550)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 4.17 x slower 
+ * lapjv : ✅ Passed 🏆 3.74 x faster 
+ * lapjvx : ✅ Passed 🏆 4.29 x faster 
+ * lapjvxa : ✅ Passed 🏆 4.37 x faster 
+ * lapjvs : ✅ Passed 🏆 4.33 x faster 
+ * lapjvsa : ✅ Passed 🏆 4.38 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.00136651s
+   2. lapjvxa  	: 0.00136884s
+   3. lapjvs  	: 0.00138280s
+   4. lapjvx  	: 0.00139509s
+   5. lapjv  	: 0.00160113s
+   6. scipy ⭐ 	: 0.00598653s
+   7. lapjvc  	: 0.02498232s
+ ------------------------------- 
+
+-----------------------------------------
+Test (2500, 5000)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 222.34 x slower 
+ * lapjv : ✅ Passed 🏆 1.15 x faster 
+ * lapjvx : ✅ Passed 🏆 1.31 x faster 
+ * lapjvxa : ✅ Passed 🏆 1.29 x faster 
+ * lapjvs : ✅ Passed 🐌 1.11 x slower 
+ * lapjvsa : ✅ Passed 🐌 1.11 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvx  	: 0.07696005s
+   2. lapjvxa  	: 0.07810211s
+   3. lapjv  	: 0.08824028s
+   4. scipy ⭐ 	: 0.10107496s
+   5. lapjvsa  	: 0.11232857s
+   6. lapjvs  	: 0.11252413s
+   7. lapjvc  	: 22.47302152s
+ ------------------------------- 
+
+-----------------------------------------
+Test (5000, 5000)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🏆 1.17 x faster 
+ * lapjv : ✅ Passed 🏆 1.3 x faster 
+ * lapjvx : ✅ Passed 🏆 1.31 x faster 
+ * lapjvxa : ✅ Passed 🏆 1.31 x faster 
+ * lapjvs : ✅ Passed 🏆 2.06 x faster 
+ * lapjvsa : ✅ Passed 🏆 2.06 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvs  	: 1.16571718s
+   2. lapjvsa  	: 1.16708573s
+   3. lapjvxa  	: 1.84065010s
+   4. lapjvx  	: 1.84106529s
+   5. lapjv  	: 1.84539000s
+   6. lapjvc  	: 2.04553916s
+   7. scipy ⭐ 	: 2.40261425s
  ------------------------------- 
 
 -----------------------------------------
 Test (5000, 7500)
 -----------------------------------------
- * lapjvc : ✅ Passed 🐌 342.0 x slower 
- * lapjv : ✅ Passed 🐌 2.16 x slower 
- * lapjvx : ✅ Passed 🐌 1.28 x slower 
- * lapjvxa : ✅ Passed 🏆 1.43 x faster 
+ * lapjvc : ✅ Passed 🐌 230.42 x slower 
+ * lapjv : ✅ Passed 🏆 2.24 x faster 
+ * lapjvx : ✅ Passed 🏆 2.54 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.5 x faster 
+ * lapjvs : ✅ Passed 🏆 1.66 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.68 x faster 
 
  ----- 🎉 SPEED RANKING 🎉 ----- 
-   1. lapjvxa 	: 0.21074092s
-   2. scipy 	: 0.30162325s
-   3. lapjvx 	: 0.38491017s
-   4. lapjv 	: 0.65042508s
-   5. lapjvc 	: 103.15502925s
+   1. lapjvx  	: 0.16310518s
+   2. lapjvxa  	: 0.16545943s
+   3. lapjv  	: 0.18474822s
+   4. lapjvsa  	: 0.24673601s
+   5. lapjvs  	: 0.24954140s
+   6. scipy ⭐ 	: 0.41429755s
+   7. lapjvc  	: 95.46102137s
  ------------------------------- 
 ```
 
 </details>
 
-### 🔍 See more results
+<details><summary>📄 Single-matrix on macos-latest (arm) + python 3.14:</summary>
 
-See newer benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
+https://github.com/rathaROG/lapx/actions/runs/18851354956/job/53788495229
+
+```
+-----------------------------------------
+Test (4, 5)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.65 x slower 
+ * lapjv : ✅ Passed 🐌 4.13 x slower 
+ * lapjvx : ✅ Passed 🐌 1.26 x slower 
+ * lapjvxa : ✅ Passed 🏆 3.06 x faster 
+ * lapjvs : ✅ Passed 🐌 1.52 x slower 
+ * lapjvsa : ✅ Passed 🐌 1.46 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00001037s
+   2. scipy ⭐ 	: 0.00003179s
+   3. lapjvx  	: 0.00003996s
+   4. lapjvsa  	: 0.00004642s
+   5. lapjvs  	: 0.00004833s
+   6. lapjvc  	: 0.00005250s
+   7. lapjv  	: 0.00013146s
+ ------------------------------- 
+
+-----------------------------------------
+Test (5, 5)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.51 x slower 
+ * lapjv : ✅ Passed 🐌 1.65 x slower 
+ * lapjvx : ✅ Passed 🐌 1.09 x slower 
+ * lapjvxa : ✅ Passed 🏆 1.27 x faster 
+ * lapjvs : ✅ Passed 🐌 1.67 x slower 
+ * lapjvsa : ✅ Passed 🏆 1.99 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.00000308s
+   2. lapjvxa  	: 0.00000483s
+   3. scipy ⭐ 	: 0.00000613s
+   4. lapjvx  	: 0.00000667s
+   5. lapjvc  	: 0.00000925s
+   6. lapjv  	: 0.00001013s
+   7. lapjvs  	: 0.00001021s
+ ------------------------------- 
+
+-----------------------------------------
+Test (5, 6)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.95 x slower 
+ * lapjv : ✅ Passed 🐌 3.42 x slower 
+ * lapjvx : ✅ Passed 🐌 2.1 x slower 
+ * lapjvxa : ✅ Passed 🐌 1.68 x slower 
+ * lapjvs : ✅ Passed 🐌 3.23 x slower 
+ * lapjvsa : ✅ Passed 🐌 4.63 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. scipy ⭐ 	: 0.00000429s
+   2. lapjvxa  	: 0.00000721s
+   3. lapjvc  	: 0.00000837s
+   4. lapjvx  	: 0.00000900s
+   5. lapjvs  	: 0.00001387s
+   6. lapjv  	: 0.00001467s
+   7. lapjvsa  	: 0.00001988s
+ ------------------------------- 
+
+-----------------------------------------
+Test (45, 50)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.49 x slower 
+ * lapjv : ✅ Passed 🏆 1.7 x faster 
+ * lapjvx : ✅ Passed 🏆 2.13 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.67 x faster 
+ * lapjvs : ✅ Passed 🏆 1.8 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.89 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00002146s
+   2. lapjvx  	: 0.00002683s
+   3. lapjvsa  	: 0.00003033s
+   4. lapjvs  	: 0.00003183s
+   5. lapjv  	: 0.00003358s
+   6. scipy ⭐ 	: 0.00005721s
+   7. lapjvc  	: 0.00008517s
+ ------------------------------- 
+
+-----------------------------------------
+Test (50, 50)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🏆 1.41 x faster 
+ * lapjv : ✅ Passed 🏆 3.95 x faster 
+ * lapjvx : ✅ Passed 🏆 4.4 x faster 
+ * lapjvxa : ✅ Passed 🏆 6.29 x faster 
+ * lapjvs : ✅ Passed 🏆 3.59 x faster 
+ * lapjvsa : ✅ Passed 🏆 6.65 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.00001100s
+   2. lapjvxa  	: 0.00001162s
+   3. lapjvx  	: 0.00001662s
+   4. lapjv  	: 0.00001850s
+   5. lapjvs  	: 0.00002038s
+   6. lapjvc  	: 0.00005183s
+   7. scipy ⭐ 	: 0.00007312s
+ ------------------------------- 
+
+-----------------------------------------
+Test (50, 55)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 2.17 x slower 
+ * lapjv : ✅ Passed 🏆 1.56 x faster 
+ * lapjvx : ✅ Passed 🏆 1.73 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.29 x faster 
+ * lapjvs : ✅ Passed 🏆 1.46 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.4 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00001733s
+   2. lapjvx  	: 0.00002292s
+   3. lapjv  	: 0.00002546s
+   4. lapjvs  	: 0.00002713s
+   5. lapjvsa  	: 0.00002838s
+   6. scipy ⭐ 	: 0.00003962s
+   7. lapjvc  	: 0.00008579s
+ ------------------------------- 
+
+-----------------------------------------
+Test (450, 500)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 5.08 x slower 
+ * lapjv : ✅ Passed 🏆 1.44 x faster 
+ * lapjvx : ✅ Passed 🏆 1.95 x faster 
+ * lapjvxa : ✅ Passed 🏆 3.47 x faster 
+ * lapjvs : ✅ Passed 🏆 2.22 x faster 
+ * lapjvsa : ✅ Passed 🏆 2.18 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00098750s
+   2. lapjvs  	: 0.00154171s
+   3. lapjvsa  	: 0.00157042s
+   4. lapjvx  	: 0.00175387s
+   5. lapjv  	: 0.00237538s
+   6. scipy ⭐ 	: 0.00342258s
+   7. lapjvc  	: 0.01738238s
+ ------------------------------- 
+
+-----------------------------------------
+Test (500, 500)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 1.23 x slower 
+ * lapjv : ✅ Passed 🏆 3.51 x faster 
+ * lapjvx : ✅ Passed 🏆 3.61 x faster 
+ * lapjvxa : ✅ Passed 🏆 3.69 x faster 
+ * lapjvs : ✅ Passed 🏆 3.29 x faster 
+ * lapjvsa : ✅ Passed 🏆 3.42 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00192367s
+   2. lapjvx  	: 0.00196654s
+   3. lapjv  	: 0.00201971s
+   4. lapjvsa  	: 0.00207583s
+   5. lapjvs  	: 0.00215921s
+   6. scipy ⭐ 	: 0.00709604s
+   7. lapjvc  	: 0.00875521s
+ ------------------------------- 
+
+-----------------------------------------
+Test (500, 550)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 5.09 x slower 
+ * lapjv : ✅ Passed 🏆 3.0 x faster 
+ * lapjvx : ✅ Passed 🏆 3.6 x faster 
+ * lapjvxa : ✅ Passed 🏆 3.71 x faster 
+ * lapjvs : ✅ Passed 🏆 2.83 x faster 
+ * lapjvsa : ✅ Passed 🏆 2.74 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.00110967s
+   2. lapjvx  	: 0.00114104s
+   3. lapjv  	: 0.00137046s
+   4. lapjvs  	: 0.00145308s
+   5. lapjvsa  	: 0.00150308s
+   6. scipy ⭐ 	: 0.00411283s
+   7. lapjvc  	: 0.02093913s
+ ------------------------------- 
+
+-----------------------------------------
+Test (2500, 5000)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 199.7 x slower 
+ * lapjv : ✅ Passed 🐌 1.48 x slower 
+ * lapjvx : ✅ Passed 🏆 1.17 x faster 
+ * lapjvxa : ✅ Passed 🏆 1.08 x faster 
+ * lapjvs : ✅ Passed 🐌 1.75 x slower 
+ * lapjvsa : ✅ Passed 🐌 1.58 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvx  	: 0.09995704s
+   2. lapjvxa  	: 0.10858558s
+   3. scipy ⭐ 	: 0.11726183s
+   4. lapjv  	: 0.17386667s
+   5. lapjvsa  	: 0.18564625s
+   6. lapjvs  	: 0.20479308s
+   7. lapjvc  	: 23.41745225s
+ ------------------------------- 
+
+-----------------------------------------
+Test (5000, 5000)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 2.01 x slower 
+ * lapjv : ✅ Passed 🏆 1.21 x faster 
+ * lapjvx : ✅ Passed 🏆 1.25 x faster 
+ * lapjvxa : ✅ Passed 🏆 1.19 x faster 
+ * lapjvs : ✅ Passed 🏆 1.73 x faster 
+ * lapjvsa : ✅ Passed 🏆 1.84 x faster 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvsa  	: 0.92814183s
+   2. lapjvs  	: 0.98585971s
+   3. lapjvx  	: 1.36841413s
+   4. lapjv  	: 1.41392200s
+   5. lapjvxa  	: 1.43138329s
+   6. scipy ⭐ 	: 1.70584088s
+   7. lapjvc  	: 3.43550417s
+ ------------------------------- 
+
+-----------------------------------------
+Test (5000, 7500)
+-----------------------------------------
+ * lapjvc : ✅ Passed 🐌 283.01 x slower 
+ * lapjv : ✅ Passed 🐌 2.24 x slower 
+ * lapjvx : ✅ Passed 🏆 1.39 x faster 
+ * lapjvxa : ✅ Passed 🏆 2.27 x faster 
+ * lapjvs : ✅ Passed 🐌 1.5 x slower 
+ * lapjvsa : ✅ Passed 🐌 1.79 x slower 
+
+ ----- 🎉 SPEED RANKING 🎉 ----- 
+   1. lapjvxa  	: 0.16666625s
+   2. lapjvx  	: 0.27308525s
+   3. scipy ⭐ 	: 0.37829733s
+   4. lapjvs  	: 0.56853200s
+   5. lapjvsa  	: 0.67584400s
+   6. lapjv  	: 0.84921917s
+   7. lapjvc  	: 107.06137171s
+ ------------------------------- 
+```
+
+</details>
+
+👁️ See newer benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
 
 ## 🕵️‍♂️ Other Benchmarks
 
 ### 👣 Object Tracking
 
-This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline in the benchmark.
+This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
 
 ```
 pip install -U lapx
@@ -641,9 +589,9 @@ In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than 
 
 💡 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) script.
 
-👁️ See more results on various platforms and architectures [here](https://github.com/rathaROG/lapx/actions/runs/18668517507).
+<details><summary>📊 Show the results:</summary>
 
-<details><summary>Show the results:</summary>
+https://github.com/rathaROG/lapx/actions/runs/18830580672/job/53721233510
 
 ```
 #################################################################
@@ -653,26 +601,26 @@ In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than 
 -----------------------------------------------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC     | LAPX LAPJVS    
 -----------------------------------------------------------------------------------------------------------------------
-10x10     | 0.000270s 6th  | 0.000086s ✗ 1st | 0.000117s ✓ 3rd | 0.000093s ✓ 2nd | 0.000145s ✓ 4th | 0.000156s ✓ 5th
-25x20     | 0.000134s 6th  | 0.000096s ✗ 1st | 0.000104s ✓ 4th | 0.000098s ✓ 2nd | 0.000109s ✓ 5th | 0.000103s ✓ 3rd
-50x50     | 0.000216s 6th  | 0.000161s ✗ 4th | 0.000130s ✓ 2nd | 0.000135s ✓ 3rd | 0.000163s ✓ 5th | 0.000128s ✓ 1st
-100x150   | 0.000314s 4th  | 0.001181s ✓ 6th | 0.000307s ✓ 3rd | 0.000304s ✓ 2nd | 0.001002s ✓ 5th | 0.000292s ✓ 1st
-250x250   | 0.001926s 4th  | 0.002400s ✓ 6th | 0.001819s ✓ 3rd | 0.001703s ✓ 2nd | 0.002221s ✓ 5th | 0.001585s ✓ 1st
-550x500   | 0.005211s 1st  | 0.046236s ✓ 6th | 0.010141s ✓ 4th | 0.009736s ✓ 3rd | 0.031337s ✓ 5th | 0.009591s ✓ 2nd
-1000x1000 | 0.035298s 4th  | 0.062979s ✓ 6th | 0.030774s ✓ 3rd | 0.029720s ✓ 2nd | 0.037911s ✓ 5th | 0.014011s ✓ 1st
-2000x2500 | 0.047353s 4th  | 2.537366s ✓ 6th | 0.017684s ✓ 1st | 0.019768s ✓ 2nd | 2.133186s ✓ 5th | 0.023504s ✓ 3rd
-5000x5000 | 1.923870s 5th  | 3.216478s ✓ 6th | 1.527883s ✓ 3rd | 1.501829s ✓ 2nd | 1.720995s ✓ 4th | 0.879582s ✓ 1st
+10x10     | 0.000325s 6th  | 0.000137s ✗ 1st | 0.000168s ✓ 3rd | 0.000177s ✓ 4th | 0.000206s ✓ 5th | 0.000162s ✓ 2nd
+25x20     | 0.000170s 5th  | 0.000191s ✗ 6th | 0.000155s ✓ 1st | 0.000170s ✓ 4th | 0.000162s ✓ 3rd | 0.000160s ✓ 2nd
+50x50     | 0.000265s 6th  | 0.000214s ✗ 4th | 0.000190s ✓ 1st | 0.000193s ✓ 2nd | 0.000246s ✓ 5th | 0.000194s ✓ 3rd
+100x150   | 0.000453s 4th  | 0.001335s ✓ 6th | 0.000402s ✓ 3rd | 0.000396s ✓ 2nd | 0.001067s ✓ 5th | 0.000330s ✓ 1st
+250x250   | 0.002854s 5th  | 0.002952s ✓ 6th | 0.001731s ✓ 3rd | 0.001559s ✓ 2nd | 0.001977s ✓ 4th | 0.001536s ✓ 1st
+550x500   | 0.008365s 1st  | 0.064973s ✓ 6th | 0.012927s ✓ 4th | 0.011949s ✓ 3rd | 0.030009s ✓ 5th | 0.011664s ✓ 2nd
+1000x1000 | 0.051245s 2nd  | 0.111529s ✓ 6th | 0.057231s ✓ 5th | 0.055981s ✓ 4th | 0.044361s ✓ 1st | 0.055155s ✓ 3rd
+2000x2500 | 0.075957s 4th  | 3.645535s ✓ 6th | 0.020558s ✓ 1st | 0.020706s ✓ 2nd | 2.975010s ✓ 5th | 0.034655s ✓ 3rd
+5000x5000 | 2.114572s 5th  | 2.563577s ✓ 6th | 1.214149s ✓ 2nd | 1.219787s ✓ 3rd | 1.844269s ✓ 4th | 0.959447s ✓ 1st
 -----------------------------------------------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 
-     1. LAPX LAPJVS    :   928.9522 ms | ✅ | 🥇x5 🥈x1 🥉x2 🏳️x1
-     2. LAPX LAPJVX    :  1563.3861 ms | ✅ | 🥈x7 🥉x2
-     3. LAPX LAPJV     :  1588.9597 ms | ✅ | 🥇x1 🥈x1 🥉x5 🚩x2
-     4. BASELINE SciPy :  2014.5920 ms | ⭐ | 🥇x1 🚩x4 🏳️x1 🥴x3
-     5. LAPX LAPJVC    :  3927.0696 ms | ✅ | 🚩x2 🏳️x7
-     6. LAPX LAPJV-IFT :  5866.9837 ms | ⚠️ | 🥇x2 🚩x1 🥴x6
+     1. LAPX LAPJVS    :  1063.3028 ms | ✅ | 🥇x3 🥈x3 🥉x3
+     2. LAPX LAPJV     :  1307.5116 ms | ✅ | 🥇x3 🥈x1 🥉x3 🚩x1 🏳️x1
+     3. LAPX LAPJVX    :  1310.9174 ms | ✅ | 🥈x4 🥉x2 🚩x3
+     4. BASELINE SciPy :  2254.2068 ms | ⭐ | 🥇x1 🥈x1 🚩x2 🏳️x3 🥴x2
+     5. LAPX LAPJVC    :  4897.3061 ms | ✅ | 🥇x1 🥉x1 🚩x2 🏳️x5
+     6. LAPX LAPJV-IFT :  6390.4416 ms | ⚠️ | 🥇x1 🚩x1 🥴x7
  🎉 ------------------------------------------------------------------------- 🎉 
 
 
@@ -683,26 +631,26 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 -----------------------------------------------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC     | LAPX LAPJVS    
 -----------------------------------------------------------------------------------------------------------------------
-10x10     | 0.000181s 6th  | 0.000080s ✗ 1st | 0.000091s ✓ 4th | 0.000083s ✓ 2nd | 0.000101s ✓ 5th | 0.000084s ✓ 3rd
-25x20     | 0.000122s 6th  | 0.000092s ✗ 1st | 0.000100s ✓ 2nd | 0.000100s ✓ 3rd | 0.000107s ✓ 5th | 0.000103s ✓ 4th
-50x50     | 0.000218s 6th  | 0.000149s ✗ 4th | 0.000133s ✓ 1st | 0.000140s ✓ 2nd | 0.000183s ✓ 5th | 0.000141s ✓ 3rd
-100x150   | 0.000350s 4th  | 0.001086s ✓ 5th | 0.000258s ✓ 1st | 0.000279s ✓ 3rd | 0.001142s ✓ 6th | 0.000273s ✓ 2nd
-250x250   | 0.001713s 5th  | 0.001953s ✓ 6th | 0.000978s ✓ 2nd | 0.000998s ✓ 3rd | 0.001682s ✓ 4th | 0.000929s ✓ 1st
-550x500   | 0.005035s 1st  | 0.113739s ✓ 6th | 0.010219s ✓ 4th | 0.010151s ✓ 3rd | 0.029781s ✓ 5th | 0.010025s ✓ 2nd
-1000x1000 | 0.032870s 3rd  | 0.076641s ✓ 6th | 0.037077s ✓ 5th | 0.035340s ✓ 4th | 0.031529s ✓ 1st | 0.031647s ✓ 2nd
-2000x2500 | 0.050076s 4th  | 2.552992s ✓ 6th | 0.017056s ✓ 1st | 0.020267s ✓ 2nd | 2.110527s ✓ 5th | 0.022934s ✓ 3rd
-5000x5000 | 2.035414s 5th  | 3.376261s ✓ 6th | 1.640862s ✓ 4th | 1.622361s ✓ 3rd | 1.534738s ✓ 2nd | 0.910615s ✓ 1st
+10x10     | 0.000188s 6th  | 0.000157s ✗ 5th | 0.000130s ✓ 3rd | 0.000129s ✓ 1st | 0.000139s ✓ 4th | 0.000129s ✓ 2nd
+25x20     | 0.000152s 3rd  | 0.000171s ✗ 6th | 0.000148s ✓ 1st | 0.000149s ✓ 2nd | 0.000159s ✓ 4th | 0.000160s ✓ 5th
+50x50     | 0.000245s 6th  | 0.000230s ✗ 4th | 0.000188s ✓ 1st | 0.000194s ✓ 2nd | 0.000231s ✓ 5th | 0.000197s ✓ 3rd
+100x150   | 0.000417s 4th  | 0.001254s ✓ 6th | 0.000334s ✓ 2nd | 0.000333s ✓ 1st | 0.000887s ✓ 5th | 0.000349s ✓ 3rd
+250x250   | 0.002642s 5th  | 0.003365s ✓ 6th | 0.001734s ✓ 2nd | 0.001751s ✓ 3rd | 0.002294s ✓ 4th | 0.001708s ✓ 1st
+550x500   | 0.007055s 1st  | 0.127557s ✓ 6th | 0.011708s ✓ 4th | 0.011700s ✓ 3rd | 0.040566s ✓ 5th | 0.011671s ✓ 2nd
+1000x1000 | 0.045616s 5th  | 0.085374s ✓ 6th | 0.041577s ✓ 3rd | 0.041732s ✓ 4th | 0.040828s ✓ 1st | 0.041053s ✓ 2nd
+2000x2500 | 0.075874s 4th  | 3.594363s ✓ 6th | 0.020592s ✓ 2nd | 0.020426s ✓ 1st | 2.840181s ✓ 5th | 0.024470s ✓ 3rd
+5000x5000 | 2.493812s 5th  | 3.415118s ✓ 6th | 1.651438s ✓ 3rd | 1.646662s ✓ 2nd | 2.010495s ✓ 4th | 0.994217s ✓ 1st
 -----------------------------------------------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 
-     1. LAPX LAPJVS    :   976.7508 ms | ✅ | 🥇x2 🥈x3 🥉x3 🚩x1
-     2. LAPX LAPJVX    :  1689.7199 ms | ✅ | 🥈x3 🥉x5 🚩x1
-     3. LAPX LAPJV     :  1706.7731 ms | ✅ | 🥇x3 🥈x2 🚩x3 🏳️x1
-     4. BASELINE SciPy :  2125.9788 ms | ⭐ | 🥇x1 🥉x1 🚩x2 🏳️x2 🥴x3
-     5. LAPX LAPJVC    :  3709.7903 ms | ✅ | 🥇x1 🥈x1 🚩x1 🏳️x5 🥴x1
-     6. LAPX LAPJV-IFT :  6122.9942 ms | ⚠️ | 🥇x2 🚩x1 🏳️x1 🥴x5
+     1. LAPX LAPJVS    :  1073.9525 ms | ✅ | 🥇x2 🥈x3 🥉x3 🏳️x1
+     2. LAPX LAPJVX    :  1723.0752 ms | ✅ | 🥇x3 🥈x3 🥉x2 🚩x1
+     3. LAPX LAPJV     :  1727.8499 ms | ✅ | 🥇x2 🥈x3 🥉x3 🚩x1
+     4. BASELINE SciPy :  2626.0008 ms | ⭐ | 🥇x1 🥉x1 🚩x2 🏳️x3 🥴x2
+     5. LAPX LAPJVC    :  4935.7815 ms | ✅ | 🥇x1 🚩x4 🏳️x4
+     6. LAPX LAPJV-IFT :  7227.5912 ms | ⚠️ | 🚩x1 🏳️x1 🥴x7
  🎉 ------------------------------------------------------------------------- 🎉 
 
 
@@ -713,26 +661,26 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 -----------------------------------------------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC     | LAPX LAPJVS    
 -----------------------------------------------------------------------------------------------------------------------
-10x10     | 0.000167s 6th  | 0.000119s ✓ 5th | 0.000092s ✓ 2nd | 0.000093s ✓ 3rd | 0.000105s ✓ 4th | 0.000085s ✓ 1st
-25x20     | 0.000105s 6th  | 0.000097s ✓ 3rd | 0.000096s ✓ 2nd | 0.000096s ✓ 1st | 0.000102s ✓ 5th | 0.000099s ✓ 4th
-50x50     | 0.000192s 5th  | 0.000158s ✓ 3rd | 0.000142s ✓ 1st | 0.000150s ✓ 2nd | 0.000171s ✓ 4th | 0.000193s ✓ 6th
-100x150   | 0.000319s 4th  | 0.001089s ✓ 6th | 0.000302s ✓ 3rd | 0.000268s ✓ 1st | 0.001078s ✓ 5th | 0.000271s ✓ 2nd
-250x250   | 0.001877s 6th  | 0.001662s ✓ 4th | 0.000832s ✓ 2nd | 0.000866s ✓ 3rd | 0.001686s ✓ 5th | 0.000810s ✓ 1st
-550x500   | 0.004962s 1st  | 0.173261s ✓ 6th | 0.010107s ✓ 4th | 0.010075s ✓ 3rd | 0.021147s ✓ 5th | 0.009892s ✓ 2nd
-1000x1000 | 0.034665s 5th  | 0.050879s ✓ 6th | 0.024332s ✓ 3rd | 0.023485s ✓ 2nd | 0.030950s ✓ 4th | 0.021152s ✓ 1st
-2000x2500 | 0.050928s 4th  | 2.503577s ✓ 6th | 0.017477s ✓ 1st | 0.019962s ✓ 2nd | 2.087273s ✓ 5th | 0.027349s ✓ 3rd
-5000x5000 | 2.111693s 5th  | 3.396578s ✓ 6th | 1.693776s ✓ 4th | 1.685035s ✓ 3rd | 1.567221s ✓ 2nd | 1.058214s ✓ 1st
+10x10     | 0.000218s 6th  | 0.000129s ✓ 1st | 0.000131s ✓ 3rd | 0.000154s ✓ 5th | 0.000139s ✓ 4th | 0.000131s ✓ 2nd
+25x20     | 0.000150s 1st  | 0.000178s ✓ 6th | 0.000151s ✓ 2nd | 0.000158s ✓ 4th | 0.000163s ✓ 5th | 0.000155s ✓ 3rd
+50x50     | 0.000211s 5th  | 0.000194s ✓ 3rd | 0.000283s ✓ 6th | 0.000180s ✓ 1st | 0.000194s ✓ 2nd | 0.000197s ✓ 4th
+100x150   | 0.000404s 4th  | 0.001266s ✓ 6th | 0.000344s ✓ 3rd | 0.000318s ✓ 1st | 0.000955s ✓ 5th | 0.000341s ✓ 2nd
+250x250   | 0.002778s 6th  | 0.002573s ✓ 5th | 0.001292s ✓ 2nd | 0.001324s ✓ 3rd | 0.001683s ✓ 4th | 0.001267s ✓ 1st
+550x500   | 0.007734s 1st  | 0.238647s ✓ 6th | 0.012039s ✓ 4th | 0.011927s ✓ 3rd | 0.040219s ✓ 5th | 0.011922s ✓ 2nd
+1000x1000 | 0.046291s 5th  | 0.075969s ✓ 6th | 0.036951s ✓ 2nd | 0.037461s ✓ 3rd | 0.039884s ✓ 4th | 0.020911s ✓ 1st
+2000x2500 | 0.076470s 4th  | 3.556511s ✓ 6th | 0.020127s ✓ 1st | 0.020713s ✓ 2nd | 2.866433s ✓ 5th | 0.023518s ✓ 3rd
+5000x5000 | 2.853023s 5th  | 2.870481s ✓ 6th | 1.372504s ✓ 3rd | 1.367633s ✓ 2nd | 1.949158s ✓ 4th | 1.205538s ✓ 1st
 -----------------------------------------------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 
-     1. LAPX LAPJVS    :  1118.0646 ms | ✅ | 🥇x4 🥈x2 🥉x1 🚩x1 🥴x1
-     2. LAPX LAPJVX    :  1740.0298 ms | ✅ | 🥇x2 🥈x3 🥉x4
-     3. LAPX LAPJV     :  1747.1555 ms | ✅ | 🥇x2 🥈x3 🥉x2 🚩x2
-     4. BASELINE SciPy :  2204.9078 ms | ⭐ | 🥇x1 🚩x2 🏳️x3 🥴x3
-     5. LAPX LAPJVC    :  3709.7338 ms | ✅ | 🥈x1 🚩x3 🏳️x5
-     6. LAPX LAPJV-IFT :  6127.4199 ms | ✅ | 🥉x2 🚩x1 🏳️x1 🥴x5
+     1. LAPX LAPJVS    :  1263.9814 ms | ✅ | 🥇x3 🥈x3 🥉x2 🚩x1
+     2. LAPX LAPJVX    :  1439.8675 ms | ✅ | 🥇x2 🥈x2 🥉x3 🚩x1 🏳️x1
+     3. LAPX LAPJV     :  1443.8227 ms | ✅ | 🥇x1 🥈x3 🥉x3 🚩x1 🥴x1
+     4. BASELINE SciPy :  2987.2792 ms | ⭐ | 🥇x2 🚩x2 🏳️x3 🥴x2
+     5. LAPX LAPJVC    :  4898.8268 ms | ✅ | 🥈x1 🚩x4 🏳️x4
+     6. LAPX LAPJV-IFT :  6745.9482 ms | ✅ | 🥇x1 🥉x1 🏳️x1 🥴x6
  🎉 ------------------------------------------------------------------------- 🎉 
 
 
@@ -743,26 +691,26 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 -----------------------------------------------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC     | LAPX LAPJVS    
 -----------------------------------------------------------------------------------------------------------------------
-10x10     | 0.000168s 6th  | 0.000087s ✓ 1st | 0.000090s ✓ 2nd | 0.000118s ✓ 5th | 0.000104s ✓ 4th | 0.000092s ✓ 3rd
-25x20     | 0.000102s 4th  | 0.000113s ✓ 6th | 0.000099s ✓ 1st | 0.000099s ✓ 2nd | 0.000107s ✓ 5th | 0.000099s ✓ 3rd
-50x50     | 0.000181s 4th  | 0.000226s ✓ 6th | 0.000154s ✓ 1st | 0.000162s ✓ 2nd | 0.000164s ✓ 3rd | 0.000210s ✓ 5th
-100x150   | 0.000321s 4th  | 0.001070s ✓ 5th | 0.000267s ✓ 2nd | 0.000265s ✓ 1st | 0.001108s ✓ 6th | 0.000267s ✓ 3rd
-250x250   | 0.001731s 4th  | 0.003008s ✓ 6th | 0.001673s ✓ 3rd | 0.001625s ✓ 2nd | 0.001995s ✓ 5th | 0.001460s ✓ 1st
-550x500   | 0.004940s 1st  | 0.168662s ✓ 6th | 0.009288s ✓ 4th | 0.009245s ✓ 3rd | 0.030654s ✓ 5th | 0.009174s ✓ 2nd
-1000x1000 | 0.034701s 5th  | 0.051617s ✓ 6th | 0.024396s ✓ 3rd | 0.023235s ✓ 2nd | 0.033910s ✓ 4th | 0.021512s ✓ 1st
-2000x2500 | 0.050450s 4th  | 2.519313s ✓ 6th | 0.017596s ✓ 1st | 0.018210s ✓ 2nd | 2.104154s ✓ 5th | 0.027215s ✓ 3rd
-5000x5000 | 2.027199s 5th  | 3.501020s ✓ 6th | 1.753403s ✓ 4th | 1.732642s ✓ 3rd | 1.517909s ✓ 2nd | 0.815372s ✓ 1st
+10x10     | 0.000233s 6th  | 0.000127s ✓ 1st | 0.000158s ✓ 5th | 0.000128s ✓ 2nd | 0.000142s ✓ 4th | 0.000129s ✓ 3rd
+25x20     | 0.000144s 1st  | 0.000165s ✓ 5th | 0.000172s ✓ 6th | 0.000159s ✓ 4th | 0.000155s ✓ 3rd | 0.000148s ✓ 2nd
+50x50     | 0.000269s 6th  | 0.000203s ✓ 3rd | 0.000184s ✓ 1st | 0.000191s ✓ 2nd | 0.000223s ✓ 4th | 0.000254s ✓ 5th
+100x150   | 0.000417s 4th  | 0.001233s ✓ 6th | 0.000308s ✓ 1st | 0.000356s ✓ 3rd | 0.001072s ✓ 5th | 0.000326s ✓ 2nd
+250x250   | 0.002866s 5th  | 0.003220s ✓ 6th | 0.001664s ✓ 1st | 0.001702s ✓ 3rd | 0.002252s ✓ 4th | 0.001676s ✓ 2nd
+550x500   | 0.008314s 1st  | 0.249585s ✓ 6th | 0.011429s ✓ 2nd | 0.011442s ✓ 3rd | 0.030332s ✓ 5th | 0.011470s ✓ 4th
+1000x1000 | 0.046902s 5th  | 0.080581s ✓ 6th | 0.039630s ✓ 2nd | 0.039960s ✓ 3rd | 0.045573s ✓ 4th | 0.038703s ✓ 1st
+2000x2500 | 0.074322s 4th  | 3.490300s ✓ 6th | 0.020954s ✓ 1st | 0.021199s ✓ 2nd | 2.761126s ✓ 5th | 0.024095s ✓ 3rd
+5000x5000 | 2.614220s 5th  | 4.553976s ✓ 6th | 2.238387s ✓ 3rd | 2.240301s ✓ 4th | 1.912648s ✓ 2nd | 1.146587s ✓ 1st
 -----------------------------------------------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 
-     1. LAPX LAPJVS    :   875.4009 ms | ✅ | 🥇x3 🥈x1 🥉x4 🏳️x1
-     2. LAPX LAPJVX    :  1785.6020 ms | ✅ | 🥇x1 🥈x5 🥉x2 🏳️x1
-     3. LAPX LAPJV     :  1806.9635 ms | ✅ | 🥇x3 🥈x2 🥉x2 🚩x2
-     4. BASELINE SciPy :  2119.7929 ms | ⭐ | 🥇x1 🚩x5 🏳️x2 🥴x1
-     5. LAPX LAPJVC    :  3690.1060 ms | ✅ | 🥈x1 🥉x1 🚩x2 🏳️x4 🥴x1
-     6. LAPX LAPJV-IFT :  6245.1169 ms | ✅ | 🥇x1 🏳️x1 🥴x7
+     1. LAPX LAPJVS    :  1223.3865 ms | ✅ | 🥇x2 🥈x3 🥉x2 🚩x1 🏳️x1
+     2. LAPX LAPJV     :  2312.8874 ms | ✅ | 🥇x4 🥈x2 🥉x1 🏳️x1 🥴x1
+     3. LAPX LAPJVX    :  2315.4386 ms | ✅ | 🥈x3 🥉x4 🚩x2
+     4. BASELINE SciPy :  2747.6856 ms | ⭐ | 🥇x2 🚩x2 🏳️x3 🥴x2
+     5. LAPX LAPJVC    :  4753.5226 ms | ✅ | 🥈x1 🥉x1 🚩x4 🏳️x3
+     6. LAPX LAPJV-IFT :  8379.3885 ms | ✅ | 🥇x1 🥉x1 🏳️x1 🥴x6
  🎉 ------------------------------------------------------------------------- 🎉 
 
 
@@ -773,27 +721,29 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 -----------------------------------------------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX     | LAPX LAPJVC     | LAPX LAPJVS    
 -----------------------------------------------------------------------------------------------------------------------
-10x10     | 0.000170s 6th  | 0.000079s ✓ 1st | 0.000092s ✓ 4th | 0.000085s ✓ 3rd | 0.000108s ✓ 5th | 0.000084s ✓ 2nd
-25x20     | 0.000120s 5th  | 0.000144s ✓ 6th | 0.000101s ✓ 1st | 0.000102s ✓ 3rd | 0.000116s ✓ 4th | 0.000101s ✓ 2nd
-50x50     | 0.000185s 6th  | 0.000139s ✓ 4th | 0.000127s ✓ 1st | 0.000135s ✓ 3rd | 0.000158s ✓ 5th | 0.000135s ✓ 2nd
-100x150   | 0.000337s 4th  | 0.001089s ✓ 6th | 0.000264s ✓ 1st | 0.000296s ✓ 3rd | 0.001083s ✓ 5th | 0.000276s ✓ 2nd
-250x250   | 0.001832s 6th  | 0.001699s ✓ 5th | 0.000847s ✓ 2nd | 0.000866s ✓ 3rd | 0.001471s ✓ 4th | 0.000813s ✓ 1st
-550x500   | 0.005429s 1st  | 0.175252s ✓ 6th | 0.010315s ✓ 4th | 0.010249s ✓ 2nd | 0.032756s ✓ 5th | 0.010292s ✓ 3rd
-1000x1000 | 0.040797s 5th  | 0.052160s ✓ 6th | 0.025452s ✓ 3rd | 0.024602s ✓ 2nd | 0.036510s ✓ 4th | 0.021898s ✓ 1st
-2000x2500 | 0.048694s 4th  | 2.440901s ✓ 6th | 0.016812s ✓ 1st | 0.018195s ✓ 2nd | 2.064631s ✓ 5th | 0.028164s ✓ 3rd
-5000x5000 | 2.152508s 5th  | 3.529325s ✓ 6th | 1.664839s ✓ 4th | 1.645120s ✓ 3rd | 1.626812s ✓ 2nd | 0.897383s ✓ 1st
+10x10     | 0.000210s 6th  | 0.000136s ✓ 4th | 0.000133s ✓ 3rd | 0.000127s ✓ 1st | 0.000142s ✓ 5th | 0.000131s ✓ 2nd
+25x20     | 0.000150s 3rd  | 0.000203s ✓ 6th | 0.000145s ✓ 1st | 0.000148s ✓ 2nd | 0.000152s ✓ 4th | 0.000178s ✓ 5th
+50x50     | 0.000243s 6th  | 0.000239s ✓ 5th | 0.000194s ✓ 1st | 0.000201s ✓ 2nd | 0.000233s ✓ 4th | 0.000203s ✓ 3rd
+100x150   | 0.000426s 4th  | 0.001229s ✓ 6th | 0.000335s ✓ 3rd | 0.000329s ✓ 2nd | 0.001090s ✓ 5th | 0.000311s ✓ 1st
+250x250   | 0.002309s 6th  | 0.002270s ✓ 5th | 0.001100s ✓ 1st | 0.001198s ✓ 3rd | 0.001776s ✓ 4th | 0.001157s ✓ 2nd
+550x500   | 0.007958s 1st  | 0.236500s ✓ 6th | 0.012768s ✓ 3rd | 0.012651s ✓ 2nd | 0.039369s ✓ 5th | 0.012789s ✓ 4th
+1000x1000 | 0.047147s 5th  | 0.089055s ✓ 6th | 0.044446s ✓ 4th | 0.044309s ✓ 3rd | 0.043942s ✓ 2nd | 0.043357s ✓ 1st
+2000x2500 | 0.078020s 4th  | 3.430561s ✓ 6th | 0.021284s ✓ 1st | 0.021622s ✓ 2nd | 2.844436s ✓ 5th | 0.024936s ✓ 3rd
+5000x5000 | 2.490763s 5th  | 4.480608s ✓ 6th | 2.195783s ✓ 3rd | 2.198696s ✓ 4th | 2.009281s ✓ 2nd | 1.052344s ✓ 1st
 -----------------------------------------------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉 
-     1. LAPX LAPJVS    :   959.1463 ms | ✅ | 🥇x3 🥈x4 🥉x2
-     2. LAPX LAPJVX    :  1699.6506 ms | ✅ | 🥈x3 🥉x6
-     3. LAPX LAPJV     :  1718.8494 ms | ✅ | 🥇x4 🥈x1 🥉x1 🚩x3
-     4. BASELINE SciPy :  2250.0724 ms | ⭐ | 🥇x1 🚩x2 🏳️x3 🥴x3
-     5. LAPX LAPJVC    :  3763.6443 ms | ✅ | 🥈x1 🚩x3 🏳️x5
-     6. LAPX LAPJV-IFT :  6200.7878 ms | ✅ | 🥇x1 🚩x1 🏳️x1 🥴x6
+     1. LAPX LAPJVS    :  1135.4053 ms | ✅ | 🥇x3 🥈x2 🥉x2 🚩x1 🏳️x1
+     2. LAPX LAPJV     :  2276.1874 ms | ✅ | 🥇x4 🥉x4 🚩x1
+     3. LAPX LAPJVX    :  2279.2815 ms | ✅ | 🥇x1 🥈x5 🥉x2 🚩x1
+     4. BASELINE SciPy :  2627.2261 ms | ⭐ | 🥇x1 🥉x1 🚩x2 🏳️x2 🥴x3
+     5. LAPX LAPJVC    :  4940.4219 ms | ✅ | 🥈x2 🚩x3 🏳️x4
+     6. LAPX LAPJV-IFT :  8240.8002 ms | ✅ | 🚩x1 🏳️x2 🥴x6
  🎉 ------------------------------------------------------------------------- 🎉 
 ```
+
+👁️ See more results on various platforms and architectures [here](https://github.com/rathaROG/lapx/actions/runs/18830580672).
 
 </details>
