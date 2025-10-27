@@ -19,26 +19,7 @@
 
 [`lapx`](https://github.com/rathaROG/lapx) supports all Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
 
-
-<details><summary>Click to see highlight features ...</summary><br>
-
-[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more:
-
-Since [**v0.6.0**](https://github.com/rathaROG/lapx/releases/tag/v0.6.0): 
-- **`lapjvx()`** and **`lapjvxa()`** — enhanced versions of Tomas Kazmar's [`lap.lapjv()`](https://github.com/gatagat/lap) with more flexible output formats and no additional overhead.
-- **`lapjvc()`** — an enhanced version of Christoph Heindl’s [`lapsolver.solve_dense()`](https://github.com/cheind/py-lapsolver) with unified output formats like other solver functions.
-
-Since [**v0.7.0**](https://github.com/rathaROG/lapx/releases/tag/v0.7.0):
-- **`lapjvs()`** — an enhanced version of Vadim Markovtsev’s [`lapjv()`](https://github.com/src-d/lapjv), supporting both rectangular and square cost matrices, with flexible output styles.
-
-Since [**v0.8.0**](https://github.com/rathaROG/lapx/releases/tag/v0.8.0): 
-- **`lapjvsa()`** — a convenience of [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs) returns assignments with shape `(K, 2)` directly.
-- **`lapjvx_batch()`** and **`lapjvxa_batch()`** — batch versions of [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx) and [`lapjvxa()`](https://github.com/rathaROG/lapx#3-the-new-function-lapjvxa), accepting costs with shape `(B, N, M)`.
-- **`lapjvs_batch()`** and **`lapjvsa_batch()`** — batch versions of [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs) and [`lapjvsa()`](https://github.com/rathaROG/lapx#6-the-new-function-lapjvsa), accepting costs with shape `(B, N, M)`.
-
-Check section << [🧪 Usage](https://github.com/rathaROG/lapx#-usage) >> for more details.
-
-</details>
+`lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> Go to the [usage section](https://github.com/rathaROG/lapx#-usage) for more details of all available solver functions.
 
 <details><summary>Click to read more ...</summary><br>
 
