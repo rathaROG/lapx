@@ -17,7 +17,7 @@
 
 # Linear Assignment Problem Solvers
 
-[`lapx`](https://github.com/rathaROG/lapx) supports all Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
+[`lapx`](https://github.com/rathaROG/lapx) supports all — Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
 
 `lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
 
@@ -130,7 +130,7 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvx(np.random.rand(100, 150), extend_cost=True, return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvx(np.random.rand(100, 150), extend_cost=True, return_cost=True)
-assignments = np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
 ```
 
 <details><summary>Show <code>lapjvxa()</code></summary>
@@ -159,7 +159,7 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvc(np.random.rand(100, 150), return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvc(np.random.rand(100, 150), return_cost=True)
-assignments = np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
 ```
 
 </details>
@@ -175,7 +175,7 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvs(np.random.rand(100, 150), return_cost=False, jvx_like=True)
 total_cost, row_indices, col_indices = lap.lapjvs(np.random.rand(100, 150), return_cost=True, jvx_like=True)
-assignments = np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
 ```
 
 </details>

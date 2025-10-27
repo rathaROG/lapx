@@ -1,9 +1,11 @@
 # _lapjvx.pyx | Wrote on 2025/10/16 by rathaROG
 
-# The function lapjvx returns assignments as two parallel arrays 
-# (row_indices, col_indices), so you can do: 
-# np.array(list(zip(row_indices, col_indices))) 
-# just like with scipy.optimize.linear_sum_assignment or lapjvc.
+# lapjvx returns assignments as two arrays: (row_indices, col_indices)
+# Combine them with:
+#   assignments = np.column_stack((row_indices, col_indices))  # fast!
+# Or:
+#   assignments = np.array(list(zip(row_indices, col_indices)))  # works too
+# Same as scipy.optimize.linear_sum_assignment.
 
 # cython: language_level=3
 # cython: embedsignature=True
@@ -54,13 +56,6 @@ def lapjvx(cnp.ndarray cost not None, char extend_cost=False,
         Indices of assigned rows.
     col_indices: (K,) ndarray
         Indices of assigned columns.
-
-    Note
-    ----
-    The arrays row_indices and col_indices are parallel:
-    row_indices[i] is assigned to col_indices[i].
-    You can do: r = np.array(list(zip(row_indices, col_indices)))
-    just like with scipy.optimize.linear_sum_assignment or lapjvc.
     """
     if cost.ndim != 2:
         raise ValueError('2-dimensional array expected')

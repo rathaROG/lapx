@@ -11,7 +11,8 @@ def do_lapjvs(input, n_m=None):
     start_time = timeit.default_timer()
     ext_cost = input.shape[0] != input.shape[1]
     x, y = lap.lapjvs(input, extend_cost=ext_cost, return_cost=False, jvx_like=True)
-    r = np.array(list(zip(x, y)))
+    # r = np.array(list(zip(x, y)))
+    r = np.column_stack((x, y))
     if n_m is not None: r = filter_assignment(r, n_m)
     t = timeit.default_timer() - start_time
     return r, t
@@ -19,7 +20,8 @@ def do_lapjvs(input, n_m=None):
 def do_lapjvc(input, n_m=None):
     start_time = timeit.default_timer()
     x, y = lap.lapjvc(input, return_cost=False)
-    r = np.array(list(zip(x, y)))
+    # r = np.array(list(zip(x, y)))
+    r = np.column_stack((x, y))
     if n_m is not None: r = filter_assignment(r, n_m)
     t = timeit.default_timer() - start_time
     return r, t
@@ -28,16 +30,20 @@ def do_lapjv(input, n_m=None):
     start_time = timeit.default_timer()
     ext_cost = input.shape[0] != input.shape[1]
     x, y = lap.lapjv(input, extend_cost=ext_cost, return_cost=False)
-    r = np.array([[y[i],i] for i in x if i >= 0])
+    # r = np.array([[y[i],i] for i in x if i >= 0])
+    valid = x >= 0
+    r = np.column_stack((np.arange(len(x))[valid], x[valid]))
     if n_m is not None: r = filter_assignment(r, n_m)
     t = timeit.default_timer() - start_time
+    return r, t
     return r, t
 
 def do_lapjvx(input, n_m=None):
     start_time = timeit.default_timer()
     ext_cost = input.shape[0] != input.shape[1]
     x, y = lap.lapjvx(input, extend_cost=ext_cost, return_cost=False)
-    r = np.array(list(zip(x, y)))
+    # r = np.array(list(zip(x, y)))
+    r = np.column_stack((x, y))
     if n_m is not None: r = filter_assignment(r, n_m)
     t = timeit.default_timer() - start_time
     return r, t
@@ -53,7 +59,8 @@ def do_lapjvxa(input, n_m=None):
 def do_scipy(input, n_m=None):
     start_time = timeit.default_timer()
     x, y = linear_sum_assignment(input)
-    r = np.array(list(zip(x, y)))
+    # r = np.array(list(zip(x, y)))
+    r = np.column_stack((x, y))
     if n_m is not None: r = filter_assignment(r, n_m)
     t = timeit.default_timer() - start_time
     return r, t
@@ -92,7 +99,8 @@ def compare_results(baseline, candidates, debug=False):
     ranking = sorted(candidates + [baseline], key=lambda x: x[1])
     print("\n ----- 🎉 SPEED RANKING 🎉 ----- ")
     for idx, (_, t, n) in enumerate(ranking, 1):
-        print(f"   {idx}. {n} \t: {t:.8f}s")
+        star = "⭐" if n == "scipy" else ""
+        print(f"   {idx}. {n} {star} \t: {t:.8f}s")
     print(" ------------------------------- \n")
 
 def test(n, m, debug=False):
