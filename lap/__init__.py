@@ -25,7 +25,7 @@ cost_limit : float, optional
 return_cost : bool, optional
     Whether to return the assignment costs per batch item.
 n_threads : int, optional
-    Number of OpenMP threads to use. 0 selects a runtime default. Default: 0.
+    Number of threads to use. 0 selects a runtime default. Default: 0.
 prefer_float32 : bool, optional
     Prefer the float32 kernel when possible to reduce memory bandwidth.
     Defaults to True for lapjvs-based batch solvers.
