@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Ratha SIV | MIT License
 
 import numpy as np
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from ._lapjvs import lapjvs_native as _lapjvs_native
 from ._lapjvs import lapjvs_float32 as _lapjvs_float32
@@ -15,7 +15,10 @@ def lapjvs(
     return_cost: bool = True,
     jvx_like: bool = True,
     prefer_float32: bool = True,
-):
+) -> Union[
+    Tuple[float, np.ndarray, np.ndarray],
+    Tuple[np.ndarray, np.ndarray]
+]:
     """
     Solve the Linear Assignment Problem using the 'lapjvs' algorithm.
 
@@ -150,7 +153,10 @@ def lapjvsa(
     extend_cost: Optional[bool] = None,
     return_cost: bool = True,
     prefer_float32: bool = True,
-):
+) -> Union[
+    Tuple[float, np.ndarray],
+    np.ndarray
+]:
     """
     Solve LAP using the 'lapjvs' algorithm (pairs API).
 
