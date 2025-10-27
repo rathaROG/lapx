@@ -5,7 +5,6 @@ import numpy as np
 from typing import List, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# We build batch on top of the stable single-instance API (releases GIL inside)
 from .lapjvs import lapjvs as _lapjvs_single
 from .lapjvs import lapjvsa as _lapjvsa_single
 
@@ -178,3 +177,4 @@ def lapjvsa_batch(
         return np.asarray(totals, dtype=np.float64), pairs_list  # type: ignore
     else:
         return pairs_list
+
