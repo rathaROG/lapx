@@ -19,7 +19,7 @@
 
 [`lapx`](https://github.com/rathaROG/lapx) supports all Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
 
-`lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> Go to the [usage section](https://github.com/rathaROG/lapx#-usage) for more details of all available solver functions.
+`lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
 
 <details><summary>Click to read more ...</summary><br>
 
