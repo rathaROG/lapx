@@ -4,7 +4,7 @@
 - 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**.
 - 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**.
 - 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support.
-- Older: See [GitHub releases](https://github.com/rathaROG/lapx/releases).
+- Looking for more? See [GitHub releases](https://github.com/rathaROG/lapx/releases).
 
 </details>
 
