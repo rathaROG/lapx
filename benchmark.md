@@ -15,6 +15,7 @@ pip install scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/.github/test
 python benchmark.py
+python benchmark_batch.py
 ```
 
 Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark.
