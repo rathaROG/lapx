@@ -1,10 +1,10 @@
 <details><summary>🆕 What's new</summary><br>
 
-- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) introduced **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**.
-- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) introduced **`lapjvs()`**.
-- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) introduced **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**.
+- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**.
+- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**.
+- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**.
 - 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support.
-- 2024/12/01: The original [`lap`](https://github.com/gatagat/lap) and [`lapx`](https://github.com/rathaROG/lapx) have been merged.
+- Older: See [GitHub releases](https://github.com/rathaROG/lapx/releases).
 
 </details>
 
@@ -17,7 +17,7 @@
 
 # Linear Assignment Problem Solvers
 
-[`lapx`](https://github.com/rathaROG/lapx) supports all — Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
+[`lapx`](https://github.com/rathaROG/lapx) supports all input cost types — Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
 
 `lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
 
