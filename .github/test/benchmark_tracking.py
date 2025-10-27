@@ -165,7 +165,9 @@ def lapx_jv(cost_matrix, thresh):
       differences and different unmatched sets.
     """
     x, y = lap.lapjv(cost_matrix, extend_cost=True, return_cost=False)
-    matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0 and cost_matrix[ix, mx] <= thresh]
+    # matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0 and cost_matrix[ix, mx] <= thresh]
+    valid = (x >= 0) & (cost_matrix[np.arange(len(x)), x] <= thresh)
+    matches = np.column_stack((np.where(valid)[0], x[valid]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -196,7 +198,9 @@ def lapx_jvx(cost_matrix, thresh):
       end-to-end performance consistently.
     """
     rids, cids = lap.lapjvx(cost_matrix, extend_cost=True, return_cost=False)
-    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    mask = cost_matrix[rids, cids] <= thresh
+    matches = np.column_stack((rids[mask], cids[mask]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -227,7 +231,9 @@ def lapx_jvs(cost_matrix, thresh):
       end-to-end performance consistently.
     """
     rids, cids = lap.lapjvs(cost_matrix, extend_cost=True, return_cost=False)
-    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    mask = cost_matrix[rids, cids] <= thresh
+    matches = np.column_stack((rids[mask], cids[mask]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -252,7 +258,9 @@ def lapx_jvc(cost_matrix, thresh):
         List of unmatched column indices.
     """
     rids, cids = lap.lapjvc(cost_matrix, return_cost=False)
-    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    mask = cost_matrix[rids, cids] <= thresh
+    matches = np.column_stack((rids[mask], cids[mask]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -278,7 +286,9 @@ def scipy_lsa(cost_matrix, thresh):
         List of unmatched column indices.
     """
     rids, cids = scipy.optimize.linear_sum_assignment(cost_matrix)
-    matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
+    mask = cost_matrix[rids, cids] <= thresh
+    matches = np.column_stack((rids[mask], cids[mask]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 def compare_results_tabular(
