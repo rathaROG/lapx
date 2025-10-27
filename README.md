@@ -92,7 +92,9 @@ import numpy as np, lap
 
 # x, y = lap.lapjv(np.random.rand(100, 150), extend_cost=True, return_cost=False)
 total_cost, x, y = lap.lapjv(np.random.rand(100, 150), extend_cost=True, return_cost=True)
-assignments = np.array([[y[i],i] for i in x if i >= 0])
+valid = x >= 0
+assignments = np.column_stack((np.arange(len(x))[valid], x[valid]))
+# assignments = np.array([[y[i],i] for i in x if i >= 0])  # slower
 ```
 
 For detailed documentation of **common parameters**, see the docstring in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
