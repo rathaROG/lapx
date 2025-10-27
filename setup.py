@@ -3,7 +3,7 @@
 from setuptools import Extension, setup, find_packages
 
 LICENSE = "MIT"
-DESCRIPTION = "Linear assignment problem solvers"
+DESCRIPTION = "Linear assignment problem solvers, including batch solvers with OpenMP."
 LONG_DESCRIPTION = open("README.md", encoding="utf-8").read()
 
 PACKAGE_NAME = "lapx"
@@ -92,6 +92,7 @@ def main_setup():
         extra_compile_args=extra_compile_args,
     )
 
+    # Merge all extensions
     ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc, ext_jvs]
 
     setup(
@@ -105,8 +106,9 @@ def main_setup():
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         keywords=['Linear Assignment Problem Solver', 'LAP solver',
-                  'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD',
-                  'lap', 'lapx', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs'],
+                  'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD', 'lap',
+                  'lapx', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'lapjvsa'
+                  'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch'],
         packages=find_packages(include=[PACKAGE_PATH, f"{PACKAGE_PATH}.*"]),
         include_package_data=True,
         package_data={'lap': ['default_autotune.json']},

@@ -96,12 +96,14 @@ def lapjvx(cnp.ndarray cost not None, char extend_cost=False,
     for i in range(n):
         cost_ptr[i] = &cost_c[i, 0]
 
-    cdef cnp.ndarray[int_t, ndim=1, mode='c'] x_c = \
-        np.empty((n,), dtype=np.int32)
-    cdef cnp.ndarray[int_t, ndim=1, mode='c'] y_c = \
-        np.empty((n,), dtype=np.int32)
+    # Allocate x/y, build cost_ptr as before
+    cdef cnp.ndarray[int_t, ndim=1, mode='c'] x_c = np.empty((n,), dtype=np.int32)
+    cdef cnp.ndarray[int_t, ndim=1, mode='c'] y_c = np.empty((n,), dtype=np.int32)
 
-    cdef int ret = lapjv_internal(n, cost_ptr, &x_c[0], &y_c[0])
+    cdef int ret
+    with nogil:
+        ret = lapjv_internal(<uint_t> n, cost_ptr, &x_c[0], &y_c[0])
+
     free(cost_ptr)
     if ret != 0:
         if ret == -1:

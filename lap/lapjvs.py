@@ -5,6 +5,8 @@ from typing import Optional, Tuple
 
 from ._lapjvs import lapjvs_native as _lapjvs_native
 from ._lapjvs import lapjvs_float32 as _lapjvs_float32
+from ._lapjvs import lapjvsa_native as _lapjvsa_native
+from ._lapjvs import lapjvsa_float32 as _lapjvsa_float32
 
 
 def lapjvs(
@@ -141,3 +143,80 @@ def lapjvs(
         total = 0.0
 
     return (total, x_out, y_out) if return_cost else (x_out, y_out)
+
+
+def lapjvsa(
+    cost: np.ndarray,
+    extend_cost: Optional[bool] = None,
+    return_cost: bool = True,
+    prefer_float32: bool = True,
+):
+    """
+    Solve LAP using the 'lapjvs' algorithm (pairs API).
+
+    - Accepts rectangular cost matrices (pads to square internally when needed).
+    - Returns pairs array (K, 2) int64 with optional total cost (computed from ORIGINAL input).
+    """
+    a = np.asarray(cost)
+    if a.ndim != 2:
+        raise ValueError("cost must be a 2D array")
+
+    n, m = a.shape
+    extend = (n != m) if (extend_cost is None) else bool(extend_cost)
+
+    if not extend:
+        # Square: call native pairs entry point on chosen dtype
+        use_f32 = not ((prefer_float32 is False) and (a.dtype == np.float64))
+        if use_f32:
+            pairs_obj = _lapjvsa_float32(np.ascontiguousarray(a, dtype=np.float32))
+        else:
+            # Follow native dtype; if a is float32 or float64, both ok
+            # Ensure contiguous to avoid hidden copies
+            work = np.ascontiguousarray(a, dtype=a.dtype if a.dtype in (np.float32, np.float64) else np.float64)
+            pairs_obj = _lapjvsa_native(work)
+        pairs = np.asarray(pairs_obj, dtype=np.int64)
+
+        if return_cost:
+            if pairs.size:
+                r = pairs[:, 0]; c = pairs[:, 1]
+                total = float(a[r, c].sum())
+            else:
+                total = 0.0
+            return total, pairs
+        return pairs
+
+    # Rectangular: zero-pad to square, solve pairs on padded, map back, compute total from ORIGINAL
+    size = max(n, m)
+    use_f32 = not ((prefer_float32 is False) and (a.dtype == np.float64))
+    wdtype = np.float32 if use_f32 else (a.dtype if a.dtype in (np.float32, np.float64) else np.float64)
+    padded = np.empty((size, size), dtype=wdtype)
+    # copy original submatrix
+    padded[:n, :m] = a.astype(wdtype, copy=False)
+    if m < size:
+        padded[:n, m:] = 0
+    if n < size:
+        padded[n:, :] = 0
+
+    # Solve pairs on the padded square matrix
+    if use_f32:
+        pairs_pad_obj = _lapjvsa_float32(padded)
+    else:
+        pairs_pad_obj = _lapjvsa_native(padded)
+    pairs_pad = np.asarray(pairs_pad_obj, dtype=np.int64)
+
+    # Trim pairs to original rectangle
+    if pairs_pad.size == 0 or n == 0 or m == 0:
+        pairs = np.empty((0, 2), dtype=np.int64)
+        total = 0.0
+    else:
+        r = pairs_pad[:, 0]
+        c = pairs_pad[:, 1]
+        mask = (r >= 0) & (r < n) & (c >= 0) & (c < m)
+        if mask.any():
+            pairs = np.stack([r[mask], c[mask]], axis=1).astype(np.int64, copy=False)
+            total = float(a[pairs[:, 0], pairs[:, 1]].sum()) if return_cost else 0.0
+        else:
+            pairs = np.empty((0, 2), dtype=np.int64)
+            total = 0.0
+
+    return (total, pairs) if return_cost else pairs
