@@ -107,7 +107,7 @@ def main_setup():
         long_description_content_type="text/markdown",
         keywords=['Linear Assignment Problem Solver', 'LAP solver',
                   'Jonker-Volgenant Algorithm', 'LAPJV', 'LAPMOD', 'lap',
-                  'lapx', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'lapjvsa'
+                  'lapx', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'lapjvsa',
                   'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch'],
         packages=find_packages(include=[PACKAGE_PATH, f"{PACKAGE_PATH}.*"]),
         include_package_data=True,
