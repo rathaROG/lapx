@@ -11,8 +11,8 @@
 ---
 
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
-[![Test Simple](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml)
 [![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
+[![Test Simple](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml)
 [![Test PyPI Build](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml)
 [![Publish to PyPI](https://github.com/rathaROG/lapx/actions/workflows/publish.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/publish.yaml)
 
@@ -37,7 +37,7 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 ### Install from [PyPI](https://pypi.org/project/lapx/):
 
 [![Wheels](https://img.shields.io/pypi/wheel/lapx)](https://pypi.org/project/lapx/)
-[![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
+[![PyPI version](https://badge.fury.io/py/lapx.svg?v0.8.1)](https://badge.fury.io/py/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/project/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/project/lapx)
 
@@ -137,7 +137,8 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvx(np.random.rand(100, 150), extend_cost=True, return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvx(np.random.rand(100, 150), extend_cost=True, return_cost=True)
-assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))
+# assignments = np.array(list(zip(row_indices, col_indices)))  # slower
 ```
 
 <details><summary>Show <code>lapjvxa()</code></summary>
@@ -166,7 +167,8 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvc(np.random.rand(100, 150), return_cost=False)
 total_cost, row_indices, col_indices = lap.lapjvc(np.random.rand(100, 150), return_cost=True)
-assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))
+# assignments = np.array(list(zip(row_indices, col_indices)))  # slower
 ```
 
 </details>
@@ -182,7 +184,8 @@ import numpy as np, lap
 
 # row_indices, col_indices = lap.lapjvs(np.random.rand(100, 150), return_cost=False, jvx_like=True)
 total_cost, row_indices, col_indices = lap.lapjvs(np.random.rand(100, 150), return_cost=True, jvx_like=True)
-assignments = np.column_stack((row_indices, col_indices))  # or np.array(list(zip(row_indices, col_indices)))
+assignments = np.column_stack((row_indices, col_indices))
+# assignments = np.array(list(zip(row_indices, col_indices)))  # slower
 ```
 
 </details>
@@ -239,11 +242,8 @@ import numpy as np, lap, os
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
 costs, rows, cols = lap.lapjvx_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
-
-# Access the assignment batch b = 7
-rows_7 = rows[7]   # 1D array of row indices
-cols_7 = cols[7]   # 1D array of col indices
-assignments_7 = np.column_stack((rows_7, cols_7))  # (K_b, 2)
+# access the assignments @ batch b = 7
+assignments_7 = np.column_stack((rows[7], cols[7]))  # (K_b, 2)
 print(f"assignments_7.shape = {assignments_7.shape}")
 ```
 
@@ -259,8 +259,7 @@ import numpy as np, lap, os
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
 costs, assignments = lap.lapjvxa_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
-print(f"len(assignments) = {len(assignments)}")
-print(f"assignments[0].shape = {assignments[0].shape}")
+print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b = 7
 ```
 
 </details>
@@ -277,11 +276,8 @@ import numpy as np, lap, os
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
 costs, rows, cols = lap.lapjvs_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
-
-# Access the assignment batch b = 7
-rows_7 = rows[7]   # 1D array of row indices
-cols_7 = cols[7]   # 1D array of col indices
-assignments_7 = np.column_stack((rows_7, cols_7))  # (K_b, 2)
+# access the assignments @ batch b = 7
+assignments_7 = np.column_stack((rows[7], cols[7]))  # (K_b, 2)
 print(f"assignments_7.shape = {assignments_7.shape}")
 ```
 
@@ -299,8 +295,7 @@ import numpy as np, lap, os
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
 costs, assignments = lap.lapjvsa_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
-print(f"len(assignments) = {len(assignments)}")
-print(f"assignments[0].shape = {assignments[0].shape}")
+print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b = 7
 ```
 
 </details>
@@ -311,5 +306,5 @@ To run a quick benchmark or see some interesting results, please check [benchmar
 
 ## 📝 License
 
-[![NOTICE](https://img.shields.io/badge/NOTICE-present-blue)](https://github.com/rathaROG/lapx/blob/main/NOTICE)
-[![License](https://img.shields.io/pypi/l/lapx.svg)](https://github.com/rathaROG/lapx/blob/main/LICENSE)
+[![NOTICE](https://img.shields.io/badge/NOTICE-Present-blue)](https://github.com/rathaROG/lapx/blob/main/NOTICE)
+[![LICENSE](https://img.shields.io/badge/LICENSE-MIT-green)](https://github.com/rathaROG/lapx/blob/main/LICENSE)
