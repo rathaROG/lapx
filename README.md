@@ -1,30 +1,36 @@
-<details><summary>🆕 What's new</summary><br>
+<details><summary>🆕 What's new</summary><hr>
 
-- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**.
-- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**.
-- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**.
-- 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support.
-- Looking for more? See [GitHub releases](https://github.com/rathaROG/lapx/releases).
+<sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**. </sup><br>
+<sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**. </sup><br>
+<sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**. </sup><br>
+<sup>- 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support. </sup><br>
+<sup>- Looking for more? See [GitHub releases](https://github.com/rathaROG/lapx/releases). </sup><br>
 
 </details>
 
 ---
 
+<div align="center">
+
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
+[![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold)](https://pypi.org/project/lapx/#files)
+[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg)](https://pypi.org/project/lapx/)
+
 [![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
-[![Test Simple](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/test_simple.yaml)
-[![Test PyPI Build](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/prepublish.yaml)
-[![Publish to PyPI](https://github.com/rathaROG/lapx/actions/workflows/publish.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/publish.yaml)
+[![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
+[![Benchmark (Object Tracking)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml)
 
-# Linear Assignment Problem Solvers
+# Linear Assignment Problem Solvers · 𝕏
 
-[`lapx`](https://github.com/rathaROG/lapx) supports all input cost types — Single ✓ Batch ✓ Square ✓ Rectangular ✓ .
+**Single ✓ Batch ✓ Square ✓ Rectangular ✓**
 
-`lapx` was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
+</div>
+
+[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
 
 <details><summary>Click to read more ...</summary><br>
 
-All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solvers in `lapx` are based on ***Jonker-Volgenant*** algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) implemented the core **`lapjv()`** and **`lapmod()`** from scratch based solely on the papers ¹˒² and the public domain Pascal implementation provided by A. Volgenant ³. 
+All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem) solvers in `lapx` are based on ***Jonker-Volgenant*** algorithm for dense LAPJV ¹ or sparse LAPMOD ² matrices. Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) implemented the core **`lapjv()`** and **`lapmod()`** from scratch based solely on the papers ¹˒² and the public domain Pascal implementation ³ provided by A. Volgenant. 
 
 <sup>¹ R. Jonker and A. Volgenant, "A Shortest Augmenting Path Algorithm for Dense and Sparse Linear Assignment Problems", Computing 38, 325-340 (1987) </sup><br>
 <sup>² A. Volgenant, "Linear and Semi-Assignment Problems: A Core Oriented Approach", Computer Ops Res. 23, 917-932 (1996) </sup><br>
@@ -45,18 +51,7 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 pip install lapx
 ```
 
-<details><summary>🛞 Pre-built wheel support</summary>
-
-| Python | **Windows** ✅ | **Linux** ✅ | **macOS** ✅ |
-|:---:|:---:|:---:|:---:|
-| 3.7 | AMD64 | x86_64/aarch64 | x86_64 |
-| 3.8 | AMD64 | x86_64/aarch64 | x86_64/arm64 |
-| 3.9-3.14 ¹ | AMD64/ARM64 ² | x86_64/aarch64 | x86_64/arm64 |
-
-<sup>¹ ⚠️ Pre-built wheels for Python 3.13+ do not support free-threading. </sup><br>
-<sup>² ⚠️ Windows ARM64 is experimental. </sup><br>
-
-</details>
+*The pre-built wheels cover most platforms and architectures, see [details](https://pypi.org/project/lapx/#files).*
 
 <details><summary>🛠️ Other installation options</summary>
 
