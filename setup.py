@@ -68,7 +68,7 @@ class BuildExt(build_ext):
                 compile_opts += ['/fp:fast']
         else:
             compile_opts += ['-O3', '-DNDEBUG']
-            if self.has_flag('-fvisibility=hidden'):
+            if sys.version_info >= (3, 9) and self.has_flag('-fvisibility=hidden'):
                 compile_opts += ['-fvisibility=hidden']
             if self.has_flag('-fno-math-errno'):
                 compile_opts += ['-fno-math-errno']
