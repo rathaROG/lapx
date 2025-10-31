@@ -1,5 +1,5 @@
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
-[![PyPI version](https://badge.fury.io/py/lapx.svg?v=0.8.1)](https://badge.fury.io/py/lapx)
+[![PyPI version](https://badge.fury.io/py/lapx.svg?v=0.9.1)](https://badge.fury.io/py/lapx)
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
 [![Benchmark (Object Tracking)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml)
@@ -27,7 +27,7 @@ python benchmark_single.py
 
 Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark single `benchmark_single.py`.
 
-📊 Some benchmark results using `lapx` [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) (2025/10/27):
+📊 Some benchmark results using `lapx` [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) (2025/10/31):
 
 <details><summary>🗂️ Batch on my local Windows 11 i9-13900KS (8 p-core + 8 e-core) + python 3.11.9:</summary>
 
