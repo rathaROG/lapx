@@ -6,8 +6,8 @@
 
 # 🏆 Quick Benchmark
 
-`lapx` focuses more on real-world applications, and the [benchmark_batch.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_batch.py) 
-and [benchmark_single.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_single.py) are **not** 
+`lapx` focuses more on real-world applications, and the [benchmark_batch.py](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_batch.py) 
+and [benchmark_single.py](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_single.py) are **not** 
 intended for scientific research or competitive evaluation. Instead, it provides a quick and accessible way for 
 you to run benchmark tests on your own machine. Below, you will also find a collection of interesting results 
 gathered from various major platforms and architectures.
@@ -577,7 +577,7 @@ Test (5000, 7500)
 
 ### 👣 Object Tracking
 
-This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
+This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
 
 ```
 pip install -U lapx
@@ -593,7 +593,7 @@ In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than 
 
 🆕 `lapx` [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) introduced [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs), a highly competitive solver. Notably, `lapjvs()` outperforms other solvers in terms of speed when the input cost matrix is square, especially for sizes 5000 and above.
 
-💡 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_tracking.py) script.
+💡 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) script.
 
 <details><summary>📊 Show the results:</summary>
 
