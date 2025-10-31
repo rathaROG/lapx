@@ -109,15 +109,6 @@ def lapx_jv_ift(cost_matrix, thresh):
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
 
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
-
     Notes
     -----
     - In-solver filtering may trigger slower internal code paths depending on the
@@ -128,7 +119,9 @@ def lapx_jv_ift(cost_matrix, thresh):
     x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False)
     # Solver should already respect cost_limit, but for safety we still ensure matched pairs
     # reference valid indices (mx >= 0). No extra post-thresholding is performed here.
-    matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
+    # matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
+    valid = x >= 0
+    matches = np.column_stack((np.where(valid)[0], x[valid]))
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
@@ -146,15 +139,6 @@ def lapx_jv(cost_matrix, thresh):
         Cost matrix for assignment.
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
-
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
 
     Notes
     -----
@@ -182,15 +166,6 @@ def lapx_jvx(cost_matrix, thresh):
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
 
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
-
     Notes
     -----
     - Passing ``cost_limit`` and/or ``return_cost=True`` into ``lapjvx`` may trigger
@@ -215,15 +190,6 @@ def lapx_jvs(cost_matrix, thresh):
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
 
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
-
     Notes
     -----
     - Passing ``cost_limit`` and/or ``return_cost=True`` into ``lapjvs`` may trigger
@@ -247,15 +213,6 @@ def lapx_jvc(cost_matrix, thresh):
         Cost matrix for assignment.
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
-
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
     """
     rids, cids = lap.lapjvc(cost_matrix, return_cost=False)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -275,15 +232,6 @@ def scipy_lsa(cost_matrix, thresh):
         Cost matrix for assignment.
     thresh : float
         Cost threshold. Matches with cost > thresh will be discarded.
-
-    Returns
-    -------
-    matches : ndarray, shape (k, 2), dtype=int
-        Array of (row, col) matched index pairs after thresholding.
-    unmatched_rows : list of int
-        List of unmatched row indices.
-    unmatched_cols : list of int
-        List of unmatched column indices.
     """
     rids, cids = scipy.optimize.linear_sum_assignment(cost_matrix)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -414,34 +362,41 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False):
 
     for n, m in sizes:
         a = np.random.rand(n, m)
+        a_warm = np.random.rand(100, 100)
 
         # SciPy baseline
+        scipy_lsa(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_s, u_a_s, u_b_s = scipy_lsa(a, thresh)
         t_s = timeit.default_timer() - start
         baseline = (m_s, u_a_s, u_b_s, t_s, "BASELINE SciPy")
 
         # lapjvc
+        lapx_jvc(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_jvc, u_a_jvc, u_b_jvc = lapx_jvc(a, thresh)
         t_jvc = timeit.default_timer() - start
 
         # lapjv (post-filter)
+        lapx_jv(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_jv, u_a_jv, u_b_jv = lapx_jv(a, thresh)
         t_jv = timeit.default_timer() - start
 
         # lapjv in-function (cost_limit)
+        lapx_jv_ift(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_jv_ift, u_a_jv_ift, u_b_jv_ift = lapx_jv_ift(a, thresh)
         t_jv_ift = timeit.default_timer() - start
 
         # lapjvx
+        lapx_jvx(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_jvx, u_a_jvx, u_b_jvx = lapx_jvx(a, thresh)
         t_jvx = timeit.default_timer() - start
 
         # lapjvs
+        lapx_jvs(a_warm, thresh)  # warm-up
         start = timeit.default_timer()
         m_jvs, u_a_jvs, u_b_jvs = lapx_jvs(a, thresh)
         t_jvs = timeit.default_timer() - start

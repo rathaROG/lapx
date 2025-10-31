@@ -25,7 +25,7 @@ jobs:
           pip install scipy
       - name: 📊 Run benchmark_tracking.py
         run: |
-          cd .github/test
+          cd benchmarks
           python benchmark_tracking.py
 
   benchmark_p38_p314:
@@ -48,5 +48,5 @@ jobs:
           pip install scipy
       - name: 📊 Run benchmark_tracking.py
         run: |
-          cd .github/test
+          cd benchmarks
           python benchmark_tracking.py

@@ -1,5 +1,6 @@
 <details><summary>🆕 What's new</summary><hr>
 
+<sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) delivered a major stability and performance upgrade accross most solvers. 🚀 </sup><br>
 <sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**. </sup><br>
 <sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**. </sup><br>
 <sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**. </sup><br>
@@ -16,7 +17,7 @@
 [![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold)](https://pypi.org/project/lapx/#files)
 [![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg)](https://pypi.org/project/lapx/)
 
-[![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
+[![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
 [![Benchmark (Object Tracking)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml)
 
@@ -75,6 +76,8 @@ cd dist
 </details>
 
 ## 🧪 Usage
+
+[![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
 
 ### 🅰️ Single-matrix Solvers 📄
 
@@ -204,7 +207,7 @@ total_cost, assignments = lap.lapjvsa(np.random.rand(100, 150), return_cost=True
 
 #### 7. The original function ``lapmod()``
 
-For see the [docstring](https://github.com/rathaROG/lapx/blob/8d56b42265a23c3b5a290b1039dacaac70dfe60d/lap/lapmod.py#L275) for details.
+For see the [`lap/_lapmod_wp.py`](https://github.com/rathaROG/lapx/blob/main/lap/_lapmod_wp.py) for details.
 
 ```python
 import numpy as np, lap, time

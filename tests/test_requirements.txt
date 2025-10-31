@@ -1,0 +1,4 @@
+lapx
+scipy
+pytest
+pytest-timeout

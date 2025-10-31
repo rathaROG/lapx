@@ -115,12 +115,20 @@ def test(n, m, debug=False):
     print(f"Test ({n}, {m})")
     print("-----------------------------------------")
     a = np.random.rand(n, m)
+    a_warm = np.random.rand(100, 200)
+    do_scipy(a_warm)  # warm-up
     (r_b, t_b), n_b = do_scipy(a), "scipy"
+    do_lapjvc(a_warm)  # warm-up
     (r_c1, t_c1), n_c1 = do_lapjvc(a), "lapjvc"
+    do_lapjv(a_warm)  # warm-up
     (r_c2, t_c2), n_c2 = do_lapjv(a), "lapjv"
+    do_lapjvx(a_warm)  # warm-up
     (r_c3, t_c3), n_c3 = do_lapjvx(a), "lapjvx"
+    do_lapjvxa(a_warm)  # warm-up
     (r_c4, t_c4), n_c4 = do_lapjvxa(a), "lapjvxa"
+    do_lapjvs(a_warm)  # warm-up
     (r_c5, t_c5), n_c5 = do_lapjvs(a), "lapjvs"
+    do_lapjvsa(a_warm)  # warm-up
     (r_c6, t_c6), n_c6 = do_lapjvsa(a), "lapjvsa"
     compare_results(
         (r_b, t_b, n_b), 

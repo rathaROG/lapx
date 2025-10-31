@@ -1,11 +1,13 @@
 # Copyright (c) 2012-2025 Tomas Kazmar | BSD-2-Clause License
 
 import numpy as np
+import numpy.typing as npt
 from bisect import bisect_left
+from typing import Tuple, Union
 
 # import logging
 
-from ._lapjv import _lapmod, FP_DYNAMIC_ as FP_DYNAMIC, LARGE_ as LARGE
+from ._lapjv import _lapmod, FP_DYNAMIC_ as FP_DYNAMIC, LARGE_ as LARGE  # type: ignore
 
 
 def _pycrrt(n, cc, ii, kk, free_rows, x, y, v):
@@ -220,7 +222,7 @@ def find_path(n, cc, ii, kk, start_i, y, v):
             # log.debug('pred = %s', pred)
 
     # Update prices for READY columns.
-    for k in range(n_ready):
+    for k in range(n_ready):  # type: ignore
         j0 = cols[k]
         v[j0] += d[j0] - minv
 
@@ -272,7 +274,19 @@ def get_cost(n, cc, ii, kk, x0):
     return ret
 
 
-def lapmod(n, cc, ii, kk, fast=True, return_cost=True, fp_version=FP_DYNAMIC):
+# def lapmod(n, cc, ii, kk, fast=True, return_cost=True, fp_version=FP_DYNAMIC):
+def lapmod(
+    n: int,
+    cc: npt.NDArray[np.floating],
+    ii: npt.NDArray[np.integer],
+    kk: npt.NDArray[np.integer],
+    fast: bool = True,
+    return_cost: bool = True,
+    fp_version: int = FP_DYNAMIC,
+) -> Union[
+    Tuple[float, np.ndarray, np.ndarray],
+    Tuple[np.ndarray, np.ndarray],
+]:
     """Solve sparse linear assignment problem using Jonker-Volgenant algorithm.
 
     n: number of rows of the assignment cost matrix

@@ -20,7 +20,7 @@ def do_lapx_loop(cost_matrix_batch,  extend_cost=False, backend='lapjvx'):
 
 if __name__ == "__main__":
 
-    for b, n, m in [(50, 3000, 3000), (100, 2000, 2000), (500, 1000, 2000), (1000, 1000, 1000)]:
+    for b, n, m in [(10, 4000, 4000), (20, 3000, 2000), (50, 2000, 2000), (100, 1000, 2000), (500, 1000, 1000)]:
 
         batch_size = b
         batch_costs = np.random.rand(batch_size, n, m)
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print(f"\n# {batch_size} x ({n}x{m}) | n_threads = {n_threads} \n")
 
         # warm-up
-        warmup_costs = np.random.rand(10, 500, 500)
+        warmup_costs = np.random.rand(10, int(n/10), int(m/10))
 
         # batch - LAPX - lapjvx_batch
         lap.lapjvx_batch(batch_costs, return_cost=True, extend_cost=extend_cost, n_threads=n_threads)  # warm-up

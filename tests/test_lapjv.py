@@ -3,7 +3,7 @@ from pytest import mark, fixture, raises
 import numpy as np
 from lap import lapjv
 
-from .test_utils import (
+from test_utils import (
     get_dense_8x8_int,
     get_dense_100x100_int, get_dense_100x100_int_hard, get_sparse_100x100_int,
     get_dense_1kx1k_int, get_dense_1kx1k_int_hard, get_sparse_1kx1k_int,

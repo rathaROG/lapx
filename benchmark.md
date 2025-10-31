@@ -1,13 +1,13 @@
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
 [![PyPI version](https://badge.fury.io/py/lapx.svg?v=0.8.1)](https://badge.fury.io/py/lapx)
-[![Benchmark](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml)
+[![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
 [![Benchmark (Object Tracking)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml)
 
 # 🏆 Quick Benchmark
 
-`lapx` focuses more on real-world applications, and the [benchmark_batch.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_batch.py) 
-and [benchmark.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark.py) are **not** 
+`lapx` focuses more on real-world applications, and the [benchmark_batch.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_batch.py) 
+and [benchmark_single.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_single.py) are **not** 
 intended for scientific research or competitive evaluation. Instead, it provides a quick and accessible way for 
 you to run benchmark tests on your own machine. Below, you will also find a collection of interesting results 
 gathered from various major platforms and architectures.
@@ -20,9 +20,9 @@ To see some quick benchmark results for these functions, simply run:
 pip install -U lapx
 pip install scipy
 git clone https://github.com/rathaROG/lapx.git
-cd lapx/.github/test
+cd lapx/benchmarks
 python benchmark_batch.py
-python benchmark.py
+python benchmark_single.py
 ```
 
 Note: [SciPy](https://pypi.org/project/scipy/) is used as the baseline in the benchmark.
@@ -577,13 +577,13 @@ Test (5000, 7500)
 
 ### 👣 Object Tracking
 
-This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
+This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_tracking.py) is specifically desinged for the Object Tracking applications, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
 
 ```
 pip install -U lapx
 pip install scipy
 git clone https://github.com/rathaROG/lapx.git
-cd lapx/.github/test
+cd lapx/benchmarks
 python benchmark_tracking.py
 ```
 
@@ -593,7 +593,7 @@ In most scenarios, `lapjvx()` and `lapjv()` demonstrate faster performance than 
 
 🆕 `lapx` [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) introduced [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs), a highly competitive solver. Notably, `lapjvs()` outperforms other solvers in terms of speed when the input cost matrix is square, especially for sizes 5000 and above.
 
-💡 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/test/benchmark_tracking.py) script.
+💡 To achieve optimal performance of `lapjvx()` or `lapjv()` in object tracking application, follow the implementation in the current [`benchmark_tracking.py`](https://github.com/rathaROG/lapx/blob/main/.github/benchmarks/benchmark_tracking.py) script.
 
 <details><summary>📊 Show the results:</summary>
 
