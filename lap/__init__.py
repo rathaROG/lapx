@@ -107,7 +107,7 @@ def __getattr__(name):
         return obj
     raise AttributeError(f"LAPX could not find attribute '{name}'.")
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'Ratha SIV'
 __description__ = 'Linear assignment problem solvers, including single and batch solvers.'
 __homepage__ = 'https://github.com/rathaROG/lapx'
@@ -119,3 +119,4 @@ __all__ = [
     # Constants
     'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE',
 ]
+
