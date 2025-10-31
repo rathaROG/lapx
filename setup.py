@@ -1,6 +1,7 @@
 # Copyright (c) 2025 Ratha SIV | MIT License
 
 from setuptools import Extension, setup, find_packages
+from setuptools.command.build_ext import build_ext  # custom build_ext for high-perf flags
 
 LICENSE = "MIT"
 DESCRIPTION = "Linear assignment problem solvers, including single and batch solvers."
@@ -24,6 +25,82 @@ def include_numpy():
 def include_pybind11():
     import pybind11
     return pybind11.get_include()
+
+class BuildExt(build_ext):
+    """
+    Add portable, high-performance compiler/linker flags and allow
+    optional opt-ins via env vars:
+      - LAPX_FASTMATH=1  -> -ffast-math (or /fp:fast)
+      - LAPX_NATIVE=1    -> -march=native -mtune=native
+      - LAPX_LTO=0       -> disable LTO if needed
+    """
+    def has_flag(self, flag):
+        import tempfile, os
+        with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as f:
+            f.write("int main(){return 0;}")
+            fname = f.name
+        try:
+            self.compiler.compile([fname], extra_postargs=[flag])
+        except Exception:
+            try: os.remove(fname)
+            except OSError: pass
+            return False
+        try: os.remove(fname)
+        except OSError: pass
+        return True
+
+    def build_extensions(self):
+        import os, sys
+        ctype = self.compiler.compiler_type
+        is_msvc = (ctype == 'msvc')
+
+        compile_opts = []
+        link_opts = []
+
+        if is_msvc:
+            compile_opts += ['/O2', '/DNDEBUG']
+            # Link-time optimization (LTO)
+            if self.has_flag('/GL'):
+                compile_opts += ['/GL']
+                link_opts += ['/LTCG']
+            # Optional fast-math (opt-in)
+            if os.environ.get('LAPX_FASTMATH') == '1':
+                compile_opts += ['/fp:fast']
+        else:
+            compile_opts += ['-O3', '-DNDEBUG']
+            if self.has_flag('-fvisibility=hidden'):
+                compile_opts += ['-fvisibility=hidden']
+            if self.has_flag('-fno-math-errno'):
+                compile_opts += ['-fno-math-errno']
+            # Link-time optimization (prefer ThinLTO when available)
+            if os.environ.get('LAPX_LTO', '1') == '1':
+                if self.has_flag('-flto=thin'):
+                    compile_opts += ['-flto=thin']
+                    link_opts += ['-flto=thin']
+                elif self.has_flag('-flto'):
+                    compile_opts += ['-flto']
+                    link_opts += ['-flto']
+            # Optional fast-math (opt-in)
+            if os.environ.get('LAPX_FASTMATH') == '1' and self.has_flag('-ffast-math'):
+                compile_opts += ['-ffast-math']
+            # Optional native tuning (opt-in; avoid for portable wheels)
+            if os.environ.get('LAPX_NATIVE') == '1':
+                if self.has_flag('-march=native'):
+                    compile_opts += ['-march=native']
+                if self.has_flag('-mtune=native'):
+                    compile_opts += ['-mtune=native']
+            # Minor call overhead reduction on Linux/glibc (if supported)
+            if sys.platform.startswith('linux') and self.has_flag('-fno-plt'):
+                compile_opts += ['-fno-plt']
+
+        # Apply to all extensions
+        for ext in self.extensions:
+            prev_cargs = list(getattr(ext, 'extra_compile_args', []) or [])
+            prev_largs = list(getattr(ext, 'extra_link_args', []) or [])
+            ext.extra_compile_args = prev_cargs + compile_opts
+            ext.extra_link_args = prev_largs + link_opts
+
+        super().build_extensions()
 
 def main_setup():
     import os
@@ -92,8 +169,21 @@ def main_setup():
         extra_compile_args=extra_compile_args,
     )
 
+    # Safe, high-performance Cython directives
+    cython_directives = dict(
+        language_level=3,
+        boundscheck=False,
+        wraparound=False,
+        nonecheck=False,
+        initializedcheck=False,
+        cdivision=True,
+        infer_types=True,
+        profile=False,
+        linetrace=False,
+    )
+
     # Merge all extensions
-    ext_modules = cythonize([ext_jv, ext_jvx]) + [ext_jvc, ext_jvs]
+    ext_modules = cythonize([ext_jv, ext_jvx], compiler_directives=cython_directives) + [ext_jvc, ext_jvs]
 
     setup(
         name=PACKAGE_NAME,
@@ -139,6 +229,7 @@ def main_setup():
                      'Operating System :: Unix',
                      'Operating System :: MacOS',],
         ext_modules=ext_modules,
+        cmdclass={'build_ext': BuildExt},
     )
 
 if __name__ == "__main__":
@@ -149,5 +240,15 @@ if __name__ == "__main__":
     >>> pip install wheel build
     >>> python -m build --sdist
     >>> python -m build --wheel
+
+    Base optimizations are applied automatically (e.g., optimized build
+    [/O2 on MSVC or -O3 on GCC/Clang], -DNDEBUG, and LTO when supported).
+    Extra opt-ins can be enabled via environment variables:
+      - LAPX_FASTMATH=1  -> enables fast-math (/fp:fast on MSVC, -ffast-math on GCC/Clang)
+      - LAPX_NATIVE=1    -> enables -march=native -mtune=native (GCC/Clang only)
+      - LAPX_LTO=0       -> disables LTO if needed
+
+    Note: Cython compiler directives (boundscheck=False, wraparound=False, cdivision=True, etc.)
+    are enabled by default for Cython modules.
     """
     main_setup()
