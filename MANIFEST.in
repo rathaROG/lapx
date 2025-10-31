@@ -5,4 +5,5 @@ global-exclude */__pycache__
 global-exclude *.pyc
 prune .github
 prune .vscode
+prune benchmarks
 prune tests
