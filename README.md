@@ -13,9 +13,9 @@
 
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
+[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?v0.9.1)](https://github.com/rathaROG/lapx/releases)
 [![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold)](https://pypi.org/project/lapx/#files)
-[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg)](https://pypi.org/project/lapx/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?v0.9.1)](https://pypi.org/project/lapx/)
 
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
@@ -44,7 +44,7 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 ### Install from [PyPI](https://pypi.org/project/lapx/):
 
 [![Wheels](https://img.shields.io/pypi/wheel/lapx)](https://pypi.org/project/lapx/)
-[![PyPI version](https://badge.fury.io/py/lapx.svg?v0.8.1)](https://badge.fury.io/py/lapx)
+[![PyPI version](https://badge.fury.io/py/lapx.svg?v0.9.1)](https://badge.fury.io/py/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/project/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/project/lapx)
 
