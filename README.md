@@ -175,7 +175,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 5. The new function ``lapjvs()``
 
-`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or `(x, y)` mappings. See the [docstring here](https://github.com/rathaROG/lapx/blob/main/lap/lapjvs.py) for more details.
+`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or `(x, y)` mappings. See the [docstring here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py) for more details.
 
 ```python
 import numpy as np, lap
