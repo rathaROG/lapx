@@ -82,7 +82,7 @@ Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` ena
 - `LAPX_NATIVE=1` — GCC/Clang only; tune for the CPU of build machine (not suitable for sharing)
 - `LAPX_LTO=0` — disable link-time optimization if link time/memory is an issue
 
-See the [setup.py](https://github.com/rathaumons/lapx-test/blob/main/setup.py) for details.
+See the [setup.py](https://github.com/rathaROG/lapx/blob/main/setup.py) for details.
 </details>
 
 ## 🧪 Usage
