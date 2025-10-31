@@ -107,7 +107,7 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
   }
   int typ = PyArray_TYPE(cost_matrix_array.get());
   if (typ != NPY_FLOAT32 && typ != NPY_FLOAT64) {
-    PyErr_SetString(PyExc_TypeError, "\"cost_matrix\" must be float32 or float64 for lapjvs_native()");
+    PyErr_SetString(PyExc_TypeError, "\"cost_matrix\" must be float32 or float64");
     return NULL;
   }
   auto ndims = PyArray_NDIM(cost_matrix_array.get());
@@ -121,9 +121,16 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
     return NULL;
   }
   int dim = static_cast<int>(dims[0]);
-  if (dim <= 0) {
-    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is invalid or too large");
+  if (dim < 0) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
+  }
+
+  if (dim == 0) {
+    npy_intp ret_dims[] = {0};
+    pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
   }
 
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
@@ -174,9 +181,16 @@ static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwa
     return NULL;
   }
   int dim = static_cast<int>(dims[0]);
-  if (dim <= 0) {
-    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is invalid or too large");
+  if (dim < 0) {
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
+  }
+
+  if (dim == 0) {
+    npy_intp ret_dims[] = {0};
+    pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
   }
 
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
@@ -211,7 +225,7 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
   }
   int typ = PyArray_TYPE(cost_matrix_array.get());
   if (typ != NPY_FLOAT32 && typ != NPY_FLOAT64) {
-    PyErr_SetString(PyExc_TypeError, "\"cost_matrix\" must be float32 or float64 for lapjvsa()");
+    PyErr_SetString(PyExc_TypeError, "\"cost_matrix\" must be float32 or float64");
     return NULL;
   }
   auto ndims = PyArray_NDIM(cost_matrix_array.get());
@@ -226,7 +240,7 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
   }
   int dim = static_cast<int>(dims[0]);
   if (dim < 0) {
-    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is invalid");
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
@@ -288,7 +302,7 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
   pyarray cost_matrix_array(PyArray_FROM_OTF(
       cost_matrix_obj, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST));
   if (!cost_matrix_array) {
-    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be convertible to float32 for lapjvsa_float32()");
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be convertible to float32");
     return NULL;
   }
   auto ndims = PyArray_NDIM(cost_matrix_array.get());
@@ -303,7 +317,7 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
   }
   int dim = static_cast<int>(dims[0]);
   if (dim < 0) {
-    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is invalid");
+    PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
