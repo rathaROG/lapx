@@ -77,7 +77,7 @@ cd dist
 
 <details><summary>⚡ Extra performance</summary><br>
 
-Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe optimizations by default. For source build, you can opt into extra flags via environment variables:
+Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe optimizations by default. For source build, you can opt into extra flags via environment variables which might boost the performance further:
 - `LAPX_FASTMATH=1` — enable fast-math (may change floating‑point semantics)
 - `LAPX_NATIVE=1` — GCC/Clang only; tune for the CPU of build machine (not suitable for sharing)
 - `LAPX_LTO=0` — disable link-time optimization if link time/memory is an issue
