@@ -571,7 +571,7 @@ Test (5000, 7500)
 
 </details>
 
-👁️ See newer benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark.yaml).
+👁️ See newer benchmark results on all platforms [here on GitHub](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml).
 
 ## 🕵️‍♂️ Other Benchmarks
 
