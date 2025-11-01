@@ -597,7 +597,7 @@ Test (5000, 7500)
 
 ### 👣 Object Tracking
 
-This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) is specifically desinged for ***Object Tracking*** application, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
+This [benchmark_tracking.py](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) is specifically designed for ***Object Tracking*** application, with [SciPy](https://pypi.org/project/scipy/) as the baseline.
 
 ```
 pip install -U lapx
