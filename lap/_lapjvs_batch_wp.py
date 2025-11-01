@@ -74,7 +74,8 @@ def lapjvs_batch(
         Number of worker threads. When 0 or None, uses `os.cpu_count()`.
         Actual workers are capped to the batch size.
     prefer_float32 : bool, default True
-        Hint to run each kernel in float32 (forwarded to the single solver).
+        Hint to run each kernel in float32 (forwarded to the single solver; 
+        see the `lapjvs` for the details).
 
     Returns
     -------
@@ -178,7 +179,8 @@ def lapjvsa_batch(
     n_threads : int, default 0
         Number of worker threads. 0 or None uses `os.cpu_count()`.
     prefer_float32 : bool, default True
-        Forwarded to the single-instance solver.
+        Hint to run each kernel in float32 (forwarded to the single solver; 
+        see the `lapjvsa` for the details).
 
     Returns
     -------
@@ -242,3 +244,4 @@ def lapjvsa_batch(
         return np.asarray(totals, dtype=np.float64), pairs_list  # type: ignore
     else:
         return pairs_list
+
