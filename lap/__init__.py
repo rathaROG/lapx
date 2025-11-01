@@ -3,33 +3,6 @@
 """
 LAPX — Jonker-Volgenant (JV) linear assignment solvers.
 
-Single-matrix solvers — common parameters
------------------------------------------
-cost : (N, M) ndarray
-    Cost matrix. Entry cost[i, j] is the cost of assigning row i to column j.
-extend_cost : bool, optional
-    Whether or not to extend a non-square matrix. Default: False.
-cost_limit : float, optional
-    An upper limit for the cost of a single assignment. Default: np.inf.
-return_cost : bool, optional
-    Whether or not to return the assignment cost.
-
-Batch solvers — common parameters
----------------------------------
-costs : (B, N, M) ndarray
-    A batch of cost matrices. costs[b] is the cost matrix for batch item b.
-extend_cost : bool, optional
-    Whether to extend non-square matrices in the batch. Default: False.
-cost_limit : float, optional
-    An upper limit for the cost of a single assignment. Default: np.inf.
-return_cost : bool, optional
-    Whether to return the assignment costs per batch item.
-n_threads : int, optional
-    Number of threads to use. 0 selects a runtime default. Default: 0.
-prefer_float32 : bool, optional
-    Prefer the float32 kernel when possible to reduce memory bandwidth.
-    Defaults to True for lapjvs-based batch solvers.
-
 Provided solvers (single-matrix)
 --------------------------------
 - lapmod   : Sparse assignment solver (for sparse cost matrices) by Tomas Kazmar's lap.
@@ -51,9 +24,9 @@ Notes
 -----
 - All solvers in lapx handle both square and rectangular cost matrices.
 - Batch solvers accept costs shaped (B, N, M) and return per-instance assignments.
-- lapjvs and lapjvs_* wrappers may recompute the total cost from the original input
-  for float32/float64 parity; this has negligible overhead.
-- For details and benchmarks, see the official repo: https://github.com/rathaROG/lapx
+- lapjvs* family wrappers may recompute the total cost from the original input for 
+  consistency; this has negligible overhead.
+- For tests and benchmarks, see the official repo: https://github.com/rathaROG/lapx
 """
 
 from typing import TYPE_CHECKING
@@ -107,7 +80,7 @@ def __getattr__(name):
         return obj
     raise AttributeError(f"LAPX could not find attribute '{name}'.")
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 __author__ = 'Ratha SIV'
 __description__ = 'Linear assignment problem solvers, including single and batch solvers.'
 __homepage__ = 'https://github.com/rathaROG/lapx'
@@ -119,4 +92,5 @@ __all__ = [
     # Constants
     'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE',
 ]
+
 
