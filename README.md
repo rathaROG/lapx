@@ -1,6 +1,6 @@
 <details><summary>🆕 What's new</summary><hr>
 
-> <sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) delivered a major stability and performance upgrade accross ~~most~~ all solvers. 🚀 </sup><br>
+> <sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) delivered a major stability and performance upgrade across ~~most~~ all solvers. 🚀 </sup><br>
 > <sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**. </sup><br>
 > <sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**. </sup><br>
 > <sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**. </sup><br>
@@ -27,7 +27,7 @@
 
 </div>
 
-[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more -> See the [usage section](https://github.com/rathaROG/lapx#-usage) for details on all available solver functions.
+[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more; for details on all available solver functions, refer to the [usage section](https://github.com/rathaROG/lapx#-usage).
 
 <details><summary>Click to read more ...</summary><br>
 
@@ -146,7 +146,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 3. The new function ``lapjvxa()``
 
-`lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is optimized for applications that only need the final assignments and do not require control over the `cost_limit` parameter. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
+`lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional/manual post-processing required. `lapjvxa()` is optimized for applications that only need the final assignments and do not require control over the `cost_limit` parameter. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
 
 ```python
 import numpy as np, lap
@@ -178,7 +178,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 5. The new function ``lapjvs()``
 
-`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or or mapping arrays `x` and `y` like [`lapjv()`](https://github.com/rathaROG/lapx#1-the-original-function-lapjv). See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
+`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or mapping arrays `x` and `y` like [`lapjv()`](https://github.com/rathaROG/lapx#1-the-original-function-lapjv). See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
 
 ```python
 import numpy as np, lap
@@ -195,7 +195,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 6. The new function ``lapjvsa()``
 
-`lapjvsa()` is essentially the same as `lapjvs()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
+`lapjvsa()` is essentially the same as `lapjvs()`, but it returns assignments with shape `(K, 2)` directly — no additional/manual post-processing required. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
 
 ```python
 import numpy as np, lap
