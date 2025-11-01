@@ -1,11 +1,11 @@
 <details><summary>🆕 What's new</summary><hr>
 
-<sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) delivered a major stability and performance upgrade accross most solvers. 🚀 </sup><br>
-<sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**. </sup><br>
-<sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**. </sup><br>
-<sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**. </sup><br>
-<sup>- 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support. </sup><br>
-<sup>- Looking for more? See [GitHub releases](https://github.com/rathaROG/lapx/releases). </sup><br>
+> <sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) delivered a major stability and performance upgrade accross ~~most~~ all solvers. 🚀 </sup><br>
+> <sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch()`**, **`lapjvxa_batch()`**, **`lapjvs_batch()`**, **`lapjvsa_batch()`** and **`lapjvsa()`**. </sup><br>
+> <sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs()`**. </sup><br>
+> <sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx()`**, **`lapjvxa()`**, and **`lapjvc()`**. </sup><br>
+> <sup>- 2025/10/15: [v0.5.13](https://github.com/rathaROG/lapx/releases/tag/v0.5.13) added Python 3.14 support. </sup><br>
+> <sup>- Looking for more? See [GitHub releases](https://github.com/rathaROG/lapx/releases). </sup><br>
 
 </details>
 
@@ -13,9 +13,9 @@
 
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?v0.9.1)](https://github.com/rathaROG/lapx/releases)
-[![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold)](https://pypi.org/project/lapx/#files)
-[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?v0.9.1)](https://pypi.org/project/lapx/)
+[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?v0.9.1&logo=github&logoColor=lightgray)](https://github.com/rathaROG/lapx/releases)
+[![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold?v0.9.1&logo=pypi&logoColor=deepskyblue)](https://pypi.org/project/lapx/#files)
+[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?v0.9.1&logo=python&logoColor=gold)](https://pypi.org/project/lapx/)
 
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
@@ -77,23 +77,35 @@ cd dist
 
 <details><summary>⚡ Extra performance</summary><br>
 
-Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe optimizations by default. For source build, you can opt into extra flags via environment variables which might boost the performance further:
-- `LAPX_FASTMATH=1` — enable fast-math (may change floating‑point semantics)
-- `LAPX_NATIVE=1` — GCC/Clang only; tune for the CPU of build machine (not suitable for sharing)
-- `LAPX_LTO=0` — disable link-time optimization if link time/memory is an issue
+> Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe (base) optimizations by default. For source builds, you can disable the default base optimizations or opt into extra flags via environment variables which might boost performance further:
+> - `LAPX_BASEOPTS=0` — disables base optimizations entirely (since [v0.9.2](https://github.com/rathaROG/lapx/releases/tag/v0.9.2))
+> - `LAPX_FASTMATH=1` — enables fast-math (may change floating‑point semantics)
+> - `LAPX_NATIVE=1` — GCC/Clang only; tune for the CPU of the build machine (not suitable for sharing)
+> - `LAPX_LTO=0` — disables link-time optimization (only considered when base optimizations are enabled)
 
-See the [setup.py](https://github.com/rathaROG/lapx/blob/main/setup.py) for details.
+> See the [setup.py](https://github.com/rathaROG/lapx/blob/main/setup.py) for more details.
+
 </details>
 
 ## 🧪 Usage
 
 [![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
 
+[`lapx`](https://github.com/rathaROG/lapx) was initially created as a drop‑in replacement to preserve the distribution of the original [`lap`](https://github.com/gatagat/lap). While the package you install is `lapx`, the import name remains `lap` to avoid breaking existing code; use `import lap` to import `lapx`.
+
+<details><summary>Show additional notes</summary><br>
+
+> ***Notes:***
+> - Do not install both `lap` and `lapx` at the same time; since both provide the same import name (`lap`), the one installed last will override the other.
+> - If you only need `lapjv()` and `lapmod()`, the original `lap` is sufficient; choose `lapx` if you want additional fixes, extended features (batch processing, flexible outputs, extra solvers), and—most importantly—improved stability and performance.
+
+</details>
+
 ### 🅰️ Single-matrix Solvers 📄
 
 #### 1. The original function ``lapjv()``
 
-The same as `lap`, use `import lap` to import; for example:
+`lapjv()` supports both square and rectangular cost matrices. It returns the optimal assignments as mapping arrays `x` (size N) and `y` (size M) and optionally total cost if `return_cost=True`.
 
 ```python
 import numpy as np, lap
@@ -105,40 +117,21 @@ assignments = np.column_stack((np.arange(len(x))[valid], x[valid]))
 # assignments = np.array([[y[i],i] for i in x if i >= 0])  # slower
 ```
 
-For detailed documentation of **common parameters**, see the docstring in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
+See more details of `lapjv()` [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjv_wp.py).
 
-<details><summary>Need more explanation?</summary>
+<details><summary>Still need more explanation?</summary><br>
 
-The function `lapjv()` returns the assignment cost `cost` and two arrays `x` and `y`. If cost matrix `C` has shape NxM, then `x` is a size-N array specifying to which column each row is assigned, and `y` is a size-M array specifying to which row each column is assigned. For example, an output of `x = [1, 0]` indicates that row 0 is assigned to column 1 and row 1 is assigned to column 0. Similarly, an output of `x = [2, 1, 0]` indicates that row 0 is assigned to column 2, row 1 is assigned to column 1, and row 2 is assigned to column 0.
+`lapjv(C)` returns two arrays `x` and `y` (also the total assignment cost if `return_cost=True`). If cost matrix `C` has shape NxM, then `x` is a size-N array specifying to which column each row is assigned, and `y` is a size-M array specifying to which row each column is assigned. For example, an output of `x = [1, 0]` indicates that row 0 is assigned to column 1 and row 1 is assigned to column 0. Similarly, an output of `x = [2, 1, 0]` indicates that row 0 is assigned to column 2, row 1 is assigned to column 1, and row 2 is assigned to column 0.
 
-Note that this function *does not* return the assignment matrix (as done by SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) and lapsolver's [`solve dense`](https://github.com/cheind/py-lapsolver)). The assignment matrix can be constructed from `x` as follows:
-
-```python
-A = np.zeros((N, M))
-for i in range(N):
-    A[i, x[i]] = 1
-```
-
-Equivalently, we could construct the assignment matrix from `y`:
-
-```python
-A = np.zeros((N, M))
-for j in range(M):
-    A[y[j], j] = 1
-```
-
-Finally, note that the outputs are redundant: we can construct `x` from `y`, and vise versa:
-
-```python
-x = [np.where(y == i)[0][0] for i in range(N)]
-y = [np.where(x == j)[0][0] for j in range(M)]
-```
+> ***Notes:*** 
+> - This function *does not* return two aligned index arrays as SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) does; the final assignments can be done as shown in the example above; use [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx) for SciPy-style output.
+> - See the original documentation of `lapjv()` at [gatagat/lap](https://github.com/gatagat/lap).
 
 </details>
 
 #### 2. The new function ``lapjvx()``
 
-`lapjvx()` basically is `lapjv()`, but it matches the return style of SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) with no additional overhead. You can see how it compares to others in the Object Tracking benchmark [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
+`lapjvx()` basically is `lapjv()`, but it matches the output style of SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) with no additional overhead. You can see how it compares to others in ***Object Tracking benchmark*** [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking). See more details of `lapjvx()` [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
 
 ```python
 import numpy as np, lap
@@ -153,7 +146,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 3. The new function ``lapjvxa()``
 
-`lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is optimized for applications that only need the final assignments and do not require control over the `cost_limit` parameter.
+`lapjvxa()` is essentially the same as `lapjvx()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. `lapjvxa()` is optimized for applications that only need the final assignments and do not require control over the `cost_limit` parameter. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
 
 ```python
 import numpy as np, lap
@@ -168,7 +161,7 @@ total_cost, assignments = lap.lapjvxa(np.random.rand(100, 150), extend_cost=True
 
 #### 4. The new function ``lapjvc()``
 
-`lapjvc()` is an enhanced version of Christoph Heindl's [py-lapsolver](https://github.com/cheind/py-lapsolver). `lapjvc()` is as fast as (if not faster than) other functions when `n=m` (the cost matrix is square), but it is much slower when `n≠m` (the cost matrix is rectangular). This function adopts the return style of `lapjvx()` — the same as SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
+`lapjvc()` is an enhanced version of Christoph Heindl's [py-lapsolver](https://github.com/cheind/py-lapsolver). `lapjvc()` is as fast as (if not faster than) other functions when the cost matrix is square, but it is much slower when the cost matrix is rectangular. This function adopts the output style of `lapjvx()` — the same as SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html). See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvc_wp.py).
 
 ```python
 import numpy as np, lap
@@ -185,7 +178,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 5. The new function ``lapjvs()``
 
-`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or `(x, y)` mappings. See the [docstring here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py) for more details.
+`lapjvs()` is an enhanced version of Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv). While `lapjvs()` does not use CPU special instruction sets like the original implementation, it still delivers comparable performance. It natively supports both square and rectangular cost matrices and can produce output either in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) style or or mapping arrays `x` and `y` like [`lapjv()`](https://github.com/rathaROG/lapx#1-the-original-function-lapjv). See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
 
 ```python
 import numpy as np, lap
@@ -202,7 +195,7 @@ assignments = np.column_stack((row_indices, col_indices))
 
 #### 6. The new function ``lapjvsa()``
 
-`lapjvsa()` is essentially the same as `lapjvs()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required.
+`lapjvsa()` is essentially the same as `lapjvs()`, but it returns assignments with shape `(K, 2)` directly — no additional or manual post-processing required. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_wp.py).
 
 ```python
 import numpy as np, lap
@@ -217,7 +210,7 @@ total_cost, assignments = lap.lapjvsa(np.random.rand(100, 150), return_cost=True
 
 #### 7. The original function ``lapmod()``
 
-For see the [`lap/_lapmod_wp.py`](https://github.com/rathaROG/lapx/blob/main/lap/_lapmod_wp.py) for details.
+See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapmod_wp.py).
 
 ```python
 import numpy as np, lap, time
@@ -242,7 +235,7 @@ print("Assignments identical?", (np.all(x1 == x2) and np.all(y1 == y2)))
 
 #### 1. The new function ``lapjvx_batch()``
 
-`lapjvx_batch()` is the batch version of [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx), accepting costs with shape `(B, N, M)`. See **common parameters** and **return** in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
+`lapjvx_batch()` is the batch version of [`lapjvx()`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx), accepting costs with shape `(B, N, M)`. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_batch_wp.py).
 
 ```python
 import numpy as np, lap, os
@@ -259,7 +252,7 @@ print(f"assignments_7.shape = {assignments_7.shape}")
 
 #### 2. The new function ``lapjvxa_batch()``
 
-`lapjvxa_batch()` is the batch version of [`lapjvxa()`](https://github.com/rathaROG/lapx#3-the-new-function-lapjvxa), accepting costs with shape `(B, N, M)`. See **common parameters** and **return** in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
+`lapjvxa_batch()` is the batch version of [`lapjvxa()`](https://github.com/rathaROG/lapx#3-the-new-function-lapjvxa), accepting costs with shape `(B, N, M)`. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_batch_wp.py).
 
 ```python
 import numpy as np, lap, os
@@ -276,7 +269,7 @@ print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b
 
 #### 3. The new function ``lapjvs_batch()``
 
-`lapjvs_batch()` is the batch version of [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs), accepting costs with shape `(B, N, M)`. See **common parameters** and **return** in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
+`lapjvs_batch()` is the batch version of [`lapjvs()`](https://github.com/rathaROG/lapx#5-the-new-function-lapjvs), accepting costs with shape `(B, N, M)`. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_batch_wp.py).
 
 ```python
 import numpy as np, lap, os
@@ -295,7 +288,7 @@ print(f"assignments_7.shape = {assignments_7.shape}")
 
 #### 4. The new function ``lapjvsa_batch()``
 
-`lapjvsa_batch()` is the batch version of [`lapjvsa()`](https://github.com/rathaROG/lapx#6-the-new-function-lapjvxa), accepting costs with shape `(B, N, M)`. See **common parameters** and **return** in [`lap/__init__.py`](https://github.com/rathaROG/lapx/blob/main/lap/__init__.py).
+`lapjvsa_batch()` is the batch version of [`lapjvsa()`](https://github.com/rathaROG/lapx#6-the-new-function-lapjvsa), accepting costs with shape `(B, N, M)`. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvs_batch_wp.py).
 
 ```python
 import numpy as np, lap, os
