@@ -1,6 +1,7 @@
-[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?v0.9.1)](https://github.com/rathaROG/lapx/releases)
-[![PyPI version](https://badge.fury.io/py/lapx.svg?v0.9.1)](https://badge.fury.io/py/lapx)
+[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
+[![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
 [![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
+[![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
 
 # Running test suite for `lapx`
 

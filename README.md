@@ -13,9 +13,9 @@
 
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?v0.9.1&logo=github&logoColor=lightgray)](https://github.com/rathaROG/lapx/releases)
-[![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold?v0.9.1&logo=pypi&logoColor=deepskyblue)](https://pypi.org/project/lapx/#files)
-[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?v0.9.1&logo=python&logoColor=gold)](https://pypi.org/project/lapx/)
+[![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?logo=github&logoColor=lightgray)](https://github.com/rathaROG/lapx/releases)
+[![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold?logo=pypi&logoColor=deepskyblue)](https://pypi.org/project/lapx/#files)
+[![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?logo=python&logoColor=gold)](https://pypi.org/project/lapx/)
 
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
@@ -27,7 +27,7 @@
 
 </div>
 
-[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver, but has since evolved to offer much more; for details on all available solver functions, refer to the [usage section](https://github.com/rathaROG/lapx#-usage).
+[`lapx`](https://github.com/rathaROG/lapx) was initially created to maintain Tomas Kazmar's [`lap`](https://github.com/gatagat/lap) — a ***Jonker-Volgenant*** solver package, but has since evolved to offer much more; for details on all available solver functions, refer to the [usage section](https://github.com/rathaROG/lapx#-usage).
 
 <details><summary>Click to read more ...</summary><br>
 
@@ -44,7 +44,7 @@ All [linear assignment problem](https://en.wikipedia.org/wiki/Assignment_problem
 ### Install from [PyPI](https://pypi.org/project/lapx/):
 
 [![Wheels](https://img.shields.io/pypi/wheel/lapx)](https://pypi.org/project/lapx/)
-[![PyPI version](https://badge.fury.io/py/lapx.svg?v0.9.1)](https://badge.fury.io/py/lapx)
+[![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/project/lapx)
 [![Downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/project/lapx)
 
@@ -90,6 +90,7 @@ cd dist
 ## 🧪 Usage
 
 [![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
+[![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
 
 [`lapx`](https://github.com/rathaROG/lapx) was initially created as a drop‑in replacement to preserve the distribution of the original [`lap`](https://github.com/gatagat/lap). While the package you install is `lapx`, the import name remains `lap` to avoid breaking existing code; use `import lap` to import `lapx`.
 
@@ -105,7 +106,7 @@ cd dist
 
 #### 1. The original function ``lapjv()``
 
-`lapjv()` supports both square and rectangular cost matrices. It returns the optimal assignments as mapping arrays `x` (size N) and `y` (size M) and optionally total cost if `return_cost=True`.
+`lapjv()` supports both square and rectangular cost matrices. It returns the optimal assignments as mapping arrays `x` (size N) and `y` (size M) and optionally total cost if `return_cost=True`. See more details [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjv_wp.py).
 
 ```python
 import numpy as np, lap
@@ -116,8 +117,6 @@ valid = x >= 0
 assignments = np.column_stack((np.arange(len(x))[valid], x[valid]))
 # assignments = np.array([[y[i],i] for i in x if i >= 0])  # slower
 ```
-
-See more details of `lapjv()` [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjv_wp.py).
 
 <details><summary>Still need more explanation?</summary><br>
 
@@ -131,7 +130,7 @@ See more details of `lapjv()` [here](https://github.com/rathaROG/lapx/blob/main/
 
 #### 2. The new function ``lapjvx()``
 
-`lapjvx()` basically is `lapjv()`, but it matches the output style of SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) with no additional overhead. You can see how it compares to others in ***Object Tracking benchmark*** [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking). See more details of `lapjvx()` [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
+`lapjvx()` basically is `lapjv()`, but it matches the output style of SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) with no additional overhead. See more details of `lapjvx()` [here](https://github.com/rathaROG/lapx/blob/main/lap/_lapjvx_wp.py).
 
 ```python
 import numpy as np, lap
@@ -141,6 +140,8 @@ total_cost, row_indices, col_indices = lap.lapjvx(np.random.rand(100, 150), exte
 assignments = np.column_stack((row_indices, col_indices))
 # assignments = np.array(list(zip(row_indices, col_indices)))  # slower
 ```
+
+See how `lapjvx()` compares to others in ***Object Tracking benchmark*** [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md#-object-tracking).
 
 <details><summary>Show <code>lapjvxa()</code></summary>
 
@@ -301,9 +302,11 @@ print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b
 
 </details>
 
-## 🏆 Quick Benchmark
+## 🏆 Benchmark and Test
 
-To run a quick benchmark or see some interesting results, please check [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md).
+To run a quick benchmark or see some interesting results, please check [here](https://github.com/rathaROG/lapx/blob/main/benchmark.md).
+
+To run a full test suite, please check [here](https://github.com/rathaROG/lapx/tree/main/tests).
 
 ## 📝 License
 
