@@ -10,8 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["windows-latest", "ubuntu-22.04", "ubuntu-24.04-arm", "macos-13"]
-        os: ["windows-latest", "ubuntu-22.04", "macos-13"]
+        # os: ["windows-latest", "ubuntu-22.04", "ubuntu-24.04-arm", "macos-15-intel"]
+        os: ["windows-latest", "ubuntu-22.04", "macos-15-intel"]
         python-version: ["3.7"]
     steps:
       - uses: actions/checkout@v5
@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["windows-latest", "ubuntu-latest", "ubuntu-24.04-arm", "macos-13", "macos-latest"]
+        os: ["windows-latest", "ubuntu-latest", "ubuntu-24.04-arm", "macos-15-intel", "macos-latest"]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v5
