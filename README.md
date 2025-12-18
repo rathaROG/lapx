@@ -221,7 +221,7 @@ cm = np.random.rand(n, m)
 
 t0 = time.time()
 c1, x1, y1 = lap.lapjv(cm, return_cost=True)
-print(f"lapjv:  cost={c1:.6f}, time={time.time()-t0:.4f}s")
+print(f"lapjv: cost={c1:.6f}, time={time.time()-t0:.4f}s")
 
 cc, kk, ii = cm.ravel(), np.tile(np.arange(m), n), np.arange(0, n*m+1, m)
 t1 = time.time()
@@ -242,7 +242,7 @@ print("Assignments identical?", (np.all(x1 == x2) and np.all(y1 == y2)))
 import numpy as np, lap, os
 
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
-costs, rows, cols = lap.lapjvx_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
+costs, rows, cols = lap.lapjvx_batch(batch_costs, extend_cost=True, return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
 # access the assignments @ batch b = 7
 assignments_7 = np.column_stack((rows[7], cols[7]))  # (K_b, 2)
@@ -259,7 +259,7 @@ print(f"assignments_7.shape = {assignments_7.shape}")
 import numpy as np, lap, os
 
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
-costs, assignments = lap.lapjvxa_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
+costs, assignments = lap.lapjvxa_batch(batch_costs, extend_cost=True, return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
 print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b = 7
 ```
@@ -276,7 +276,7 @@ print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b
 import numpy as np, lap, os
 
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
-costs, rows, cols = lap.lapjvs_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
+costs, rows, cols = lap.lapjvs_batch(batch_costs, extend_cost=True, return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
 # access the assignments @ batch b = 7
 assignments_7 = np.column_stack((rows[7], cols[7]))  # (K_b, 2)
@@ -295,7 +295,7 @@ print(f"assignments_7.shape = {assignments_7.shape}")
 import numpy as np, lap, os
 
 batch_costs = np.random.rand(500, 100, 150)  # (B, N, M) # B is batch size
-costs, assignments = lap.lapjvsa_batch(batch_costs, extend_cost=True,  return_cost=True, n_threads=os.cpu_count())
+costs, assignments = lap.lapjvsa_batch(batch_costs, extend_cost=True, return_cost=True, n_threads=os.cpu_count())
 print(f"total costs = {costs.sum()}")
 print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b = 7
 ```
