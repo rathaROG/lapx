@@ -302,7 +302,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: "cp38-* cp314-*"
           CIBW_SKIP: "pp*"
-          CIBW_ARCHS_LINUX: "aarch64"
+          CIBW_ARCHS_LINUX: "aarch64 armv7l"
       - name: Archive wheels
         uses: actions/upload-artifact@v4
         with:
@@ -328,7 +328,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: "cp37-*"
           CIBW_SKIP: "pp*"
-          CIBW_ARCHS_LINUX: "aarch64"
+          CIBW_ARCHS_LINUX: "aarch64 armv7l"
       - name: Archive wheels
         uses: actions/upload-artifact@v4
         with:
