@@ -92,6 +92,3 @@ __all__ = [
     # Constants
     'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE',
 ]
-
-
-
