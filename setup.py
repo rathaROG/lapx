@@ -224,7 +224,6 @@ def main_setup():
                   'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch'],
         packages=find_packages(include=[PACKAGE_PATH, f"{PACKAGE_PATH}.*"]),
         include_package_data=True,
-        package_data={'lap': ['default_autotune.json']},
         install_requires=['numpy>=1.21.6',],
         python_requires=">=3.7",
         classifiers=['Development Status :: 4 - Beta',
