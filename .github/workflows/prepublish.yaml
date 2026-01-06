@@ -20,7 +20,7 @@ jobs:
   #     - name: Install cibuildwheel
   #       run: |
   #         python -m pip install --upgrade pip
-  #         python -m pip install cibuildwheel==3.3.0
+  #         python -m pip install cibuildwheel==3.3.1
   #     - name: Build wheels
   #       run: python -m cibuildwheel --output-dir wheelhouse
   #       env:
@@ -49,7 +49,7 @@ jobs:
   #     - name: Install cibuildwheel
   #       run: |
   #         python -m pip install --upgrade pip
-  #         python -m pip install cibuildwheel==3.3.0
+  #         python -m pip install cibuildwheel==3.3.1
   #     - name: Build wheels
   #       run: python -m cibuildwheel --output-dir wheelhouse
   #       env:
@@ -75,7 +75,7 @@ jobs:
   #     - name: Install cibuildwheel
   #       run: |
   #         python -m pip install --upgrade pip
-  #         python -m pip install cibuildwheel==3.3.0
+  #         python -m pip install cibuildwheel==3.3.1
   #     - name: Build wheels
   #       run: python -m cibuildwheel --output-dir wheelhouse
   #       env:
@@ -105,7 +105,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.3.0
+          python -m pip install cibuildwheel==3.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -161,7 +161,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.3.0
+          python -m pip install cibuildwheel==3.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -213,7 +213,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.3.0
+          python -m pip install cibuildwheel==3.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -243,7 +243,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.3.0
+          python -m pip install cibuildwheel==3.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -295,7 +295,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.3.0
+          python -m pip install cibuildwheel==3.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
