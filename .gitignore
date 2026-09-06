@@ -1,0 +1,58 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Build and packaging output
+/build/
+/dist/
+/wheelhouse/
+*.egg-info/
+.eggs/
+*.egg
+*.whl
+
+# Compiled extensions and compiler output
+*.so
+*.pyd
+*.dll
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+*.exp
+*.pdb
+*.ilk
+
+# Cython-generated files (keep handwritten C++ sources)
+/src/_lapjv/_lapjv.cpp
+/src/_lapjv/_lapjvx.cpp
+/src/_lapjv/_lapjv.html
+/src/_lapjv/_lapjvx.html
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test, coverage, and analysis output
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Editor and operating system files
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

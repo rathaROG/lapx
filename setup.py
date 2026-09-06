@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Ratha SIV | MIT License
+# Copyright (c) 2026 Ratha SIV | MIT License
 
 from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext  # custom build_ext for high-perf flags

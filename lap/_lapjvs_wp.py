@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Ratha SIV | MIT License
+# Copyright (c) 2026 Ratha SIV | MIT License
 
 import numpy as np
 from typing import Optional, Tuple, Union
@@ -86,26 +86,31 @@ def lapjvs(
         raise ValueError("cost must be a 2D array")
 
     n0, m0 = A.shape
-    transposed = False
+    if extend_cost is not None and not extend_cost and n0 != m0:
+        raise ValueError("extend_cost=False requires a square cost matrix")
+    if n0 == 0 or m0 == 0:
+        if jvx_like:
+            x_out = np.empty((0,), dtype=np.int64)
+            y_out = np.empty((0,), dtype=np.int64)
+        else:
+            x_out = np.full(n0, -1, dtype=np.int64)
+            y_out = np.full(m0, -1, dtype=np.int64)
+        return (0.0, x_out, y_out) if return_cost else (x_out, y_out)
 
     # Normalize orientation for performance: let the kernel see rows <= cols.
-    if n0 > m0:
-        B = np.ascontiguousarray(A.T)
-        transposed = True
-    else:
-        B = np.ascontiguousarray(A)
-
+    # Keep a view until the final working buffer's dtype and shape are known.
+    transposed = n0 > m0
+    B = A.T if transposed else A
     n, m = B.shape
-    extend = (n != m) if (extend_cost is None) else bool(extend_cost)
 
     # Choose backend and working dtype for the solver only
     use_float32_kernel = not ((prefer_float32 is False) and (B.dtype == np.float64))
     if use_float32_kernel:
         _kernel = _lapjvs_float32
-        work_base = np.ascontiguousarray(B, dtype=np.float32)
+        wdtype = np.float32
     else:
         _kernel = _lapjvs_native
-        work_base = np.ascontiguousarray(B, dtype=np.float64)
+        wdtype = np.float64
 
     def _rows_cols_from_x(x_vec: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if x_vec.size == 0:
@@ -118,11 +123,9 @@ def lapjvs(
         # Map back to original orientation (A): swap row/col
         return cols_b, rows_b
 
-    if not extend:
+    if n == m:
         # Square: call solver directly on chosen dtype, compute total from ORIGINAL A
-        if n != m:
-            # Guard (per docstring): if extend_cost=False, require square input
-            raise ValueError("extend_cost=False requires a square cost matrix")
+        work_base = np.ascontiguousarray(B, dtype=wdtype)
         x_raw_obj, y_raw_obj = _kernel(work_base)
 
         x_raw_b = np.asarray(x_raw_obj, dtype=np.int64)
@@ -130,7 +133,7 @@ def lapjvs(
         if jvx_like:
             rows_a, cols_a = _rows_cols_from_x(x_raw_b)
             if return_cost:
-                total = float(A[rows_a, cols_a].sum()) if rows_a.size else 0.0
+                total = float(A[rows_a, cols_a].sum(dtype=np.float64)) if rows_a.size else 0.0
                 return total, rows_a, cols_a
             else:
                 return rows_a, cols_a
@@ -140,7 +143,7 @@ def lapjvs(
 
             if not transposed:
                 if return_cost:
-                    total = float(A[np.arange(n), x_raw_b].sum()) if n > 0 else 0.0
+                    total = float(A[np.arange(n), x_raw_b].sum(dtype=np.float64)) if n > 0 else 0.0
                     return total, x_raw_b, y_raw_b
                 else:
                     return x_raw_b, y_raw_b
@@ -155,16 +158,16 @@ def lapjvs(
             if rows_a.size:
                 y_out[cols_a] = rows_a
             if return_cost:
-                total = float(A[rows_a, cols_a].sum()) if rows_a.size else 0.0
+                total = float(A[rows_a, cols_a].sum(dtype=np.float64)) if rows_a.size else 0.0
                 return total, x_out, y_out
             else:
                 return x_out, y_out
 
     # Rectangular: zero-pad to square (in B space), solve, map back; compute total from ORIGINAL A
     size = max(n, m)
-    padded = np.empty((size, size), dtype=work_base.dtype)
-    # copy original submatrix
-    padded[:n, :m] = work_base
+    padded = np.empty((size, size), dtype=wdtype)
+    # Copy and cast directly into the final buffer, including for strided inputs.
+    padded[:n, :m] = B
     if m < size:
         padded[:n, m:] = 0
     if n < size:
@@ -192,7 +195,7 @@ def lapjvs(
         cols_a = np.empty((0,), dtype=np.int64)
 
     if jvx_like:
-        total = float(A[rows_a, cols_a].sum()) if (return_cost and rows_a.size) else 0.0
+        total = float(A[rows_a, cols_a].sum(dtype=np.float64)) if (return_cost and rows_a.size) else 0.0
         return (total, rows_a, cols_a) if return_cost else (rows_a, cols_a)
 
     # lapjv-like outputs (vectorized) in ORIGINAL orientation
@@ -203,7 +206,7 @@ def lapjvs(
         y_out[cols_a] = rows_a
 
     if return_cost and rows_a.size:
-        total = float(A[rows_a, cols_a].sum())
+        total = float(A[rows_a, cols_a].sum(dtype=np.float64))
     else:
         total = 0.0
 
@@ -266,25 +269,22 @@ def lapjvsa(
         raise ValueError("cost must be a 2D array")
 
     n0, m0 = A.shape
-    transposed = False
+    if extend_cost is not None and not extend_cost and n0 != m0:
+        raise ValueError("extend_cost=False requires a square cost matrix")
+    if n0 == 0 or m0 == 0:
+        pairs = np.empty((0, 2), dtype=np.int64)
+        return (0.0, pairs) if return_cost else pairs
 
     # Normalize orientation for performance
-    if n0 > m0:
-        B = np.ascontiguousarray(A.T)
-        transposed = True
-    else:
-        B = np.ascontiguousarray(A)
-
+    transposed = n0 > m0
+    B = A.T if transposed else A
     n, m = B.shape
-    extend = (n != m) if (extend_cost is None) else bool(extend_cost)
 
     # Select dtype/backend
     use_f32 = not ((prefer_float32 is False) and (B.dtype == np.float64))
     wdtype = np.float32 if use_f32 else (B.dtype if B.dtype in (np.float32, np.float64) else np.float64)
 
-    if not extend:
-        if n != m:
-            raise ValueError("extend_cost=False requires a square cost matrix")
+    if n == m:
         work = np.ascontiguousarray(B, dtype=wdtype)
         pairs_b_obj = (_lapjvsa_float32(work) if use_f32 else _lapjvsa_native(work))
         pairs_b = np.asarray(pairs_b_obj, dtype=np.int64)
@@ -298,7 +298,7 @@ def lapjvsa(
         if return_cost:
             if pairs_a.size:
                 r = pairs_a[:, 0]; c = pairs_a[:, 1]
-                total = float(A[r, c].sum())
+                total = float(A[r, c].sum(dtype=np.float64))
             else:
                 total = 0.0
             return total, pairs_a
@@ -307,7 +307,7 @@ def lapjvsa(
     # Rectangular: zero-pad in B space, solve, trim, map back to A
     size = max(n, m)
     padded = np.empty((size, size), dtype=wdtype)
-    padded[:n, :m] = B.astype(wdtype, copy=False)
+    padded[:n, :m] = B
     if m < size:
         padded[:n, m:] = 0
     if n < size:
@@ -328,7 +328,7 @@ def lapjvsa(
             # Map back to A orientation if needed
             pairs_a = pairs_b[:, ::-1] if transposed else pairs_b
             if return_cost and pairs_a.size:
-                total = float(A[pairs_a[:, 0], pairs_a[:, 1]].sum())
+                total = float(A[pairs_a[:, 0], pairs_a[:, 1]].sum(dtype=np.float64))
             else:
                 total = 0.0
         else:

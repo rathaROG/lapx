@@ -3,6 +3,7 @@
 import numpy as np
 import numpy.typing as npt
 from bisect import bisect_left
+from operator import index
 from typing import Tuple, Union
 
 # import logging
@@ -250,27 +251,57 @@ def _pya(n, cc, ii, kk, n_free_rows, free_rows, x, y, v):
 
 
 def check_cost(n, cc, ii, kk):
-    if n == 0:
-        raise ValueError('Cost matrix has zero rows.')
-    if len(kk) == 0:
+    if n <= 0:
+        raise ValueError('Cost matrix must have a positive number of rows.')
+    if n > np.iinfo(np.int32).max:
+        raise ValueError('Cost matrix has too many rows for int32 indices.')
+    if cc.ndim != 1 or ii.ndim != 1 or kk.ndim != 1:
+        raise ValueError('cc, ii and kk must be one-dimensional arrays.')
+    if cc.dtype.kind not in 'biuf':
+        raise ValueError('Cost matrix values must be real numbers.')
+    if ii.dtype.kind not in 'iu' or kk.dtype.kind not in 'iu':
+        raise ValueError('Row pointers and column indices must be integers.')
+    if len(ii) != n + 1:
+        raise ValueError('ii must contain n + 1 row pointers.')
+    if len(cc) != len(kk):
+        raise ValueError('cc and kk must have the same length.')
+    if len(cc) == 0:
         raise ValueError('Cost matrix has zero columns.')
+    if len(cc) > np.iinfo(np.int32).max:
+        raise ValueError('Cost matrix has too many entries for int32 indices.')
+    if ii[0] != 0 or ii[-1] != len(cc) or np.any(ii[1:] < ii[:-1]):
+        raise ValueError('ii must start at 0, end at len(cc), and be nondecreasing.')
+    if kk.min() < 0 or kk.max() >= n:
+        raise ValueError('Column indices must be in the range [0, n).')
+
+    # Ignore comparisons across row boundaries, including repeated pointers
+    # for empty rows. No per-row Python loop is needed for this validation.
+    unordered = kk[1:] <= kk[:-1]
+    starts = ii[1:-1]
+    starts = starts[(starts > 0) & (starts < len(kk))]
+    unordered[starts - 1] = False
+    if unordered.any():
+        raise ValueError('Column indices must be strictly increasing within each row.')
+
     lo = cc.min()
     hi = cc.max()
+    if not np.isfinite(lo) or not np.isfinite(hi):
+        raise ValueError('Cost matrix values must be finite.')
     if lo < 0:
         raise ValueError('Cost matrix values must be non-negative.')
-    if hi >= LARGE:
+    if float(hi) >= LARGE:
         raise ValueError(
                 'Cost matrix values must be less than %s' % LARGE)
 
 
 def get_cost(n, cc, ii, kk, x0):
-    ret = 0
+    ret = 0.0
     for i, j in enumerate(x0):
         kj = binary_search(kk[ii[i]:ii[i+1]], j)
         if kj is None:
             return np.inf
         kj = ii[i] + kj
-        ret += cc[kj]
+        ret += float(cc[kj])
     return ret
 
 
@@ -292,26 +323,27 @@ def lapmod(
     n: number of rows of the assignment cost matrix
     cc: 1D array of all finite elements of the assignment cost matrix
     ii: 1D array of indices of the row starts in cc. The following must hold:
-            ii[0] = 0 and ii[n+1] = len(cc).
+            len(ii) = n + 1, ii[0] = 0 and ii[n] = len(cc).
     kk: 1D array of the column indices so that:
             cost[i, kk[ii[i] + k]] == cc[ii[i] + k].
-        Indices within one row must be sorted.
-    extend_cost: whether or not extend a non-square matrix [default: False]
-    cost_limit: an upper limit for a cost of a single assignment
-                [default: np.inf]
+        Indices within one row must be strictly increasing and in [0, n).
     return_cost: whether or not to return the assignment cost
 
     Returns (opt, x, y) where:
-      opt: cost of the assignment
+      opt: cost of the assignment, accumulated in float64
       x: vector of columns assigned to rows
       y: vector of rows assigned to columns
     or (x, y) if return_cost is not True.
 
-    When extend_cost and/or cost_limit is set, all unmatched entries will be
-    marked by -1 in x/y.
+    The sparse cost matrix must be square, with finite non-negative values
+    less than LARGE. Malformed sparse arrays raise ValueError before solving.
     """
     # log = logging.getLogger('lapmod')
 
+    n = index(n)
+    cc = np.asarray(cc)
+    ii = np.asarray(ii)
+    kk = np.asarray(kk)
     check_cost(n, cc, ii, kk)
 
     if fast is True:

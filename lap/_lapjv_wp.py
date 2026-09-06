@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Ratha SIV | MIT License
+# Copyright (c) 2026 Ratha SIV | MIT License
 
 import numpy as np
 from typing import Tuple, Union

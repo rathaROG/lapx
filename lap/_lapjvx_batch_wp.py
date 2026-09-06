@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Ratha SIV | MIT License
+# Copyright (c) 2026 Ratha SIV | MIT License
 
 import os
 import numpy as np
@@ -90,7 +90,7 @@ def lapjvx_batch(
             )
             return bi, None, rows, cols
 
-    if threads == 1 or B == 1:
+    if threads == 1 or B <= 1:
         for bi in range(B):
             i, t, r, c = work(bi)
             if return_cost:
@@ -177,7 +177,7 @@ def lapjvxa_batch(
             )
             return bi, None, pairs
 
-    if threads == 1 or B == 1:
+    if threads == 1 or B <= 1:
         for bi in range(B):
             i, t, P = work(bi)
             if return_cost:
