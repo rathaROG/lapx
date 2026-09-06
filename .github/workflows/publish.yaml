@@ -24,6 +24,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install cibuildwheel==4.2.1
+      - name: Locate MSVC runtime DLLs for wheel repair
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -ne 0 -or !$vsPath) { throw "Visual Studio C++ tools were not found" }
+          $redistRoot = Join-Path $vsPath 'VC\Redist\MSVC'
+          $redistDirs = foreach ($arch in @('x64', 'arm64')) {
+            $runtime = Get-ChildItem -Path "$redistRoot\*\$arch\Microsoft.VC*.CRT\msvcp140.dll" |
+              Sort-Object { [version] $_.Directory.Parent.Parent.Name } -Descending |
+              Select-Object -First 1
+            if (!$runtime) { throw "MSVC runtime DLLs for $arch were not found in $redistRoot" }
+            Write-Host "${arch} runtime: $($runtime.FullName)"
+            $runtime.DirectoryName
+          }
+          "LAPX_MSVC_REDIST_DIRS=$($redistDirs -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -31,6 +47,8 @@ jobs:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-* cp315-*"
           CIBW_SKIP: "*-win32 pp*"
           CIBW_ARCHS_WINDOWS: "AMD64 ARM64"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair --add-path "%LAPX_MSVC_REDIST_DIRS%" -w "{dest_dir}" -v "{wheel}"
       - name: Archive wheels
         uses: actions/upload-artifact@v7
         with:
@@ -306,7 +324,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_linux_arm:
-    name: Build linux-arm (Python 3.9-3.15)
+    name: Build linux-arm (Python 3.9-3.14)
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7
@@ -322,13 +340,41 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-* cp315-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "pp*"
           CIBW_ARCHS_LINUX: "aarch64 armv7l"
       - name: Archive wheels
         uses: actions/upload-artifact@v7
         with:
-          name: pypi-linux-arm-p39-315-wheels
+          name: pypi-linux-arm-p39-314-wheels
+          path: ./wheelhouse/*.whl
+
+  build_linux_arm_p315:
+    name: Build linux-arm (Python 3.15)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install cibuildwheel==4.2.1
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD: "cp315-*"
+          CIBW_SKIP: "pp*"
+          CIBW_ARCHS_LINUX: "aarch64 armv7l"
+          # ARMv7 needs GCC 11 for NumPy 2.5; aarch64 keeps its default image.
+          CIBW_MANYLINUX_ARMV7L_IMAGE: manylinux_2_35
+      - name: Archive wheels
+        uses: actions/upload-artifact@v7
+        with:
+          name: pypi-linux-arm-p315-wheels
           path: ./wheelhouse/*.whl
 
   build_linux_arm_p38:
@@ -428,6 +474,7 @@ jobs:
       - build_linux_intel_p38
       - build_linux_intel_p37
       - build_linux_arm
+      - build_linux_arm_p315
       - build_linux_arm_p38
       - build_linux_arm_p37
       - build_source
