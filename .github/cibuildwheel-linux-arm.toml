@@ -1,0 +1,7 @@
+# CI-only configuration for the Python 3.9-3.15 Linux ARM job.
+[[tool.cibuildwheel.overrides]]
+select = "cp3{12,13,14,15}-manylinux_armv7l"
+# manylinux_2_31 has GCC 9; NumPy 2.5 source builds require GCC >= 10.3.
+environment.PIP_CONSTRAINT = "/project/.github/constraints/numpy-armv7-build.txt"
+# Allow wheel tests to install newer NumPy independently of the build constraint.
+test-environment.PIP_CONSTRAINT = ""

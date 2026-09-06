@@ -321,7 +321,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_linux_arm:
-    name: Build linux-arm (Python 3.9-3.14)
+    name: Build linux-arm (Python 3.9-3.15)
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7
@@ -332,18 +332,18 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==3.4.1
+          python -m pip install cibuildwheel==4.2.1
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: python -m cibuildwheel --config-file .github/cibuildwheel-linux-arm.toml --output-dir wheelhouse
         env:
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BUILD: "cp39-* cp314-*"
+          CIBW_BUILD: "cp39-* cp314-* cp315-*"
           CIBW_SKIP: "pp*"
           CIBW_ARCHS_LINUX: "aarch64 armv7l"
       - name: Archive wheels
         uses: actions/upload-artifact@v7
         with:
-          name: linux-arm-p39-314-wheels
+          name: linux-arm-p39-315-wheels
           path: ./wheelhouse/*.whl
 
   build_linux_arm_p315:
