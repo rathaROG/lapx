@@ -331,7 +331,7 @@ jobs:
           name: pypi-linux-arm-p39-315-wheels
           path: ./wheelhouse/*.whl
 
-  build_linux_arm:
+  build_linux_arm_p38:
     name: Build linux-arm (Python 3.8)
     runs-on: ubuntu-24.04-arm
     steps:
