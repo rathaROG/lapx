@@ -11,7 +11,7 @@ PACKAGE_NAME = "lapx"
 PACKAGE_PATH = "lap"
 
 def get_version_string() -> str:
-    with open("lap/__init__.py") as version_file:
+    with open("lap/__init__.py", encoding="utf-8") as version_file:
         for line in version_file.read().splitlines():
             if line.startswith('__version__'):
                 delim = '"' if '"' in line else "'"
