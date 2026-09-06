@@ -73,11 +73,13 @@ cd dist
 
 <details><summary>⚡ Extra performance</summary><br>
 
-> Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe (base) optimizations by default. For source builds, you can disable the default base optimizations or opt into extra flags via environment variables which might boost performance further:
-> - `LAPX_BASEOPTS=0` — disables base optimizations entirely (since [v0.9.2](https://github.com/rathaROG/lapx/releases/tag/v0.9.2))
-> - `LAPX_FASTMATH=1` — enables fast-math (may change floating‑point semantics)
+> Since [v0.9.1](https://github.com/rathaROG/lapx/releases/tag/v0.9.1), `lapx` enables safe (base) optimizations by default. For source builds, you can disable LAPX-added base optimizations or opt into extra flags via environment variables which might boost performance further:
+> - `LAPX_BASEOPTS=0` — disables LAPX-added base optimization flags and LTO; other compiler defaults may still apply (switch available since [v0.9.2](https://github.com/rathaROG/lapx/releases/tag/v0.9.2))
+> - `LAPX_FASTMATH=1` — enables fast-math (may change numerical results and handling of NaN/infinity)
 > - `LAPX_NATIVE=1` — GCC/Clang only; tune for the CPU of the build machine (not suitable for sharing)
-> - `LAPX_LTO=0` — disables link-time optimization (only considered when base optimizations are enabled)
+> - `LAPX_LTO=0` — disables link-time optimization, including inherited LTO defaults
+>
+> LTO is enabled by default when compilation and linking support it. `LAPX_BASEOPTS=0` does not guarantee an unoptimized or debug build. Fast-math and native tuning are independent opt-ins, disabled by default; keep both disabled for portable release wheels.
 
 > See the [setup.py](https://github.com/rathaROG/lapx/blob/main/setup.py) for more details.
 

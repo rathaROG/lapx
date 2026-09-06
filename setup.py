@@ -30,24 +30,31 @@ class BuildExt(build_ext):
     """
     Add portable, high-performance compiler/linker flags and allow
     optional opt-ins via env vars:
-      - LAPX_BASEOPTS=0  -> disable base optimizations (/O2, -O3, -DNDEBUG, LTO, etc.)
+      - LAPX_BASEOPTS=0  -> disable LAPX-added base flags and LTO;
+                           other compiler defaults may still apply
       - LAPX_FASTMATH=1  -> -ffast-math (or /fp:fast)
       - LAPX_NATIVE=1    -> -march=native -mtune=native
-      - LAPX_LTO=0       -> disable LTO if needed (only considered when base opts are enabled)
+      - LAPX_LTO=0       -> disable LTO, including inherited LTO defaults
+
+    LAPX_BASEOPTS=0 does not guarantee an unoptimized or debug build.
+    Fast-math and native tuning are independent opt-ins, disabled by default.
     """
-    def has_flag(self, flag):
+    def has_flag(self, flag, link_flag=None):
         import tempfile, os
-        with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as f:
-            f.write("int main(){return 0;}")
-            fname = f.name
-        try:
-            self.compiler.compile([fname], extra_postargs=[flag])
-        except Exception:
-            try: os.remove(fname)
-            except OSError: pass
-            return False
-        try: os.remove(fname)
-        except OSError: pass
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname = os.path.join(tmpdir, 'flagcheck.cpp')
+            with open(fname, 'w') as f:
+                f.write("int main(){return 0;}")
+            try:
+                objects = self.compiler.compile(
+                    [fname], output_dir=tmpdir, extra_postargs=[flag], debug=self.debug)
+                if link_flag is not None:
+                    self.compiler.link_shared_object(
+                        objects,
+                        os.path.join(tmpdir, 'flagcheck' + self.compiler.shared_lib_extension),
+                        extra_postargs=[link_flag], target_lang='c++', debug=self.debug)
+            except Exception:
+                return False
         return True
 
     def build_extensions(self):
@@ -69,15 +76,17 @@ class BuildExt(build_ext):
 
         compile_opts = []
         link_opts = []
+        lto_enabled = False
 
         if is_msvc:
             # Base optimizations on MSVC
             if base_enabled:
                 compile_opts += ['/O2', '/DNDEBUG']
                 # Respect LAPX_LTO on MSVC when base opts are enabled
-                if env_lto_on and self.has_flag('/GL'):
+                if env_lto_on and self.has_flag('/GL', '/LTCG'):
                     compile_opts += ['/GL']
                     link_opts += ['/LTCG']
+                    lto_enabled = True
             # Optional fast-math (opt-in)
             if env_fastmath:
                 compile_opts += ['/fp:fast']
@@ -91,10 +100,12 @@ class BuildExt(build_ext):
                     compile_opts += ['-fno-math-errno']
                 # Link-time optimization (prefer ThinLTO when available)
                 if env_lto_on:
-                    if self.has_flag('-flto=thin'):
+                    if self.has_flag('-flto=thin', '-flto=thin'):
                         compile_opts += ['-flto=thin']; link_opts += ['-flto=thin']
-                    elif self.has_flag('-flto'):
+                        lto_enabled = True
+                    elif self.has_flag('-flto', '-flto'):
                         compile_opts += ['-flto']; link_opts += ['-flto']
+                        lto_enabled = True
                 # Minor call overhead reduction on Linux/glibc (if supported)
                 if sys.platform.startswith('linux') and self.has_flag('-fno-plt'):
                     compile_opts += ['-fno-plt']
@@ -107,6 +118,11 @@ class BuildExt(build_ext):
                     compile_opts += ['-march=native']
                 if self.has_flag('-mtune=native'):
                     compile_opts += ['-mtune=native']
+
+        # Override inherited LTO defaults when disabled or when the probe fails.
+        if not lto_enabled:
+            compile_opts += ['/GL-' if is_msvc else '-fno-lto']
+            link_opts += ['/LTCG:OFF' if is_msvc else '-fno-lto']
 
         # Apply to all extensions (always)
         for ext in self.extensions:
@@ -265,13 +281,20 @@ if __name__ == "__main__":
     >>> python -m build --wheel
 
     Base optimizations are safe and applied automatically (e.g., optimized 
-    build [/O2 on MSVC or -O3 on GCC/Clang], -DNDEBUG, and LTO when supported).
+    build [/O2 on MSVC or -O3 on GCC/Clang], -DNDEBUG, and LTO when compilation
+    and linking support it).
 
     Extra opt-ins can be enabled via environment variables:
-      - LAPX_BASEOPTS=0  -> disables base optimizations entirely
+      - LAPX_BASEOPTS=0  -> disables LAPX-added base flags and LTO;
+                           other compiler defaults may still apply
       - LAPX_FASTMATH=1  -> enables fast-math (/fp:fast on MSVC, -ffast-math on GCC/Clang)
       - LAPX_NATIVE=1    -> enables -march=native -mtune=native (GCC/Clang only)
-      - LAPX_LTO=0       -> disables LTO if needed (only considered when base opts are enabled)
+      - LAPX_LTO=0       -> disables LTO, including inherited LTO defaults
+
+    LAPX_BASEOPTS=0 does not guarantee an unoptimized or debug build.
+    Fast-math and native tuning are independent opt-ins, disabled by default.
+    Keep both disabled for portable release wheels; fast-math may change
+    numerical results and handling of NaN/infinity.
 
     For example, to build with fast-math enabled on Linux/macOS:
     >>> LAPX_FASTMATH=1 python -m build --wheel
