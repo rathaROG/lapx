@@ -84,7 +84,7 @@ def __getattr__(name):
         return obj
     raise AttributeError(f"LAPX could not find attribute '{name}'.")
 
-__version__ = '0.9.4'
+__version__ = '0.10.0rc1'
 __author__ = 'Ratha SIV'
 __description__ = 'Linear assignment problem solvers, including single and batch solvers.'
 __homepage__ = 'https://github.com/rathaROG/lapx'
@@ -92,8 +92,7 @@ __all__ = [
     # Single-matrix solvers
     'lapmod', 'lapjv', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'lapjvsa',
     # Batch solvers
-    'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch',
-    'lapmod_batch',
+    'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch', 'lapmod_batch',
     # Constants
     'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE',
 ]
