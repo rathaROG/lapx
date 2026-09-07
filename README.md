@@ -305,6 +305,48 @@ print(f"assignments[7].shape = {assignments[7].shape}")  # assignments @ batch b
 
 </details>
 
+<details><summary>Show <code>lapmod_batch()</code></summary>
+
+#### 5. The new function ``lapmod_batch()``
+
+`lapmod_batch()` solves a sequence of sparse `(n, cc, ii, kk)` problems using the
+same inputs and validation as `lapmod()`. Each problem must be square, but sizes
+and numbers of stored entries can differ. Results retain input order:
+`x_list[b]` maps rows to columns and `y_list[b]` maps columns to rows for problem
+`b`, with the same int32 arrays as the single solver.
+
+```python
+import numpy as np
+import lap
+
+problems = [
+    (2, np.array([1., 4., 3., 2.]),
+     np.array([0, 2, 4]), np.array([0, 1, 0, 1])),
+    (3, np.array([4., 1., 3.]),
+     np.array([0, 1, 2, 3]), np.array([2, 0, 1])),
+]
+totals, x_list, y_list = lap.lapmod_batch(problems, n_threads=2)
+print(totals)     # [3. 8.]
+print(x_list[1])  # [2 0 1]
+
+# Skip total-cost calculation when only the assignments are needed.
+x_list, y_list = lap.lapmod_batch(problems, return_cost=False, n_threads=2)
+```
+
+`n_threads=0` or `None` uses the CPU count, capped to the batch size; `n_threads=1`
+runs sequentially. Empty and single-item batches do not create a thread pool.
+The default `fast=True` releases the GIL in the native solver so independent
+problems can run concurrently. Python-side validation and total-cost calculation
+can limit speedup; the `fast=False` Python fallback is largely GIL-bound.
+`fp_version` selects the native path-search version, as in `lapmod()`.
+Keep input arrays unchanged while solving. Errors from an individual problem
+propagate to the caller after the pool shuts down.
+
+See the [wrapper documentation](https://github.com/rathaROG/lapx/blob/main/lap/_lapmod_batch_wp.py)
+for the full signature and return types.
+
+</details>
+
 ## 🏆 Benchmark and Test
 
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)

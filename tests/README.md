@@ -33,7 +33,7 @@ From [this current directory](https://github.com/rathaROG/lapx/tree/main/tests),
 
 **Notes**:
 
-- From the repository root, run `python -m pytest -c tests/pytest.ini -q tests` to use the same timeout and marker settings as CI.
+- To test a locally built checkout, run `python -m pytest -c tests/pytest.ini -q tests` from the repository root. This uses the local `lap/` package and the same timeout and marker settings as CI. Running from `tests/` can import the installed package instead; it must contain the features being tested.
 - Test data such as [`cost_eps.csv.gz`](https://github.com/rathaROG/lapx/blob/main/tests/cost_eps.csv.gz) is included and used by relevant tests; no additional setup is required.
 - `test_large_cost_consistency.py` covers billion-scale costs across dense single and batch solvers, both return modes, square and rectangular inputs, JVS precision modes, and threaded batches. It also checks larger deterministic matrices against SciPy and verifies `lapmod`'s existing cost range. The fixed regressions run without SciPy; only the SciPy comparisons require it.
 - Run `pytest --help` to see all arguments in `pytest`.
@@ -45,6 +45,7 @@ From [this current directory](https://github.com/rathaROG/lapx/tree/main/tests),
 | Basic API sanity checks | `test_smoke.py` |
 | Individual solver behavior | `test_lapjv.py`, `test_lapjvx.py`, `test_lapjvxa_sa.py`, `test_lapmod.py` |
 | Shared dense and batch behavior | `test_single_solvers*.py`, `test_batch_solvers*.py` |
+| Sparse batches, varying sizes, ordering, and worker errors | `test_lapmod_batch.py` |
 | Invalid inputs, precision, empty inputs, and thread reuse | `test_input_contracts.py`, `test_wrapper_stability.py`, `test_native_stability.py` |
 | Cost-range and reported-bug regressions | `test_large_cost_consistency.py`, `test_arr_loop.py`, `test_*issue_*.py` |
 | Build-option checks without a native compiler | `test_setup.py` |
@@ -65,6 +66,9 @@ dimensions, worker-error propagation and recovery, and sparse size limits using
 broadcast views. Sparse path-search cases in `test_lapmod.py` exercise the Python
 fallback and each native path version against an exhaustive oracle on at most
 4x4 matrices (24 permutations). Empty-input tests fail on unexpected exceptions.
+Sparse batch tests use similarly small problems and cover both return modes,
+native and Python paths, thread counts, shared inputs, and error recovery. The
+ordering test coordinates workers with events rather than timing assertions.
 Use `pytest -q --durations=10` to spot tests that become expensive; solver speed
 benchmarks belong in `benchmarks/`, without timing assertions in the test suite.
 

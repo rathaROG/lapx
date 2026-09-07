@@ -496,3 +496,60 @@ def check_lapmod(
             lap.lapmod(n, cc, ii, kk, return_cost=False),
             Tuple[np.ndarray, np.ndarray],
         )
+
+
+def check_lapmod_batch(
+    cc: npt.NDArray[np.float64], ii: npt.NDArray[np.int32],
+    kk: npt.NDArray[np.int32], flag: bool,
+) -> None:
+    problems = [(2, cc, ii, kk), (np.int64(2), cc, ii, kk)]
+    assert_type(
+        lap.lapmod_batch(problems),
+        Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, return_cost=True),
+        Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, return_cost=False),
+        Tuple[List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, return_cost=flag),
+        Union[Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]], Tuple[List[np.ndarray], List[np.ndarray]]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, True, True, lap.FP_DYNAMIC, None),
+        Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, True, False, lap.FP_DYNAMIC, None),
+        Tuple[List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch(problems, True, flag, lap.FP_DYNAMIC, None),
+        Union[Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]], Tuple[List[np.ndarray], List[np.ndarray]]],
+    )
+    assert_type(
+        lap.lapmod_batch(tuple(problems), return_cost=False, n_threads=None),
+        Tuple[List[np.ndarray], List[np.ndarray]],
+    )
+    assert_type(
+        lap.lapmod_batch([], return_cost=True, n_threads=None),
+        Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
+    )
+
+    # Invalid calls, sparse tuple contents, and tuple sizes must be rejected.
+    lap.lapmod_batch(problems, return_cost="yes")  # type: ignore
+    lap.lapmod_batch(problems, fast="yes")  # type: ignore
+    lap.lapmod_batch(problems, fp_version="dynamic")  # type: ignore
+    lap.lapmod_batch(problems, n_threads="two")  # type: ignore
+    lap.lapmod_batch(problems, unknown_option=True)  # type: ignore
+    lap.lapmod_batch()  # type: ignore
+    lap.lapmod_batch(problems, True, True, lap.FP_DYNAMIC, None, None)  # type: ignore
+    lap.lapmod_batch([(2, cc, ii)])  # type: ignore
+    lap.lapmod_batch([(2.5, cc, ii, kk)])  # type: ignore
+    lap.lapmod_batch([(2, cc, ii, cc)])  # type: ignore
+    _, _ = lap.lapmod_batch(problems)  # type: ignore
+    _, _, _ = lap.lapmod_batch(problems, return_cost=False)  # type: ignore

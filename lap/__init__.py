@@ -19,11 +19,13 @@ Provided solvers (batch)
 - lapjvxa_batch : Batched lapjvxa; returns (totals, pairs_list) or pairs_list with (K_b, 2).
 - lapjvs_batch  : Batched lapjvs; returns (totals, rows_list, cols_list) or (rows_list, cols_list).
 - lapjvsa_batch : Batched lapjvsa; returns (totals, pairs_list) or pairs_list with (K_b, 2).
+- lapmod_batch : Batched lapmod; returns (totals, x_list, y_list) or (x_list, y_list).
 
 Notes
 -----
-- All solvers in lapx handle both square and rectangular cost matrices.
-- Batch solvers accept costs shaped (B, N, M) and return per-instance assignments.
+- Dense solvers handle square and rectangular matrices; lapmod requires square problems.
+- Dense batch solvers accept costs shaped (B, N, M).
+- lapmod_batch accepts a sequence of (n, cc, ii, kk) sparse problems of varying sizes.
 - lapjvs* family wrappers may recompute the total cost from the original input for 
   consistency; this has negligible overhead.
 - For tests and benchmarks, see the official repo: https://github.com/rathaROG/lapx
@@ -42,6 +44,7 @@ if TYPE_CHECKING:
     # Batch solvers
     from ._lapjvx_batch_wp import lapjvx_batch, lapjvxa_batch
     from ._lapjvs_batch_wp import lapjvs_batch, lapjvsa_batch
+    from ._lapmod_batch_wp import lapmod_batch
     # Constants
     from ._lapjv import (  # type: ignore
         LARGE_ as LARGE,
@@ -64,6 +67,7 @@ _exports = {
     'lapjvxa_batch': ("lap._lapjvx_batch_wp", "lapjvxa_batch"),
     'lapjvs_batch': ("lap._lapjvs_batch_wp", "lapjvs_batch"),
     'lapjvsa_batch': ("lap._lapjvs_batch_wp", "lapjvsa_batch"),
+    'lapmod_batch': ("lap._lapmod_batch_wp", "lapmod_batch"),
     # Constants
     'LARGE': ("lap._lapjv", "LARGE_"),
     'FP_1': ("lap._lapjv", "FP_1_"),
@@ -89,6 +93,7 @@ __all__ = [
     'lapmod', 'lapjv', 'lapjvx', 'lapjvxa', 'lapjvc', 'lapjvs', 'lapjvsa',
     # Batch solvers
     'lapjvx_batch', 'lapjvxa_batch', 'lapjvs_batch', 'lapjvsa_batch',
+    'lapmod_batch',
     # Constants
     'FP_1', 'FP_2', 'FP_DYNAMIC', 'LARGE',
 ]
