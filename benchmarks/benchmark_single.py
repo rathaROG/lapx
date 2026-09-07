@@ -1,10 +1,12 @@
 import sys
+from io import TextIOWrapper
+if isinstance(sys.stdout, TextIOWrapper):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 import timeit
 import lap
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-
-sys.stdout.reconfigure(encoding='utf-8')
 
 
 def do_lapjvs(input, n_m=None):

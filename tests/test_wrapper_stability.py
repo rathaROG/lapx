@@ -132,12 +132,12 @@ def test_malformed_sparse_input_rejected_before_solving(monkeypatch, fast, chang
 
     monkeypatch.setattr(_lapmod_wp, '_lapmod', unexpected_solver)
     monkeypatch.setattr(_lapmod_wp, '_pycrrt', unexpected_solver)
-    args = dict(n=2, cc=[1., 4., 3., 2.], ii=[0, 2, 4], kk=[0, 1, 0, 1])
-    args.update(changes)
-    for name in ('cc', 'ii', 'kk'):
-        args[name] = np.asarray(args[name])
+    n = changes.get('n', 2)
+    cc = np.asarray(changes.get('cc', [1., 4., 3., 2.]))
+    ii = np.asarray(changes.get('ii', [0, 2, 4]))
+    kk = np.asarray(changes.get('kk', [0, 1, 0, 1]))
     with pytest.raises(ValueError):
-        lap.lapmod(**args, fast=fast)
+        lap.lapmod(n, cc, ii, kk, fast=fast)
 
 
 @pytest.mark.parametrize('fast', [False, True])

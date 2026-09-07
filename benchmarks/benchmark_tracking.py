@@ -35,12 +35,14 @@ Notes
 """
 
 import sys
+from io import TextIOWrapper
+if isinstance(sys.stdout, TextIOWrapper):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 import timeit
 import lap
 import numpy as np
 import scipy.optimize
-
-sys.stdout.reconfigure(encoding='utf-8')
 
 
 def _decorate_return(n_rows, n_cols, matches):

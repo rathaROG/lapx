@@ -1,14 +1,16 @@
+"""Shared cost data and sparse conversions; this module contains no tests."""
+
 import numpy as np
 import os
 from gzip import GzipFile
 
 
-def make_hard(cost, lo, hi):
+def make_hard(cost, lo, hi, random_state):
     hard = cost.copy()
     for row in range(hard.shape[0]):
-        hard[row, :] += np.random.randint(lo, hi)
+        hard[row, :] += random_state.randint(lo, hi)
     for col in range(hard.shape[1]):
-        hard[:, col] += np.random.randint(lo, hi)
+        hard[:, col] += random_state.randint(lo, hi)
     return hard
 
 
@@ -26,41 +28,42 @@ def get_dense_8x8_int():
 
 
 def get_dense_int(sz, rng, hard=True, seed=1299821):
-    np.random.seed(seed)
-    cost = np.random.randint(1, rng+1, size=(sz, sz))
+    # Preserve the original seeded matrices without changing global RNG state.
+    random_state = np.random.RandomState(seed)
+    cost = random_state.randint(1, rng+1, size=(sz, sz))
     if hard is True:
-        cost = make_hard(cost, 0, rng)
+        cost = make_hard(cost, 0, rng, random_state)
     return cost
 
 
 def get_sparse_int(sz, rng, sparsity, hard=True, seed=1299821):
-    np.random.seed(seed)
-    cost = np.random.randint(1, rng+1, size=(sz, sz))
+    random_state = np.random.RandomState(seed)
+    cost = random_state.randint(1, rng+1, size=(sz, sz))
     if hard is True:
-        cost = make_hard(cost, 0, rng)
-    mask = np.random.rand(sz, sz)
+        cost = make_hard(cost, 0, rng, random_state)
+    mask = random_state.rand(sz, sz)
     thresh = np.percentile(
             mask.flat, max(0, (sparsity - sz/float(sz*sz)) * 100.))
     mask = mask < thresh
     # Make sure there exists a solution.
-    row = np.random.permutation(sz)
-    col = np.random.permutation(sz)
+    row = random_state.permutation(sz)
+    col = random_state.permutation(sz)
     mask[row, col] = True
     return cost, mask
 
 
 def get_nnz_int(sz, nnz, rng=100, seed=1299821):
-    np.random.seed(seed)
-    cc = np.random.randint(1, rng+1, size=(sz*nnz,))
+    random_state = np.random.RandomState(seed)
+    cc = random_state.randint(1, rng+1, size=(sz*nnz,))
     ii = np.empty((sz + 1,), dtype=np.int32)
     ii[0] = 0
     ii[1:] = nnz
     ii = np.cumsum(ii)
     kk = np.empty((sz, nnz), dtype=np.int32)
     # Make sure there exists a solution.
-    kk[:, 0] = np.random.permutation(sz)
+    kk[:, 0] = random_state.permutation(sz)
     for row in range(sz):
-        p = np.random.permutation(sz)[:nnz]
+        p = random_state.permutation(sz)[:nnz]
         if kk[row, 0] in p:
             kk[row, :] = p
         else:
@@ -127,7 +130,8 @@ def get_dense_eps():
     from pytest import approx
     datadir = os.path.abspath(os.path.dirname(__file__))
     filename = os.path.join(datadir, 'cost_eps.csv.gz')
-    cost = np.genfromtxt(GzipFile(filename), delimiter=",")
+    with GzipFile(filename) as data:
+        cost = np.genfromtxt(data, delimiter=",")
     opt = approx(224.8899507294651, 0.0000000000001)
     return cost, opt
 

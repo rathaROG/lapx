@@ -1,14 +1,10 @@
-from pytest import mark, fixture, raises
+from pytest import mark, raises
+from itertools import permutations
 
 import numpy as np
-from lap import lapjv, lapmod
+from lap import lapjv, lapmod, FP_1, FP_2, FP_DYNAMIC
 
 from test_utils import (
-    get_dense_8x8_int,
-    get_dense_100x100_int, get_dense_100x100_int_hard, get_sparse_100x100_int,
-    get_dense_1kx1k_int, get_dense_1kx1k_int_hard, get_sparse_1kx1k_int,
-    get_sparse_4kx4k_int,
-    get_dense_eps,
     get_platform_maxint,
     sparse_from_dense, sparse_from_masked
 )
@@ -191,49 +187,39 @@ def test_all_inf():
         lapmod(*sparse_from_masked(cost))
 
 
-@fixture
-def dense_8x8_int():
-    return get_dense_8x8_int()
-
-
-@fixture
-def dense_100x100_int():
-    return get_dense_100x100_int()
-
-
-@fixture
-def dense_100x100_int_hard():
-    return get_dense_100x100_int_hard()
-
-
-@fixture
-def sparse_100x100_int():
-    return get_sparse_100x100_int()
-
-
-@fixture
-def dense_1kx1k_int():
-    return get_dense_1kx1k_int()
-
-
-@fixture
-def dense_1kx1k_int_hard():
-    return get_dense_1kx1k_int_hard()
-
-
-@fixture
-def sparse_1kx1k_int():
-    return get_sparse_1kx1k_int()
-
-
-@fixture
-def sparse_4kx4k_int():
-    return get_sparse_4kx4k_int()
-
-
-@fixture
-def dense_eps():
-    return get_dense_eps()
+@mark.parametrize('fast,fp_version', [(False, None), (True, FP_1),
+                                    (True, FP_2), (True, FP_DYNAMIC)])
+@mark.parametrize('cost', [
+    # Row reduction resolves this case without an augmenting path.
+    [[5, 1000, 3], [1000, 2, 2], [1, 5, 1000]],
+    # Augmentation, a successful scan, and a scan that must continue searching.
+    [[1, 2, 1, np.inf], [np.inf, 3, 1, 4],
+     [np.inf, 4, 3, 3], [0, np.inf, 2, 0]],
+    [[4, 2, 2, 3], [0, 0, np.inf, 2],
+     [4, 3, 3, np.inf], [2, np.inf, 2, 0]],
+    [[1, 3, np.inf, 3], [0, 4, np.inf, 3],
+     [2, 0, 2, np.inf], [1, np.inf, np.inf, 4]],
+], ids=['row-reduction', 'augmentation', 'scan-success', 'scan-continue'])
+def test_sparse_path_search_matches_exhaustive_optimum(cost, fast, fp_version):
+    cost = np.asarray(cost, dtype=np.float64)
+    n = len(cost)
+    rows = np.arange(n)
+    # At most 24 permutations: an independent oracle without a large matrix.
+    optimum = min(cost[rows, cols].sum() for cols in permutations(range(n)))
+    args = sparse_from_masked(cost)
+    if fp_version is None:
+        fp_version = FP_DYNAMIC
+    for return_cost in (True, False):
+        if return_cost:
+            total, x, y = lapmod(
+                *args, fast=fast, return_cost=True, fp_version=fp_version)
+            assert total == optimum
+        else:
+            x, y = lapmod(
+                *args, fast=fast, return_cost=False, fp_version=fp_version)
+        np.testing.assert_array_equal(np.sort(x), rows)
+        np.testing.assert_array_equal(y[x], rows)
+        assert cost[rows, x].sum() == optimum
 
 
 @mark.timeout(60)

@@ -88,44 +88,27 @@ def test_noncontiguous_inputs_single(solver_name, make_view):
 
 
 @pytest.mark.parametrize("shape", [(0, 0), (0, 3), (5, 0)], ids=["0x0", "0x3", "5x0"])
-@pytest.mark.parametrize("solver_name", ["lapjv", "lapjvx", "lapjvc", "lapjvs"], ids=["lapjv", "lapjvx", "lapjvc", "lapjvs"])
-def test_empty_matrices_behave_gracefully(solver_name, shape):
-    """
-    Dynamically detect support for empty shapes without hardcoding.
-    If a solver throws for a given shape, skip with a clear reason.
-    For solvers that return assignment vectors (lapjv), normalize to (rows, cols) pairs before asserting.
-    """
-    M, N = shape
-    C = np.empty((M, N), dtype=np.float64)
-
-    def solve_raw(name, C, M, N):
-        if name == "lapjv":
-            return lap.lapjv(C, return_cost=True, extend_cost=(M != N))
-        if name == "lapjvx":
-            return lap.lapjvx(C, return_cost=True, extend_cost=(M != N))
-        if name == "lapjvc":
-            return lap.lapjvc(C, return_cost=True)
-        if name == "lapjvs":
-            return lap.lapjvs(C, return_cost=True, jvx_like=True)
-        raise AssertionError(f"Unknown solver {name}")
-
-    try:
-        tot, r, c = solve_raw(solver_name, C, M, N)
-    except Exception as e:
-        pytest.skip(f"{solver_name} does not support empty matrices for shape={shape}: {e}")
-        return
-
-    # Normalize lapjv assignment vectors (x, y) to pair lists (rows, cols)
-    if solver_name == "lapjv":
-        x = np.asarray(r, dtype=int)  # r is x (size M)
-        mask = x >= 0
-        rows = np.nonzero(mask)[0]
-        cols = x[mask]
-        r, c = rows, cols
-
-    # If it didn't raise, it should behave gracefully with zero pairs and zero total.
-    assert len(r) == len(c) == 0
-    assert np.isclose(float(tot), 0.0, rtol=0.0, atol=0.0)
+@pytest.mark.parametrize("solver_name", ["lapjv", "lapjvx", "lapjvxa", "lapjvc", "lapjvs", "lapjvsa"])
+@pytest.mark.parametrize("return_cost", [False, True])
+def test_empty_matrices_behave_gracefully(solver_name, shape, return_cost):
+    """All dense solvers support empty inputs; an exception is a regression."""
+    options = {'return_cost': return_cost}
+    if solver_name != 'lapjvc':
+        options['extend_cost'] = shape[0] != shape[1]
+    result = getattr(lap, solver_name)(np.empty(shape), **options)
+    pairs = solver_name in ('lapjvxa', 'lapjvsa')
+    if return_cost:
+        assert result[0] == 0.0
+        result = result[1] if pairs else result[1:]
+    if pairs:
+        assert result.shape == (0, 2)
+        assert result.dtype.kind == 'i'
+    else:
+        x, y = result
+        expected = shape if solver_name == 'lapjv' else (0, 0)
+        assert (len(x), len(y)) == expected
+        assert x.dtype.kind == y.dtype.kind == 'i'
+        assert np.all(x == -1) and np.all(y == -1)
 
 
 @pytest.mark.parametrize("solver_name", ["lapjvx", "lapjvs", "lapjvc"], ids=["lapjvx", "lapjvs", "lapjvc"])

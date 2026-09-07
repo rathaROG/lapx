@@ -97,6 +97,14 @@ cd dist
 
 </details>
 
+### Cost values
+
+`lapjv`, `lapjvx`, `lapjvxa`, `lapjvs`, `lapjvsa`, and their batch variants leave cost-value validation to the caller to keep repeated assignment calls lightweight. Prepare costs without NaN or negative infinity before calling these solvers; results with those values are undefined. Positive infinity (`np.inf`) can represent a forbidden assignment.
+
+`lapjvc` treats NaN and either infinity as forbidden assignments. `lapmod` validates its sparse arrays and requires the stored costs to be finite, non-negative, and less than `lap.LARGE`.
+
+Where available, `cost_limit` accepts a finite number or positive infinity. Returned total costs are accumulated in float64 from the original costs, including when the solver works in float32.
+
 ### 🅰️ Single-matrix Solvers 📄
 
 #### 1. The original function ``lapjv()``

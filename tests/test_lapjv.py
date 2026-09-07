@@ -1,16 +1,9 @@
-from pytest import mark, fixture, raises
+from pytest import mark, raises
 
 import numpy as np
 from lap import lapjv
 
-from test_utils import (
-    get_dense_8x8_int,
-    get_dense_100x100_int, get_dense_100x100_int_hard, get_sparse_100x100_int,
-    get_dense_1kx1k_int, get_dense_1kx1k_int_hard, get_sparse_1kx1k_int,
-    get_sparse_4kx4k_int,
-    get_dense_eps,
-    get_platform_maxint
-)
+from test_utils import get_dense_8x8_int, get_platform_maxint
 
 
 def test_lapjv_empty():
@@ -213,51 +206,6 @@ def test_all_inf():
     ret = lapjv(cost)
     assert len(ret) == 3
     assert ret[0] == np.inf
-
-
-@fixture
-def dense_8x8_int():
-    return get_dense_8x8_int()
-
-
-@fixture
-def dense_100x100_int():
-    return get_dense_100x100_int()
-
-
-@fixture
-def dense_100x100_int_hard():
-    return get_dense_100x100_int_hard()
-
-
-@fixture
-def sparse_100x100_int():
-    return get_sparse_100x100_int()
-
-
-@fixture
-def dense_1kx1k_int():
-    return get_dense_1kx1k_int()
-
-
-@fixture
-def dense_1kx1k_int_hard():
-    return get_dense_1kx1k_int_hard()
-
-
-@fixture
-def sparse_1kx1k_int():
-    return get_sparse_1kx1k_int()
-
-
-@fixture
-def sparse_4kx4k_int():
-    return get_sparse_4kx4k_int()
-
-
-@fixture
-def dense_eps():
-    return get_dense_eps()
 
 
 @mark.timeout(60)
