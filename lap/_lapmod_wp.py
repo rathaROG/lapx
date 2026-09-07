@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 from bisect import bisect_left
 from operator import index
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 # import logging
 
@@ -178,7 +178,8 @@ def _scan(n, cc, ii, kk, minv, lo, hi, d, cols, pred, y, v):
                 pred[j] = i
                 if cred_ij == minv:
                     if y[j] < 0:
-                        return j, None, None, d, cols, pred
+                        # The caller exits on success; keep the unused bounds as integers.
+                        return j, lo, hi, d, cols, pred
                     cols[k] = cols[hi]
                     cols[hi] = j
                     hi += 1
@@ -223,7 +224,7 @@ def find_path(n, cc, ii, kk, start_i, y, v):
             # log.debug('pred = %s', pred)
 
     # Update prices for READY columns.
-    for k in range(n_ready):  # type: ignore
+    for k in range(n_ready):
         j0 = cols[k]
         v[j0] += d[j0] - minv
 
@@ -300,14 +301,68 @@ def get_cost(n, cc, ii, kk, x0):
         kj = binary_search(kk[ii[i]:ii[i+1]], j)
         if kj is None:
             return np.inf
-        kj = ii[i] + kj
+        kj = int(ii[i]) + kj
         ret += float(cc[kj])
     return ret
 
 
 # def lapmod(n, cc, ii, kk, fast=True, return_cost=True, fp_version=FP_DYNAMIC):
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    from typing import overload
+    from typing_extensions import Literal
+
+    @overload
+    def lapmod(
+        n: Union[int, np.integer],
+        cc: npt.NDArray[np.floating],
+        ii: npt.NDArray[np.integer],
+        kk: npt.NDArray[np.integer],
+        fast: bool = True,
+        return_cost: Literal[True] = True,
+        fp_version: int = FP_DYNAMIC,
+    ) -> Tuple[float, np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapmod(
+        n: Union[int, np.integer],
+        cc: npt.NDArray[np.floating],
+        ii: npt.NDArray[np.integer],
+        kk: npt.NDArray[np.integer],
+        fast: bool,
+        return_cost: Literal[False],
+        fp_version: int = FP_DYNAMIC,
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapmod(
+        n: Union[int, np.integer],
+        cc: npt.NDArray[np.floating],
+        ii: npt.NDArray[np.integer],
+        kk: npt.NDArray[np.integer],
+        fast: bool = True,
+        *,
+        return_cost: Literal[False],
+        fp_version: int = FP_DYNAMIC,
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapmod(
+        n: Union[int, np.integer],
+        cc: npt.NDArray[np.floating],
+        ii: npt.NDArray[np.integer],
+        kk: npt.NDArray[np.integer],
+        fast: bool = True,
+        return_cost: bool = True,
+        fp_version: int = FP_DYNAMIC,
+    ) -> Union[
+        Tuple[float, np.ndarray, np.ndarray],
+        Tuple[np.ndarray, np.ndarray],
+    ]: ...
+
+
 def lapmod(
-    n: int,
+    n: Union[int, np.integer],
     cc: npt.NDArray[np.floating],
     ii: npt.NDArray[np.integer],
     kk: npt.NDArray[np.integer],

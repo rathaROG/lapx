@@ -1,10 +1,52 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
 import numpy as np
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 from ._lapjvx import lapjvx as _lapjvx  # type: ignore
 from ._lapjvx import lapjvxa as _lapjvxa  # type: ignore
+
+
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    from typing import overload
+    from typing_extensions import Literal
+
+    @overload
+    def lapjvx(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: Literal[True] = True,
+    ) -> Tuple[float, np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvx(
+        cost: np.ndarray,
+        extend_cost: bool,
+        cost_limit: float,
+        return_cost: Literal[False],
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvx(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        *,
+        return_cost: Literal[False],
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvx(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: bool = True,
+    ) -> Union[
+        Tuple[float, np.ndarray, np.ndarray],
+        Tuple[np.ndarray, np.ndarray],
+    ]: ...
 
 
 def lapjvx(
@@ -30,8 +72,9 @@ def lapjvx(
     cost_limit : float, default np.inf
         If finite, augment to size (N+M) with sentinel edges of cost_limit/2 and a
         bottom-right zero block, modeling a per-edge reject cost (allows rectangular inputs).
+        Must be finite or positive infinity.
     return_cost : bool, default True
-        If True, include total assignment cost first (computed on the ORIGINAL input).
+        If True, include total assignment cost first (accumulated in float64 on the ORIGINAL input).
 
     Returns
     -------
@@ -48,6 +91,9 @@ def lapjvx(
     -----
     - Orientation is normalized internally so the native kernel sees rows <= cols;
       indices are mapped back to the ORIGINAL orientation on return.
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     - Dtypes of the returned indices follow the Cython implementation:
       row_indices as int64, col_indices often int32 (subject to NumPy/platform).
     - Unified augmentation policy:
@@ -56,6 +102,42 @@ def lapjvx(
         * else: run on the given square matrix.
     """
     return _lapjvx(cost, extend_cost=extend_cost, cost_limit=cost_limit, return_cost=return_cost)
+
+
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    @overload
+    def lapjvxa(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: Literal[True] = True,
+    ) -> Tuple[float, np.ndarray]: ...
+
+    @overload
+    def lapjvxa(
+        cost: np.ndarray,
+        extend_cost: bool,
+        cost_limit: float,
+        return_cost: Literal[False],
+    ) -> np.ndarray: ...
+
+    @overload
+    def lapjvxa(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        *,
+        return_cost: Literal[False],
+    ) -> np.ndarray: ...
+
+    @overload
+    def lapjvxa(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: bool = True,
+    ) -> Union[Tuple[float, np.ndarray], np.ndarray]: ...
 
 
 def lapjvxa(
@@ -78,6 +160,7 @@ def lapjvxa(
         Permit rectangular inputs by zero-padding to a square matrix.
     cost_limit : float, default np.inf
         When finite, augment to (N+M) to model per-edge reject cost (see lapjvx).
+        Must be finite or positive infinity.
     return_cost : bool, default True
         If True, include the total cost as the first element.
 
@@ -93,6 +176,9 @@ def lapjvxa(
     Notes
     -----
     - This is a convenience wrapper over lapjvx that packs (rows, cols) into a (K, 2) array.
-    - Total cost is computed on the ORIGINAL input (not augmented or padded).
+    - Total cost is accumulated in float64 on the ORIGINAL input (not augmented or padded).
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     """
     return _lapjvxa(cost, extend_cost=extend_cost, cost_limit=cost_limit, return_cost=return_cost)

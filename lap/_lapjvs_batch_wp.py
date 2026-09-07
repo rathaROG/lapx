@@ -2,14 +2,14 @@
 
 import os
 import numpy as np
-from typing import List, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ._lapjvs_wp import lapjvs as _lapjvs_single
 from ._lapjvs_wp import lapjvsa as _lapjvsa_single
 
 
-def _normalize_threads(n_threads: int) -> int:
+def _normalize_threads(n_threads: Optional[int]) -> int:
     if n_threads is None or n_threads == 0:
         cpu = os.cpu_count() or 1
         return max(1, int(cpu))
@@ -42,11 +42,57 @@ def _solve_one_jvsa(
     )
 
 
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    from typing import overload
+    from typing_extensions import Literal
+
+    @overload
+    def lapjvs_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        return_cost: Literal[True] = True,
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]]: ...
+
+    @overload
+    def lapjvs_batch(
+        costs: np.ndarray,
+        extend_cost: bool,
+        return_cost: Literal[False],
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Tuple[List[np.ndarray], List[np.ndarray]]: ...
+
+    @overload
+    def lapjvs_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        *,
+        return_cost: Literal[False],
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Tuple[List[np.ndarray], List[np.ndarray]]: ...
+
+    @overload
+    def lapjvs_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        return_cost: bool = True,
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Union[
+        Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
+        Tuple[List[np.ndarray], List[np.ndarray]],
+    ]: ...
+
+
 def lapjvs_batch(
     costs: np.ndarray,
     extend_cost: bool = False,
     return_cost: bool = True,
-    n_threads: int = 0,
+    n_threads: Optional[int] = 0,
     prefer_float32: bool = True,
 ) -> Union[
     Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
@@ -64,6 +110,9 @@ def lapjvs_batch(
     costs : np.ndarray, shape (B, N, M)
         Batch of cost matrices (float32/float64). Each slice `costs[b]` is
         a single LAP instance.
+        Prepare costs without NaN or negative infinity; values are not scanned
+        for them, and results with them are undefined. Positive infinity can
+        represent a forbidden assignment.
     extend_cost : bool, default False
         If True, rectangular instances are solved via internal zero-padding.
         If False, each instance must be square or a ValueError is raised.
@@ -155,11 +204,51 @@ def lapjvs_batch(
         return rows_list, cols_list
 
 
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    @overload
+    def lapjvsa_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        return_cost: Literal[True] = True,
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Tuple[np.ndarray, List[np.ndarray]]: ...
+
+    @overload
+    def lapjvsa_batch(
+        costs: np.ndarray,
+        extend_cost: bool,
+        return_cost: Literal[False],
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> List[np.ndarray]: ...
+
+    @overload
+    def lapjvsa_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        *,
+        return_cost: Literal[False],
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> List[np.ndarray]: ...
+
+    @overload
+    def lapjvsa_batch(
+        costs: np.ndarray,
+        extend_cost: bool = False,
+        return_cost: bool = True,
+        n_threads: Optional[int] = 0,
+        prefer_float32: bool = True,
+    ) -> Union[Tuple[np.ndarray, List[np.ndarray]], List[np.ndarray]]: ...
+
+
 def lapjvsa_batch(
     costs: np.ndarray,
     extend_cost: bool = False,
     return_cost: bool = True,
-    n_threads: int = 0,
+    n_threads: Optional[int] = 0,
     prefer_float32: bool = True,
 ) -> Union[Tuple[np.ndarray, List[np.ndarray]], List[np.ndarray]]:
     """
@@ -172,6 +261,9 @@ def lapjvsa_batch(
     ----------
     costs : np.ndarray, shape (B, N, M)
         Batch of cost matrices.
+        Prepare costs without NaN or negative infinity; values are not scanned
+        for them, and results with them are undefined. Positive infinity can
+        represent a forbidden assignment.
     extend_cost : bool, default False
         If True, rectangular instances are solved via internal zero-padding.
     return_cost : bool, default True

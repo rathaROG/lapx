@@ -29,21 +29,24 @@ py::tuple solve_dense_wrap(py::array_t<T, ExtraFlags> input1, bool return_cost =
     if (buf1.ndim != 2)
         throw std::runtime_error("Number of dimensions must be two");
 
+    if (buf1.shape[0] > std::numeric_limits<int>::max() ||
+        buf1.shape[1] > std::numeric_limits<int>::max())
+        throw py::value_error("Cost matrix is too large for int32 indices");
     const int nrows = int(buf1.shape[0]);
     const int ncols = int(buf1.shape[1]);
 
     if (nrows == 0 || ncols == 0) {
         if (return_cost)
-            return py::make_tuple(T(0), py::array(), py::array());
+            return py::make_tuple(0.0, py::array_t<int>(0), py::array_t<int>(0));
         else
-            return py::make_tuple(py::array(), py::array());
+            return py::make_tuple(py::array_t<int>(0), py::array_t<int>(0));
     }
 
     T *data = (T *)buf1.ptr;
 
     bool any_finite = false;
     double max_abs_cost_d = 0.0;
-    for (int i = 0; i < nrows * ncols; ++i) {
+    for (py::ssize_t i = 0; i < buf1.size; ++i) {
         // We cast to double for the finiteness check. For integer T this is always finite.
         double dv = static_cast<double>(data[i]);
         if (std::isfinite(dv)) {
@@ -55,9 +58,9 @@ py::tuple solve_dense_wrap(py::array_t<T, ExtraFlags> input1, bool return_cost =
 
     if (!any_finite) {
         if (return_cost)
-            return py::make_tuple(T(0), py::array(), py::array());
+            return py::make_tuple(0.0, py::array_t<int>(0), py::array_t<int>(0));
         else
-            return py::make_tuple(py::array(), py::array());
+            return py::make_tuple(py::array_t<int>(0), py::array_t<int>(0));
     }
 
     const int r = std::min<int>(nrows, ncols);
@@ -81,7 +84,7 @@ py::tuple solve_dense_wrap(py::array_t<T, ExtraFlags> input1, bool return_cost =
     std::vector<std::vector<T>> costs(n, std::vector<T>(n, T(0)));
 
     for (int i = 0; i < nrows; ++i) {
-        T *cptr = data + i * ncols;
+        T *cptr = data + static_cast<size_t>(i) * ncols;
         for (int j = 0; j < ncols; ++j) {
             const T c = cptr[j];
             // For floats: non-finite => forbidden. For integers: always finite => allowed.
@@ -95,18 +98,25 @@ py::tuple solve_dense_wrap(py::array_t<T, ExtraFlags> input1, bool return_cost =
     // This avoids filling the entire padded area with LARGE_COST and speeds up rectangular cases.
 
     std::vector<int> Lmate, Rmate;
-    solve_dense(costs, Lmate, Rmate);
+    {
+        py::gil_scoped_release release;
+        solve_dense(costs, Lmate, Rmate);
+    }
 
     std::vector<int> rowids, colids;
-    T total_cost = T(0);
+    rowids.reserve(r);
+    colids.reserve(r);
+    double total_cost = 0.0;
 
     // Collect only real (row, col) matches. Exclude dummy columns (j >= ncols) and forbidden.
     for (int i = 0; i < nrows; ++i) {
         int mate = Lmate[i];
-        if (mate >= 0 && mate < ncols && costs[i][mate] != LARGE_COST) {
+        if (mate >= 0 && mate < ncols &&
+            std::isfinite(static_cast<double>(data[static_cast<size_t>(i) * ncols + mate]))) {
             rowids.push_back(i);
             colids.push_back(mate);
-            total_cost = static_cast<T>(static_cast<double>(total_cost) + static_cast<double>(costs[i][mate]));
+            if (return_cost)
+                total_cost += static_cast<double>(data[static_cast<size_t>(i) * ncols + mate]);
         }
     }
 

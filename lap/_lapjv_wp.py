@@ -1,9 +1,51 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
 import numpy as np
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 from ._lapjv import lapjv as _lapjv
+
+
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    from typing import overload
+    from typing_extensions import Literal
+
+    @overload
+    def lapjv(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: Literal[True] = True,
+    ) -> Tuple[float, np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjv(
+        cost: np.ndarray,
+        extend_cost: bool,
+        cost_limit: float,
+        return_cost: Literal[False],
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjv(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        *,
+        return_cost: Literal[False],
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjv(
+        cost: np.ndarray,
+        extend_cost: bool = False,
+        cost_limit: float = np.inf,
+        return_cost: bool = True,
+    ) -> Union[
+        Tuple[float, np.ndarray, np.ndarray],
+        Tuple[np.ndarray, np.ndarray],
+    ]: ...
 
 
 def lapjv(
@@ -34,6 +76,7 @@ def lapjv(
         When finite, the solver augments to size (N+M) with sentinel edges of cost_limit/2
         and a bottom-right zero block. This models a per-edge "reject" cost and allows
         rectangular inputs even if extend_cost=False.
+        Must be finite or positive infinity.
     return_cost : bool, default True
         If True, include the total assignment cost as the first return value.
         The total is computed from the ORIGINAL (un-augmented/unpadded) input array.
@@ -42,7 +85,7 @@ def lapjv(
     -------
     If return_cost is True:
         total_cost : float
-            Sum of costs over matched pairs, computed on the ORIGINAL input.
+            Sum of costs over matched pairs, accumulated in float64 on the ORIGINAL input.
         x : np.ndarray[int32] with shape (N,)
             Mapping from rows to columns; -1 for unassigned rows.
         y : np.ndarray[int32] with shape (M,)
@@ -63,5 +106,8 @@ def lapjv(
       back to the ORIGINAL orientation before returning.
     - For zero-sized dimensions, the solver returns 0.0 (if requested) and all -1 mappings.
     - This wrapper forwards directly to the Cython implementation without altering dtypes.
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     """
     return _lapjv(cost, extend_cost=extend_cost, cost_limit=cost_limit, return_cost=return_cost)

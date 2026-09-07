@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory>
+#include <new>
 
 #include "lapjv.h"
 
@@ -9,7 +11,6 @@ int_t _ccrrt_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                     int_t *free_rows, int_t *x, int_t *y, cost_t *v)
 {
     int_t n_free_rows;
-    boolean *unique;
 
     for (uint_t i = 0; i < n; i++) {
         x[i] = -1;
@@ -31,7 +32,9 @@ int_t _ccrrt_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 
     PRINT_COST_ARRAY(v, n);
     PRINT_INDEX_ARRAY(y, n);
-    NEW(unique, boolean, n);
+    std::unique_ptr<boolean[]> unique_storage(new (std::nothrow) boolean[n]);
+    if (!unique_storage) return -1;
+    boolean *unique = unique_storage.get();
     memset(unique, TRUE, n);
     {
         int_t j = n;
@@ -71,7 +74,6 @@ int_t _ccrrt_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
         }
     }
 
-    FREE(unique);
     return n_free_rows;
 }
 
@@ -215,14 +217,11 @@ int_t _find_sparse_2(cost_t *d, int_t *scan, const uint_t n_todo, int_t *todo, b
  */
 int_t _scan_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                      uint_t *plo, uint_t *phi, cost_t *d, int_t *cols, 
-                     int_t *pred, int_t *y, cost_t *v)
+                     int_t *pred, int_t *y, cost_t *v, int_t *rev_kk)
 {
     uint_t lo = *plo;
     uint_t hi = *phi;
     cost_t h, cred_ij;
-
-    int_t *rev_kk;
-    NEW(rev_kk, int_t, n);
 
     while (lo != hi) {
         int_t kj;
@@ -266,7 +265,6 @@ int_t _scan_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                 pred[j] = i;
                 if (cred_ij == mind) {
                     if (y[j] < 0) {
-                        FREE(rev_kk);
                         return j;
                     }
                     cols[k] = cols[hi];
@@ -278,7 +276,6 @@ int_t _scan_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 
     *plo = lo;
     *phi = hi;
-    FREE(rev_kk);
 
     return -1;
 }
@@ -292,16 +289,13 @@ int_t _scan_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                      uint_t *plo, uint_t *phi, cost_t *d, int_t *pred, 
                      boolean *done, uint_t *pn_ready, int_t *ready, 
                      int_t *scan, uint_t *pn_todo, int_t *todo, 
-                     boolean *added, int_t *y, cost_t *v)
+                     boolean *added, int_t *y, cost_t *v, int_t *rev_kk)
 {
     uint_t lo = *plo;
     uint_t hi = *phi;
     uint_t n_todo = *pn_todo;
     uint_t n_ready = *pn_ready;
     cost_t h, cred_ij;
-
-    int_t *rev_kk;
-    NEW(rev_kk, int_t, n);
 
     for (uint_t k = 0; k < n; k++) {
         rev_kk[k] = -1;
@@ -343,7 +337,6 @@ int_t _scan_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                 pred[j] = i;
                 if (cred_ij <= mind) {
                     if (y[j] < 0) {
-                        FREE(rev_kk);
                         return j;
                     }
                     scan[hi++] = j;
@@ -365,7 +358,6 @@ int_t _scan_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
     *pn_ready = n_ready;
     *plo = lo;
     *phi = hi;
-    FREE(rev_kk);
     
     return -1;
 }
@@ -382,11 +374,16 @@ int_t find_path_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
     uint_t lo = 0, hi = 0;
     int_t final_j = -1;
     uint_t n_ready = 0;
-    int_t *cols;
-    cost_t *d;
 
-    NEW(cols, int_t, n);
-    NEW(d, cost_t, n);
+    std::unique_ptr<int_t[]> cols_storage(new (std::nothrow) int_t[n]);
+    if (!cols_storage) return -1;
+    int_t *cols = cols_storage.get();
+    std::unique_ptr<cost_t[]> d_storage(new (std::nothrow) cost_t[n]);
+    if (!d_storage) return -1;
+    cost_t *d = d_storage.get();
+    std::unique_ptr<int_t[]> rev_kk_storage(new (std::nothrow) int_t[n]);
+    if (!rev_kk_storage) return -1;
+    int_t *rev_kk = rev_kk_storage.get();
 
     for (uint_t i = 0; i < n; i++) {
         cols[i] = i;
@@ -418,7 +415,7 @@ int_t find_path_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
         }
         if (final_j == -1) {
             PRINTF("%d..%d -> scan\n", lo, hi);
-            final_j = _scan_sparse_1(n, cc, ii, kk, &lo, &hi, d, cols, pred, y, v);
+            final_j = _scan_sparse_1(n, cc, ii, kk, &lo, &hi, d, cols, pred, y, v, rev_kk);
             PRINT_COST_ARRAY(d, n);
             PRINT_INDEX_ARRAY(cols, n);
             PRINT_INDEX_ARRAY(pred, n);
@@ -434,9 +431,6 @@ int_t find_path_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
             v[j] += d[j] - mind;
         }
     }
-
-    FREE(cols);
-    FREE(d);
 
     return final_j;
 }
@@ -454,16 +448,28 @@ int_t find_path_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
     int_t final_j = -1;
     uint_t n_ready = 0;
     uint_t n_todo = (ii[start_i + 1] - ii[start_i]);
-    boolean *done, *added;
-    int_t *ready, *scan, *todo;
-    cost_t *d;
 
-    NEW(done, boolean, n);
-    NEW(added, boolean, n);
-    NEW(ready, int_t, n);
-    NEW(scan, int_t, n);
-    NEW(todo, int_t, n);
-    NEW(d, cost_t, n);
+    std::unique_ptr<boolean[]> done_storage(new (std::nothrow) boolean[n]);
+    if (!done_storage) return -1;
+    boolean *done = done_storage.get();
+    std::unique_ptr<boolean[]> added_storage(new (std::nothrow) boolean[n]);
+    if (!added_storage) return -1;
+    boolean *added = added_storage.get();
+    std::unique_ptr<int_t[]> ready_storage(new (std::nothrow) int_t[n]);
+    if (!ready_storage) return -1;
+    int_t *ready = ready_storage.get();
+    std::unique_ptr<int_t[]> scan_storage(new (std::nothrow) int_t[n]);
+    if (!scan_storage) return -1;
+    int_t *scan = scan_storage.get();
+    std::unique_ptr<int_t[]> todo_storage(new (std::nothrow) int_t[n]);
+    if (!todo_storage) return -1;
+    int_t *todo = todo_storage.get();
+    std::unique_ptr<cost_t[]> d_storage(new (std::nothrow) cost_t[n]);
+    if (!d_storage) return -1;
+    cost_t *d = d_storage.get();
+    std::unique_ptr<int_t[]> rev_kk_storage(new (std::nothrow) int_t[n]);
+    if (!rev_kk_storage) return -1;
+    int_t *rev_kk = rev_kk_storage.get();
 
     memset(done, FALSE, n);
     memset(added, FALSE, n);
@@ -524,7 +530,7 @@ int_t find_path_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
             PRINT_INDEX_ARRAY(todo, n_todo);
             final_j = _scan_sparse_2(n, cc, ii, kk, &lo, &hi, d, pred,
                                      done, &n_ready, ready, scan,
-                                     &n_todo, todo, added, y, v);
+                                     &n_todo, todo, added, y, v, rev_kk);
             PRINT_COST_ARRAY(d, n);
             PRINT_INDEX_ARRAY(pred, n);
             PRINT_INDEX_ARRAY(done, n);
@@ -536,20 +542,13 @@ int_t find_path_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
     }
 
     PRINTF("found final_j=%d\n", final_j);
-    {
+    if (n_ready > 0 && hi > 0) {
         const cost_t mind = d[scan[lo]];
         for (uint_t k = 0; k < n_ready; k++) {
             const int_t j = ready[k];
             v[j] += d[j] - mind;
         }
     }
-
-    FREE(done);
-    FREE(added);
-    FREE(ready);
-    FREE(scan);
-    FREE(todo);
-    FREE(d);
 
     return final_j;
 }
@@ -574,7 +573,7 @@ typedef int_t (*fp_function_t)(const uint_t, cost_t *, uint_t *, uint_t *,
 
 fp_function_t get_better_find_path(const uint_t n, uint_t *ii)
 {
-    const double sparsity = ii[n] / (double)(n * n);
+    const double sparsity = ii[n] / (static_cast<double>(n) * n);
     if (sparsity > 0.25) {
         PRINTF("Using find_path_sparse_1 for sparsity=%f\n", sparsity);
         return find_path_sparse_1;
@@ -589,9 +588,9 @@ fp_function_t get_better_find_path(const uint_t n, uint_t *ii)
 int_t _ca_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk, const uint_t n_free_rows,
                  int_t *free_rows, int_t *x, int_t *y, cost_t *v, int fp_version)
 {
-    int_t *pred;
-
-    NEW(pred, int_t, n);
+    std::unique_ptr<int_t[]> pred_storage(new (std::nothrow) int_t[n]);
+    if (!pred_storage) return -1;
+    int_t *pred = pred_storage.get();
 
     fp_function_t fp;
     switch (fp_version) {
@@ -607,6 +606,7 @@ int_t _ca_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk, const uint_
 
         PRINTF("looking at free_i=%d\n", *pfree_i);
         j = fp(n, cc, ii, kk, *pfree_i, y, v, pred);
+        if (j < 0) return j;
         ASSERT(j >= 0);
         ASSERT(j < n);
         
@@ -625,7 +625,6 @@ int_t _ca_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk, const uint_
         }
     }
 
-    FREE(pred);
     return 0;
 }
 
@@ -634,12 +633,17 @@ int_t _ca_sparse(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk, const uint_
 int lapmod_internal(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                     int_t *x, int_t *y, fp_t fp_version)
 {
-    int ret;
-    int_t *free_rows;
-    cost_t *v;
+    if (fp_version != FP_1 && fp_version != FP_2 && fp_version != FP_DYNAMIC)
+        return -2;
 
-    NEW(free_rows, int_t, n);
-    NEW(v, cost_t, n);
+    int ret;
+
+    std::unique_ptr<int_t[]> free_rows_storage(new (std::nothrow) int_t[n]);
+    if (!free_rows_storage) return -1;
+    int_t *free_rows = free_rows_storage.get();
+    std::unique_ptr<cost_t[]> v_storage(new (std::nothrow) cost_t[n]);
+    if (!v_storage) return -1;
+    cost_t *v = v_storage.get();
     ret = _ccrrt_sparse(n, cc, ii, kk, free_rows, x, y, v);
     int i = 0;
 
@@ -651,8 +655,5 @@ int lapmod_internal(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
         ret = _ca_sparse(n, cc, ii, kk, ret, free_rows, x, y, v, fp_version);
     }
 
-    FREE(v);
-    FREE(free_rows);
-    
     return ret;
 }

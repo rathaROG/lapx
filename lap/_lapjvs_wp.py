@@ -1,12 +1,58 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
 import numpy as np
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 from ._lapjvs import lapjvs_native as _lapjvs_native  # type: ignore
 from ._lapjvs import lapjvs_float32 as _lapjvs_float32  # type: ignore
 from ._lapjvs import lapjvsa_native as _lapjvsa_native  # type: ignore
 from ._lapjvs import lapjvsa_float32 as _lapjvsa_float32  # type: ignore
+
+
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    from typing import overload
+    from typing_extensions import Literal
+
+    @overload
+    def lapjvs(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        return_cost: Literal[True] = True,
+        jvx_like: bool = True,
+        prefer_float32: bool = True,
+    ) -> Tuple[float, np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvs(
+        cost: np.ndarray,
+        extend_cost: Optional[bool],
+        return_cost: Literal[False],
+        jvx_like: bool = True,
+        prefer_float32: bool = True,
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvs(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        *,
+        return_cost: Literal[False],
+        jvx_like: bool = True,
+        prefer_float32: bool = True,
+    ) -> Tuple[np.ndarray, np.ndarray]: ...
+
+    @overload
+    def lapjvs(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        return_cost: bool = True,
+        jvx_like: bool = True,
+        prefer_float32: bool = True,
+    ) -> Union[
+        Tuple[float, np.ndarray, np.ndarray],
+        Tuple[np.ndarray, np.ndarray],
+    ]: ...
 
 
 def lapjvs(
@@ -68,9 +114,13 @@ def lapjvs(
     ValueError
         - If `cost` is not a 2D array.
         - If `extend_cost=False` and the input matrix is rectangular.
+        - If the assignment is infeasible.
 
     Notes
     -----
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     - Rectangular handling:
       Internally, the solver normalizes orientation so that the working matrix
       has rows <= cols. Rectangular problems are modeled by zero-padding on
@@ -213,6 +263,42 @@ def lapjvs(
     return (total, x_out, y_out) if return_cost else (x_out, y_out)
 
 
+# Describe return_cost for type checkers without registering overloads at runtime.
+if TYPE_CHECKING:
+    @overload
+    def lapjvsa(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        return_cost: Literal[True] = True,
+        prefer_float32: bool = True,
+    ) -> Tuple[float, np.ndarray]: ...
+
+    @overload
+    def lapjvsa(
+        cost: np.ndarray,
+        extend_cost: Optional[bool],
+        return_cost: Literal[False],
+        prefer_float32: bool = True,
+    ) -> np.ndarray: ...
+
+    @overload
+    def lapjvsa(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        *,
+        return_cost: Literal[False],
+        prefer_float32: bool = True,
+    ) -> np.ndarray: ...
+
+    @overload
+    def lapjvsa(
+        cost: np.ndarray,
+        extend_cost: Optional[bool] = None,
+        return_cost: bool = True,
+        prefer_float32: bool = True,
+    ) -> Union[Tuple[float, np.ndarray], np.ndarray]: ...
+
+
 def lapjvsa(
     cost: np.ndarray,
     extend_cost: Optional[bool] = None,
@@ -255,11 +341,15 @@ def lapjvsa(
     ------
     ValueError
         If `cost` is not 2D, or if `extend_cost=False` and `cost` is rectangular.
+        Also raised for infeasible assignments.
 
     Notes
     -----
     - Orientation is normalized internally so the kernel sees rows <= cols.
       Returned pairs are always mapped back to the ORIGINAL orientation.
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     - Pairs only include assignments within the original (n, m) region for
       rectangular inputs.
     - Total is accumulated in float64 from the ORIGINAL `cost`.

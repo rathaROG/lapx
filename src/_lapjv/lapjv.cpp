@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory>
+#include <new>
+#include <limits>
 
 #include "lapjv.h"
 
@@ -9,15 +12,15 @@ int_t _ccrrt_dense(const uint_t n, cost_t *cost[],
                    int_t *free_rows, int_t *x, int_t *y, cost_t *v)
 {
     int_t n_free_rows;
-    boolean *unique;
 
     for (uint_t i = 0; i < n; i++) {
         x[i] = -1;
-        v[i] = LARGE;
+        // Start column minima from actual costs, preserving first-row ties.
+        v[i] = cost[0][i];
         y[i] = 0;
     }
 
-    for (uint_t i = 0; i < n; i++) {
+    for (uint_t i = 1; i < n; i++) {
         for (uint_t j = 0; j < n; j++) {
             const cost_t c = cost[i][j];
             if (c < v[j]) {
@@ -30,7 +33,9 @@ int_t _ccrrt_dense(const uint_t n, cost_t *cost[],
 
     PRINT_COST_ARRAY(v, n);
     PRINT_INDEX_ARRAY(y, n);
-    NEW(unique, boolean, n);
+    std::unique_ptr<boolean[]> unique_storage(new (std::nothrow) boolean[n]);
+    if (!unique_storage) return -1;
+    boolean *unique = unique_storage.get();
     memset(unique, TRUE, n);
     {
         int_t j = n;
@@ -52,7 +57,7 @@ int_t _ccrrt_dense(const uint_t n, cost_t *cost[],
             free_rows[n_free_rows++] = i;
         } else if (unique[i]) {
             const int_t j = x[i];
-            cost_t min = LARGE;
+            cost_t min = std::numeric_limits<cost_t>::infinity();
             for (uint_t j2 = 0; j2 < n; j2++) {
                 if (j2 == (uint_t)j) {
                     continue;
@@ -67,7 +72,6 @@ int_t _ccrrt_dense(const uint_t n, cost_t *cost[],
         }
     }
 
-    FREE(unique);
     return n_free_rows;
 }
 
@@ -95,7 +99,7 @@ int_t _carr_dense(const uint_t n, cost_t *cost[], const uint_t n_free_rows,
         j1 = 0;
         v1 = cost[free_i][0] - v[0];
         j2 = -1;
-        v2 = LARGE;
+        v2 = std::numeric_limits<cost_t>::infinity();
 
         for (uint_t j = 1; j < n; j++) {
             PRINTF("%d = %f %d = %f\n", j1, v1, j2, v2);
@@ -219,16 +223,11 @@ int_t _scan_dense(const uint_t n, cost_t *cost[], uint_t *plo, uint_t*phi,
  * @return The closest free column index.
  */
 int_t find_path_dense(const uint_t n, cost_t *cost[], const int_t start_i, 
-                      int_t *y, cost_t *v, int_t *pred)
+                      int_t *y, cost_t *v, int_t *pred, int_t *cols, cost_t *d)
 {
     uint_t lo = 0, hi = 0;
     int_t final_j = -1;
     uint_t n_ready = 0;
-    int_t *cols;
-    cost_t *d;
-
-    NEW(cols, int_t, n);
-    NEW(d, cost_t, n);
 
     for (uint_t i = 0; i < n; i++) {
         cols[i] = i;
@@ -275,9 +274,6 @@ int_t find_path_dense(const uint_t n, cost_t *cost[], const int_t start_i,
         }
     }
 
-    FREE(cols);
-    FREE(d);
-
     return final_j;
 }
 
@@ -286,16 +282,24 @@ int_t find_path_dense(const uint_t n, cost_t *cost[], const int_t start_i,
 int_t _ca_dense(const uint_t n, cost_t *cost[], const uint_t n_free_rows,
                 int_t *free_rows, int_t *x, int_t *y, cost_t *v)
 {
-    int_t *pred;
+    std::unique_ptr<int_t[]> pred_storage(new (std::nothrow) int_t[n]);
+    if (!pred_storage) return -1;
+    int_t *pred = pred_storage.get();
 
-    NEW(pred, int_t, n);
+    // Reuse path buffers for every free row in this solve.
+    std::unique_ptr<int_t[]> cols_storage(new (std::nothrow) int_t[n]);
+    if (!cols_storage) return -1;
+    int_t *cols = cols_storage.get();
+    std::unique_ptr<cost_t[]> d_storage(new (std::nothrow) cost_t[n]);
+    if (!d_storage) return -1;
+    cost_t *d = d_storage.get();
 
     for (int_t *pfree_i = free_rows; pfree_i < free_rows + n_free_rows; pfree_i++) {
         int_t i = -1, j;
         uint_t k = 0;
 
         PRINTF("looking at free_i=%d\n", *pfree_i);
-        j = find_path_dense(n, cost, *pfree_i, y, v, pred);
+        j = find_path_dense(n, cost, *pfree_i, y, v, pred, cols, d);
         ASSERT(j >= 0);
         ASSERT(j < n);
 
@@ -314,7 +318,6 @@ int_t _ca_dense(const uint_t n, cost_t *cost[], const uint_t n_free_rows,
         }
     }
 
-    FREE(pred);
     return 0;
 }
 
@@ -323,11 +326,13 @@ int_t _ca_dense(const uint_t n, cost_t *cost[], const uint_t n_free_rows,
 int lapjv_internal(const uint_t n, cost_t *cost[], int_t *x, int_t *y)
 {
     int ret;
-    int_t *free_rows;
-    cost_t *v;
 
-    NEW(free_rows, int_t, n);
-    NEW(v, cost_t, n);
+    std::unique_ptr<int_t[]> free_rows_storage(new (std::nothrow) int_t[n]);
+    if (!free_rows_storage) return -1;
+    int_t *free_rows = free_rows_storage.get();
+    std::unique_ptr<cost_t[]> v_storage(new (std::nothrow) cost_t[n]);
+    if (!v_storage) return -1;
+    cost_t *v = v_storage.get();
     ret = _ccrrt_dense(n, cost, free_rows, x, y, v);
     int i = 0;
 
@@ -340,7 +345,5 @@ int lapjv_internal(const uint_t n, cost_t *cost[], int_t *x, int_t *y)
         ret = _ca_dense(n, cost, ret, free_rows, x, y, v);
     }
 
-    FREE(v);
-    FREE(free_rows);
     return ret;
 }

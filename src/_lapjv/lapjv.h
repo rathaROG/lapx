@@ -10,8 +10,6 @@
 #define FALSE 0
 #endif
 
-#define NEW(x, t, n) if ((x = (t *)malloc(sizeof(t) * (n))) == 0) { return -1; }
-#define FREE(x) if (x != 0) { free(x); x = 0; }
 #define SWAP_INDICES(a, b) { int_t _temp_index = a; a = b; b = _temp_index; }
 
 #if 0

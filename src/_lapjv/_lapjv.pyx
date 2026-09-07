@@ -8,6 +8,8 @@ import numpy as np
 cimport numpy as cnp
 cimport cython
 from libc.stdlib cimport malloc, free
+from libc.limits cimport INT_MAX
+from libc.math cimport isnan, INFINITY
 
 
 cdef extern from "lapjv.h" nogil:
@@ -90,9 +92,14 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
       exactly one contiguous float64 working array (or its transpose).
     - For zero-sized dimensions, the solver returns 0.0 (if requested) and
       all -1 mappings with appropriate lengths.
+    - Cost values are not scanned for NaN or negative infinity. Check or clean
+      these values before calling; results with them are undefined. Positive
+      infinity can represent a forbidden assignment.
     """
     if cost.ndim != 2:
         raise ValueError('2-dimensional array expected')
+    if isnan(cost_limit) or cost_limit == -INFINITY:
+        raise ValueError('cost_limit must be finite or positive infinity')
 
     # Original input for final total computation (no copy unless necessary for transpose below)
     A = np.asarray(cost)
@@ -107,17 +114,9 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
             return np.full((n_rows0,), -1, dtype=np.int32), np.full((n_cols0,), -1, dtype=np.int32)
 
     # Normalize orientation: kernel sees rows <= cols
-    cdef bint transposed = False
-    cdef cnp.ndarray[cnp.double_t, ndim=2, mode='c'] B
-    if n_rows0 > n_cols0:
-        B = np.ascontiguousarray(A.T, dtype=np.double)  # single working buffer (transposed)
-        transposed = True
-    else:
-        if A.dtype == np.float64 and A.flags['C_CONTIGUOUS']:
-            # reuse input buffer directly
-            B = A
-        else:
-            B = np.ascontiguousarray(A, dtype=np.double)  # single working buffer
+    cdef bint transposed = n_rows0 > n_cols0
+    # Keep a view until the final buffer's shape is known, then copy/cast once.
+    B = A.T if transposed else A
 
     cdef Py_ssize_t R = B.shape[0]  # working rows (<= cols)
     cdef Py_ssize_t C = B.shape[1]  # working cols
@@ -129,47 +128,43 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
             'non-square, pass extend_cost=True or set a finite cost_limit.'
         )
 
-    cdef uint_t N
-    cdef cnp.ndarray[cnp.double_t, ndim=2, mode='c'] cost_c = B
-    cdef cnp.ndarray[cnp.double_t, ndim=2, mode='c'] cost_c_extended
+    cdef Py_ssize_t size = R + C if cost_limit < INFINITY else C
+    if size > INT_MAX:
+        raise ValueError('Cost matrix is too large for int32 indices')
+    cdef uint_t N = <uint_t>size
+    cdef cnp.ndarray[cnp.double_t, ndim=2, mode='c'] cost_c
 
     if cost_limit < np.inf:
         # Augment to (R+C)x(R+C) with sentinel edges
-        N = <uint_t>(R + C)
-        cost_c_extended = np.empty((R + C, R + C), dtype=np.double)
-        cost_c_extended[:] = cost_limit / 2.0
-        cost_c_extended[R:, C:] = 0.0
-        cost_c_extended[:R, :C] = cost_c
-        cost_c = cost_c_extended
-    elif R != C or extend_cost:
-        # Zero-pad to square max(R, C); if already square and extend_cost=True, keep as-is
-        N = <uint_t>max(R, C)
-        if R != C:
-            cost_c_extended = np.zeros((N, N), dtype=np.double)
-            cost_c_extended[:R, :C] = cost_c
-            cost_c = cost_c_extended
-        else:
-            N = <uint_t>R
+        cost_c = np.empty((N, N), dtype=np.double)
+        cost_c[:R, C:] = cost_limit / 2.0
+        cost_c[R:, :C] = cost_limit / 2.0
+        cost_c[R:, C:] = 0.0
+        cost_c[:R, :C] = B
+    elif R != C:
+        cost_c = np.empty((N, N), dtype=np.double)
+        cost_c[:R, :C] = B
+        cost_c[R:, :] = 0.0
     else:
-        # Square, un-augmented
-        N = <uint_t>R
+        cost_c = np.ascontiguousarray(B, dtype=np.double)
+
+    # Allocate Python-owned outputs before allocating the row pointers.
+    cdef cnp.ndarray[int_t, ndim=1, mode='c'] x_c = np.empty((N,), dtype=np.int32)
+    cdef cnp.ndarray[int_t, ndim=1, mode='c'] y_c = np.empty((N,), dtype=np.int32)
 
     # Build row-pointer view for kernel
     cdef double **cost_ptr = <double **> malloc(N * sizeof(double *))
     if cost_ptr == NULL:
         raise MemoryError('Out of memory.')
     cdef int i
-    for i in range(N):
-        cost_ptr[i] = &cost_c[i, 0]
-
-    # Outputs for kernel space (size N)
-    cdef cnp.ndarray[int_t, ndim=1, mode='c'] x_c = np.empty((N,), dtype=np.int32)
-    cdef cnp.ndarray[int_t, ndim=1, mode='c'] y_c = np.empty((N,), dtype=np.int32)
-
     cdef int ret
-    with nogil:
-        ret = lapjv_internal(N, cost_ptr, &x_c[0], &y_c[0])
-    free(cost_ptr)
+    try:
+        with nogil:
+            for i in range(N):
+                cost_ptr[i] = &cost_c[i, 0]
+            ret = lapjv_internal(N, cost_ptr, &x_c[0], &y_c[0])
+    finally:
+        free(cost_ptr)
 
     if ret != 0:
         if ret == -1:
@@ -190,26 +185,10 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
         y_trim = y_c[:C]
 
     # Map to ORIGINAL orientation (A space) as vectors x_out (N_rows0), y_out (N_cols0)
-    x_out = np.full((n_rows0,), -1, dtype=np.int32)
-    y_out = np.full((n_cols0,), -1, dtype=np.int32)
-
-    if not transposed:
-        mask = (x_trim >= 0)
-        if np.any(mask):
-            rows = np.nonzero(mask)[0]
-            cols = x_trim[mask]
-            x_out[rows] = cols
-            y_out[cols] = rows
-    else:
-        # B rows are A columns; B cols are A rows
-        mask = (x_trim >= 0)
-        if np.any(mask):
-            rows_b = np.nonzero(mask)[0]        # indices in B rows -> A columns
-            cols_b = x_trim[mask]               # indices in B cols -> A rows
-            row_A = cols_b
-            col_A = rows_b
-            x_out[row_A] = col_A
-            y_out[col_A] = row_A
+    # Both inverse mappings already exist; transpose only swaps their roles.
+    # Copy trimmed arrays so a large augmented output is not retained.
+    x_out = y_trim.copy() if transposed else x_trim.copy()
+    y_out = x_trim.copy() if transposed else y_trim.copy()
 
     # Total from ORIGINAL A
     cdef double opt = 0.0
@@ -218,7 +197,7 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
         if np.any(mcost):
             rr = np.nonzero(mcost)[0]
             cc = x_out[mcost]
-            opt = float(A[rr, cc].sum())
+            opt = float(A[rr, cc].sum(dtype=np.float64))
         else:
             opt = 0.0
 
@@ -247,11 +226,15 @@ def _lapmod(const uint_t n,
     cdef cnp.ndarray[int_t, ndim=1, mode='c'] y_c = \
         np.empty((n,), dtype=np.int32)
 
-    cdef int_t ret = lapmod_internal(n, &cc_c[0], &ii_c[0], &kk_c[0], 
-                                     &x_c[0], &y_c[0], fp_version)
+    cdef int_t ret
+    with nogil:
+        ret = lapmod_internal(n, &cc_c[0], &ii_c[0], &kk_c[0],
+                              &x_c[0], &y_c[0], fp_version)
     if ret != 0:
         if ret == -1:
             raise MemoryError('Out of memory.')
+        if ret == -2:
+            raise ValueError('Unknown fp_version')
         raise RuntimeError('Unknown error (lapmod_internal returned %d).' % ret)
 
     return x_c, y_c

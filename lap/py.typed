@@ -1,0 +1,3 @@
+# PEP 561 marker: tells type checkers that lap provides inline type annotations.
+# Keep this file in source distributions and wheels so IDEs can use those types.
+# This file is package metadata; Python does not execute it.

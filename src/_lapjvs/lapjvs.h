@@ -1,4 +1,8 @@
 #include <cassert>
+#include <cstddef>
+#include <cmath>
+#include <stdexcept>
+#include <tuple>
 #include <cstdio>
 #include <limits>
 #include <memory>
@@ -20,7 +24,7 @@ always_inline std::tuple<cost, cost, idx, idx>
 find_umins_regular(
     idx dim, idx i, const cost *restrict assign_cost,
     const cost *restrict v) {
-  const cost *local_cost = &assign_cost[i * dim];
+  const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
   cost umin = local_cost[0] - v[0];
   idx j1 = 0;
   idx j2 = -1;
@@ -79,22 +83,29 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   // init how many times a row will be assigned in the column reduction.
   for (idx i = 0; i < dim; i++) {
     matches[i] = 0;
+    rowsol[i] = -1;
   }
 
-  // COLUMN REDUCTION
-  for (idx j = dim - 1; j >= 0; j--) {  // reverse order gives better results.
-    // find minimum cost over rows.
-    cost min = assign_cost[j];
-    idx imin = 0;
-    for (idx i = 1; i < dim; i++) {
-      const cost *local_cost = &assign_cost[i * dim];
-      if (local_cost[j] < min) {
-        min = local_cost[j];
-        imin = i;
+  // Find column minima by reading contiguous rows. Preserve the original
+  // first-row tie breaking and reverse column order when assigning matches.
+  for (idx j = 0; j < dim; ++j) {
+    v[j] = assign_cost[j];
+    colsol[j] = 0;
+  }
+  for (idx i = 1; i < dim; ++i) {
+    const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
+    for (idx j = 0; j < dim; ++j) {
+      const cost c = local_cost[j];
+      if (c < v[j]) {
+        v[j] = c;
+        colsol[j] = i;
       }
     }
-    v[j] = min;
-
+  }
+  for (idx j = dim - 1; j >= 0; --j) {
+    if (!std::isfinite(v[j]))
+      throw std::invalid_argument("Cost matrix is infeasible");
+    const idx imin = colsol[j];
     if (++matches[imin] == 1) {
       // init assignment if minimum row assigned for the first time.
       rowsol[imin] = j;
@@ -111,7 +122,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   idx *restrict free_rows = matches;  // list of unassigned rows (reuse matches' storage).
   idx numfree = 0;
   for (idx i = 0; i < dim; i++) {
-    const cost *local_cost = &assign_cost[i * dim];
+    const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
     if (matches[i] == 0) {  // fill list of unassigned 'free' rows.
       free_rows[numfree++] = i;
     } else if (matches[i] == 1) {  // transfer reduction from rows assigned once.
@@ -133,10 +144,12 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   // AUGMENTING ROW REDUCTION
   for (int loopcnt = 0; loopcnt < 2; loopcnt++) {  // loop to be done twice.
     idx k = 0;
+    size_t rr_count = 0;
     idx prevnumfree = numfree;
     numfree = 0;  // start list of rows still free after augmenting row reduction.
     while (k < prevnumfree) {
       idx i = free_rows[k++];
+      ++rr_count;
 
       // find minimum and second minimum reduced cost over columns.
       cost umin, usubmin;
@@ -145,10 +158,12 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
 
       idx i0 = colsol[j1];
       cost vj1_new = v[j1] - (usubmin - umin);
-      bool vj1_lowers = vj1_new < v[j1];  // the trick to eliminate the epsilon bug
+      // Bound repeated displacements; finish remaining rows by augmentation.
+      const bool reduce = rr_count < static_cast<size_t>(k) * dim;
+      bool vj1_lowers = vj1_new < v[j1] && reduce;
       if (vj1_lowers) {
         v[j1] = vj1_new;
-      } else if (i0 >= 0) {  // minimum and subminimum equal.
+      } else if (reduce && i0 >= 0 && j2 >= 0) {  // minimum and subminimum equal.
         j1 = j2;
         i0 = colsol[j2];
       }
@@ -180,7 +195,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
 
     // Dijkstra shortest path algorithm.
     for (idx j = 0; j < dim; j++) {
-      d[j] = assign_cost[freerow * dim + j] - v[j];
+      d[j] = assign_cost[static_cast<size_t>(freerow) * dim + j] - v[j];
       pred[j] = freerow;
       collist[j] = j;
     }
@@ -193,6 +208,8 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
     do {
       if (up == low) {
         last = low - 1;
+        if (up == dim)
+          throw std::invalid_argument("Cost matrix is infeasible");
         min = d[collist[up++]];
         for (idx k = up; k < dim; k++) {
           idx j = collist[k];
@@ -206,6 +223,8 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
             collist[up++] = j;
           }
         }
+        if (!std::isfinite(min))
+          throw std::invalid_argument("Cost matrix is infeasible");
         for (idx k = low; k < up; k++) {
           if (colsol[collist[k]] < 0) {
             endofpath = collist[k];
@@ -219,7 +238,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
         idx j1 = collist[low];
         low++;
         idx i = colsol[j1];
-        const cost *local_cost = &assign_cost[i * dim];
+        const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
         cost h = local_cost[j1] - v[j1] - min;
         for (idx k = up; k < dim; k++) {
           idx j = collist[k];
@@ -260,6 +279,12 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
   }
   if (verbose) {
     printf("lapjvs: AUGMENT SOLUTION finished\n");
+  }
+
+  for (idx i = 0; i < dim; ++i) {
+    if (rowsol[i] < 0 || rowsol[i] >= dim ||
+        !std::isfinite(assign_cost[static_cast<size_t>(i) * dim + rowsol[i]]))
+      throw std::invalid_argument("Cost matrix is infeasible");
   }
 
   // Final cost and row duals (u) are not computed here anymore, since the Python

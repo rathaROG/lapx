@@ -1,5 +1,6 @@
-#include <functional>
 #include <memory>
+#include <new>
+#include <stdexcept>
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
@@ -57,15 +58,20 @@ PyMODINIT_FUNC PyInit__lapjvs(void) {
 }
 }
 
+struct py_decref {
+  template <typename O>
+  void operator()(O *p) const noexcept { Py_XDECREF(p); }
+};
+
 template <typename O>
-using pyobj_parent = std::unique_ptr<O, std::function<void(O*)>>;
+using pyobj_parent = std::unique_ptr<O, py_decref>;
 
 template <typename O>
 class _pyobj : public pyobj_parent<O> {
  public:
-  _pyobj() : pyobj_parent<O>(nullptr, [](O *p){ if (p) Py_DECREF(p); }) {}
+  _pyobj() : pyobj_parent<O>(nullptr) {}
   explicit _pyobj(PyObject *ptr) : pyobj_parent<O>(
-      reinterpret_cast<O *>(ptr), [](O *p){ if(p) Py_DECREF(p); }) {}
+      reinterpret_cast<O *>(ptr)) {}
   void reset(PyObject *p) noexcept {
     pyobj_parent<O>::reset(reinterpret_cast<O*>(p));
   }
@@ -79,19 +85,25 @@ static always_inline void call_lap(int dim, const void *restrict cost_matrix,
                                    bool verbose,
                                    int *restrict row_ind, int *restrict col_ind,
                                    void *restrict v) {
-  Py_BEGIN_ALLOW_THREADS
-  auto cost_matrix_typed = reinterpret_cast<const F*>(cost_matrix);
-  auto v_typed = reinterpret_cast<F*>(v);
-  if (verbose) {
-    lapjvs<true>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
-  } else {
-    lapjvs<false>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
+  // Restore the GIL even if a thread-local scratch allocation fails.
+  PyThreadState *state = PyEval_SaveThread();
+  try {
+    auto cost_matrix_typed = reinterpret_cast<const F*>(cost_matrix);
+    auto v_typed = reinterpret_cast<F*>(v);
+    if (verbose) {
+      lapjvs<true>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
+    } else {
+      lapjvs<false>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
+    }
+  } catch (...) {
+    PyEval_RestoreThread(state);
+    throw;
   }
-  Py_END_ALLOW_THREADS
+  PyEval_RestoreThread(state);
 }
 
 // Zero-copy: preallocate NumPy outputs, write directly
-static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs) {
+static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs) try {
   PyObject *cost_matrix_obj;
   int verbose = 0;
   static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
@@ -120,16 +132,18 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
     return NULL;
   }
-  int dim = static_cast<int>(dims[0]);
-  if (dim < 0) {
+  if (dims[0] < 0 || dims[0] > std::numeric_limits<int>::max()) {
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
+  const int dim = static_cast<int>(dims[0]);
 
   if (dim == 0) {
     npy_intp ret_dims[] = {0};
     pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    if (!row_ind_array) return NULL;
     pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    if (!col_ind_array) return NULL;
     return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
   }
 
@@ -138,7 +152,9 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
   // Zero-copy outputs
   npy_intp ret_dims[] = {dim};
   pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  if (!row_ind_array) return NULL;
   pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  if (!col_ind_array) return NULL;
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
@@ -151,10 +167,15 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
   }
 
   return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
+} catch (const std::bad_alloc &) {
+  return PyErr_NoMemory();
+} catch (const std::exception &e) {
+  PyErr_SetString(PyExc_ValueError, e.what());
+  return NULL;
 }
 
 // Zero-copy: write into NumPy outputs directly
-static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs) {
+static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs) try {
   PyObject *cost_matrix_obj;
   int verbose = 0;
   static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
@@ -180,16 +201,18 @@ static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwa
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
     return NULL;
   }
-  int dim = static_cast<int>(dims[0]);
-  if (dim < 0) {
+  if (dims[0] < 0 || dims[0] > std::numeric_limits<int>::max()) {
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
+  const int dim = static_cast<int>(dims[0]);
 
   if (dim == 0) {
     npy_intp ret_dims[] = {0};
     pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    if (!row_ind_array) return NULL;
     pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+    if (!col_ind_array) return NULL;
     return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
   }
 
@@ -198,7 +221,9 @@ static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwa
   // Zero-copy outputs
   npy_intp ret_dims[] = {dim};
   pyarray row_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  if (!row_ind_array) return NULL;
   pyarray col_ind_array(PyArray_SimpleNew(1, ret_dims, NPY_INT));
+  if (!col_ind_array) return NULL;
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
@@ -206,10 +231,15 @@ static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwa
   call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
 
   return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
+} catch (const std::bad_alloc &) {
+  return PyErr_NoMemory();
+} catch (const std::exception &e) {
+  PyErr_SetString(PyExc_ValueError, e.what());
+  return NULL;
 }
 
 // Zero-copy for pairs: write mapping into NumPy arrays directly, then build pairs
-static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwargs) {
+static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwargs) try {
   PyObject *cost_matrix_obj;
   int verbose = 0;
   static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
@@ -238,23 +268,26 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
     return NULL;
   }
-  int dim = static_cast<int>(dims[0]);
-  if (dim < 0) {
+  if (dims[0] < 0 || dims[0] > std::numeric_limits<int>::max()) {
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
+  const int dim = static_cast<int>(dims[0]);
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
 
   if (dim == 0) {
     npy_intp pdims[] = {0, 2};
     pyarray pairs(PyArray_SimpleNew(2, pdims, NPY_INT));
+    if (!pairs) return NULL;
     return reinterpret_cast<PyObject*>(pairs.release());
   }
 
   // Zero-copy mapping outputs
   npy_intp odims[] = {dim};
   pyarray row_ind_array(PyArray_SimpleNew(1, odims, NPY_INT));
+  if (!row_ind_array) return NULL;
   pyarray col_ind_array(PyArray_SimpleNew(1, odims, NPY_INT));
+  if (!col_ind_array) return NULL;
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
@@ -276,6 +309,7 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
   // Build pairs (K,2) directly
   npy_intp pdims[] = {K, 2};
   pyarray pairs(PyArray_SimpleNew(2, pdims, NPY_INT));
+  if (!pairs) return NULL;
   auto* pdata = reinterpret_cast<int*>(PyArray_DATA(pairs.get()));
   npy_intp w = 0;
   for (int i = 0; i < dim; ++i) {
@@ -287,10 +321,15 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
     }
   }
   return reinterpret_cast<PyObject*>(pairs.release());
+} catch (const std::bad_alloc &) {
+  return PyErr_NoMemory();
+} catch (const std::exception &e) {
+  PyErr_SetString(PyExc_ValueError, e.what());
+  return NULL;
 }
 
 // Zero-copy for pairs (float32 path)
-static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kwargs) {
+static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kwargs) try {
   PyObject *cost_matrix_obj;
   int verbose = 0;
   static const char *kwlist[] = {"cost_matrix", "verbose", NULL};
@@ -315,23 +354,26 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\" must be a square 2D numpy array");
     return NULL;
   }
-  int dim = static_cast<int>(dims[0]);
-  if (dim < 0) {
+  if (dims[0] < 0 || dims[0] > std::numeric_limits<int>::max()) {
     PyErr_SetString(PyExc_ValueError, "\"cost_matrix\"'s shape is too large or invalid");
     return NULL;
   }
+  const int dim = static_cast<int>(dims[0]);
   auto cost_matrix = PyArray_DATA(cost_matrix_array.get());
 
   if (dim == 0) {
     npy_intp pdims[] = {0, 2};
     pyarray pairs(PyArray_SimpleNew(2, pdims, NPY_INT));
+    if (!pairs) return NULL;
     return reinterpret_cast<PyObject*>(pairs.release());
   }
 
   // Zero-copy mapping outputs
   npy_intp odims[] = {dim};
   pyarray row_ind_array(PyArray_SimpleNew(1, odims, NPY_INT));
+  if (!row_ind_array) return NULL;
   pyarray col_ind_array(PyArray_SimpleNew(1, odims, NPY_INT));
+  if (!col_ind_array) return NULL;
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
@@ -346,6 +388,7 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
   }
   npy_intp pdims[] = {K, 2};
   pyarray pairs(PyArray_SimpleNew(2, pdims, NPY_INT));
+  if (!pairs) return NULL;
   auto* pdata = reinterpret_cast<int*>(PyArray_DATA(pairs.get()));
   npy_intp w = 0;
   for (int i = 0; i < dim; ++i) {
@@ -357,4 +400,9 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
     }
   }
   return reinterpret_cast<PyObject*>(pairs.release());
+} catch (const std::bad_alloc &) {
+  return PyErr_NoMemory();
+} catch (const std::exception &e) {
+  PyErr_SetString(PyExc_ValueError, e.what());
+  return NULL;
 }
