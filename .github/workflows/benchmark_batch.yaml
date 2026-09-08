@@ -29,21 +29,21 @@ jobs:
           cd benchmarks
           python benchmark_batch.py
 
-  benchmark_p38_p314:
+  benchmark_p38_p315:
     name: "${{ matrix.os }} + python ${{ matrix.python-version }}"
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
       matrix:
         os: ["windows-latest", "ubuntu-latest", "ubuntu-24.04-arm", "macos-15-intel", "macos-latest"]
-        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.python-version == '3.15' }}
       - name: Install lapx & scipy from PyPI
         run: |
           python -m pip install --upgrade pip
