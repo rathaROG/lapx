@@ -1,4 +1,4 @@
-"""Compare dense batches and equivalent dense/CSR views of sparse problems."""
+"""Compare dense batches and equivalent dense and compressed sparse row (CSR) forms of sparse problems."""
 
 import argparse
 from functools import partial
@@ -32,7 +32,7 @@ def do_lapx_loop(cost_matrix_batch, extend_cost=False, backend='lapjvx', return_
 
 
 def do_scipy_loop(cost_matrix_batch, return_cost=False):
-    """Solve sequentially; include NumPy cost sums only when requested."""
+    """Solve each problem in sequence. Include NumPy cost sums only when requested."""
     totals = np.empty(len(cost_matrix_batch), dtype=np.float64) if return_cost else None
     assignments = []
     for i, cost_matrix in enumerate(cost_matrix_batch):
@@ -58,7 +58,7 @@ def do_lapmod_loop(problems, return_cost=False):
 
 
 def sparse_problems_from_dense(cost_matrix_batch):
-    """Store finite entries, including zero costs, in lapmod's row-major format."""
+    """Store finite entries in lapmod's row-major format. Include zero costs."""
     batch = np.asarray(cost_matrix_batch)
     if batch.ndim != 3 or batch.shape[1] != batch.shape[2]:
         raise ValueError('lapmod requires a batch of square matrices')
@@ -87,7 +87,7 @@ def make_sparse_costs(batch_size, n, density, seed):
 
 
 def checked_assignment_costs(batch_costs, assignments, assignment_format):
-    """Validate each solver's output and calculate costs outside solve timing."""
+    """Check each solver's output. Calculate costs outside the time measurement for the solve."""
     batch_size, n, m = batch_costs.shape
     size = min(n, m)
     if assignment_format == 'pairs':
@@ -122,7 +122,7 @@ def checked_assignment_costs(batch_costs, assignments, assignment_format):
 
 def measure(label, solve, warmup, batch_costs, return_cost=False,
             assignment_format='indices', expected=None):
-    """Time one solve, then validate results; print costs only when requested."""
+    """Measure the time for one solve. Then check the results. Print costs only when requested."""
     warmup()
     start = time.perf_counter()
     result = solve()
@@ -149,7 +149,7 @@ def measure(label, solve, warmup, batch_costs, return_cost=False,
 
 
 def benchmark_solvers(batch_costs, n_threads, problems=None, return_cost=False):
-    """Time solver calls after warm-up; compare costs outside the timed region."""
+    """Measure solver calls after the initial untimed calls. Compare costs outside the timed region."""
     _, n, m = batch_costs.shape
     extend_cost = n != m
     # Sparse cases retain a feasible diagonal when taking these square views.

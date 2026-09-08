@@ -1,7 +1,7 @@
-"""
-Regression test for Issue #20:
-Solvers with extend_cost=True may produce incorrect assignments on non-square matrices
-with large blocking costs (float32).
+"""Check for a regression of issue #20.
+
+With extend_cost=True, solvers may return incorrect assignments for rectangular
+matrices with large blocking costs in float32.
 
 https://github.com/rathaROG/lapx/issues/20
 """

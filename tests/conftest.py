@@ -1,4 +1,4 @@
-"""Shared cost-matrix fixtures for the dense and sparse solver tests."""
+"""Provide shared cost-matrix fixtures for dense and sparse solver tests."""
 
 import pytest
 

@@ -27,17 +27,17 @@ def include_pybind11():
     return pybind11.get_include()
 
 class BuildExt(build_ext):
-    """
-    Add portable, high-performance compiler/linker flags and allow
-    optional opt-ins via env vars:
-      - LAPX_BASEOPTS=0  -> disable LAPX-added base flags and LTO;
-                           other compiler defaults may still apply
-      - LAPX_FASTMATH=1  -> -ffast-math (or /fp:fast)
-      - LAPX_NATIVE=1    -> -march=native -mtune=native
-      - LAPX_LTO=0       -> disable LTO, including inherited LTO defaults
+    """Add portable optimization flags for the compiler and linker.
+
+    Environment variables control these options:
+    - LAPX_BASEOPTS=0 disables the base flags that LAPX adds and link-time
+      optimization (LTO). Other compiler defaults may still apply.
+    - LAPX_FASTMATH=1 enables -ffast-math or /fp:fast.
+    - LAPX_NATIVE=1 enables -march=native -mtune=native.
+    - LAPX_LTO=0 disables LTO, including inherited LTO defaults.
 
     LAPX_BASEOPTS=0 does not guarantee an unoptimized or debug build.
-    Fast-math and native tuning are independent opt-ins, disabled by default.
+    Fast-math and native tuning are independent options. Both are disabled by default.
     """
     def has_flag(self, flag, link_flag=None):
         import tempfile, os
@@ -273,37 +273,36 @@ def main_setup():
     )
 
 if __name__ == "__main__":
-    """
-    Recommend using :py:mod:`build` to build the package as it does not
-    disrupt your current environment.
+    """Use :py:mod:`build` to build the package without changes to the current environment.
 
     >>> pip install wheel build
     >>> python -m build --sdist
     >>> python -m build --wheel
 
-    Base optimizations are safe and applied automatically (e.g., optimized 
-    build [/O2 on MSVC or -O3 on GCC/Clang], -DNDEBUG, and LTO when compilation
-    and linking support it).
+    The build applies safe base optimizations automatically:
+    - /O2 on MSVC or -O3 on GCC and Clang enables compiler optimizations.
+    - -DNDEBUG disables debug assertions.
+    - Link-time optimization (LTO) applies when the compiler and linker support it.
 
-    Extra opt-ins can be enabled via environment variables:
-      - LAPX_BASEOPTS=0  -> disables LAPX-added base flags and LTO;
-                           other compiler defaults may still apply
-      - LAPX_FASTMATH=1  -> enables fast-math (/fp:fast on MSVC, -ffast-math on GCC/Clang)
-      - LAPX_NATIVE=1    -> enables -march=native -mtune=native (GCC/Clang only)
-      - LAPX_LTO=0       -> disables LTO, including inherited LTO defaults
+    Environment variables control additional options:
+    - LAPX_BASEOPTS=0 disables the base flags that LAPX adds and LTO.
+      Other compiler defaults may still apply.
+    - LAPX_FASTMATH=1 enables fast-math with /fp:fast on MSVC or -ffast-math on GCC and Clang.
+    - LAPX_NATIVE=1 enables -march=native -mtune=native on GCC and Clang only.
+    - LAPX_LTO=0 disables LTO, including inherited LTO defaults.
 
     LAPX_BASEOPTS=0 does not guarantee an unoptimized or debug build.
-    Fast-math and native tuning are independent opt-ins, disabled by default.
-    Keep both disabled for portable release wheels; fast-math may change
-    numerical results and handling of NaN/infinity.
+    Fast-math and native tuning are independent options. Both are disabled by default.
+    Keep both options disabled for portable release wheels.
+    Fast-math may change numerical results and the treatment of NaN or infinity.
 
-    For example, to build with fast-math enabled on Linux/macOS:
+    To build with fast-math on Linux or macOS, use this command:
     >>> LAPX_FASTMATH=1 python -m build --wheel
 
-    For example, to build with fast-math enabled on Windows terminal (CMD):
+    To build with fast-math in the Windows command prompt (CMD), use this command:
     >>> set "LAPX_FASTMATH=1" && python -m build --wheel
 
-    Note: Cython compiler directives (boundscheck=False, wraparound=False, cdivision=True, etc.)
-    are enabled by default for Cython modules.
+    The build applies Cython compiler directives by default for Cython modules.
+    Examples include boundscheck=False, wraparound=False, and cdivision=True.
     """
     main_setup()

@@ -24,10 +24,9 @@ def _valid_pairs(rows, cols, M, N):
 
 class SolverAdapter:
     def __init__(self, name, solver_fn, forbid_kind, needs_extend=False, uses_jvx_like=False):
-        """
-        forbid_kind: "inf" or "nan"
-        needs_extend: if True, pass extend_cost=True for rectangular cases
-        uses_jvx_like: if True, return style already (rows, cols)
+        """forbid_kind accepts "inf" or "nan".
+        If needs_extend=True, pass extend_cost=True for rectangular cases.
+        If uses_jvx_like=True, the solver already returns (rows, cols).
         """
         self.name = name
         self.solver_fn = solver_fn
@@ -36,7 +35,7 @@ class SolverAdapter:
         self.uses_jvx_like = uses_jvx_like
 
     def solve(self, C):
-        """Return total, rows, cols normalized."""
+        """Return total, rows, and cols in a standard format."""
         M, N = C.shape
         if self.name == "lapjv":
             tot, x, y = lapjv(C, return_cost=True, extend_cost=(M != N))

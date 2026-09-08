@@ -1,19 +1,12 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-import os
 import numpy as np
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from ._batch_utils import _normalize_threads
 from ._lapjvs_wp import lapjvs as _lapjvs_single
 from ._lapjvs_wp import lapjvsa as _lapjvsa_single
-
-
-def _normalize_threads(n_threads: Optional[int]) -> int:
-    if n_threads is None or n_threads == 0:
-        cpu = os.cpu_count() or 1
-        return max(1, int(cpu))
-    return max(1, int(n_threads))
 
 
 def _solve_one_jvs(
@@ -98,61 +91,66 @@ def lapjvs_batch(
     Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
     Tuple[List[np.ndarray], List[np.ndarray]]
 ]:
-    """
-    Batched lapjvs solver with a thread pool.
+    """Solve a batch of cost matrices with lapjvs.
 
-    For each 2D cost matrix in a 3D batch, this function runs `lapjvs` and
-    aggregates the per-instance results. It preserves the order of the batch
-    in the outputs.
+    It runs lapjvs on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
 
     Parameters
     ----------
     costs : np.ndarray, shape (B, N, M)
-        Batch of cost matrices (float32/float64). Each slice `costs[b]` is
-        a single LAP instance.
-        Prepare costs without NaN or negative infinity; values are not scanned
-        for them, and results with them are undefined. Positive infinity can
-        represent a forbidden assignment.
+        A batch of cost matrices with data type float32 or float64.
+        Each costs[b] contains one assignment problem.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        If True, rectangular instances are solved via internal zero-padding.
-        If False, each instance must be square or a ValueError is raised.
-        This is forwarded to the single-instance solver.
+        If True, the solver pads rectangular problems with zeros.
+        If False, each problem must be square.
+        The wrapper passes this option to lapjvs.
     return_cost : bool, default True
-        If True, return per-instance totals as the first output.
-    n_threads : int, default 0
-        Number of worker threads. When 0 or None, uses `os.cpu_count()`.
-        Actual workers are capped to the batch size.
+        If True, return the array of total costs first.
+    n_threads : int or None, default 0
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        The function creates no thread pool for one worker or at most one problem.
     prefer_float32 : bool, default True
-        Hint to run each kernel in float32 (forwarded to the single solver; 
-        see the `lapjvs` for the details).
+        Request a float32 kernel for each problem.
+        The wrapper passes this option to lapjvs. See lapjvs for details.
 
     Returns
     -------
     If return_cost is True:
         totals : np.ndarray, shape (B,), float64
-            Total assignment cost for each instance, computed from the ORIGINAL
-            per-instance cost matrix.
-        rows_list : List[np.ndarray[int64]]
-            For each b, a 1D array of assigned row indices (length K_b).
-        cols_list : List[np.ndarray[int64]]
-            For each b, a 1D array of assigned col indices (length K_b).
+            Each entry gives the total cost for one original cost matrix.
+        rows_list : List[np.ndarray[int64]] of length B
+            Each array contains the assigned row indices for one problem, with length K_b.
+        cols_list : List[np.ndarray[int64]] of length B
+            Each array contains the assigned column indices for one problem, with length K_b.
     Else:
         rows_list, cols_list
 
     Raises
     ------
     ValueError
-        - If `costs` is not a 3D array.
-        - If any instance is rectangular while `extend_cost=False`.
+        The function raises this exception if costs is not a 3D array.
+        It also raises this exception for rectangular problems when extend_cost=False.
 
     Notes
     -----
-    - Threading:
-      The underlying native kernel releases the GIL, so using multiple threads
-      can accelerate large batches on multi-core systems.
-    - Dtypes:
-      Each instance may be float32 or float64; the kernel selection and casting
-      follow the single-instance rules. Totals are float64.
+    See lapjvs for data types, total-cost sums, and other single solver behavior.
+
+    The native kernel releases the global interpreter lock (GIL).
+    Multiple threads can make large batches faster on systems with multiple CPU cores.
+
+    Each problem may use float32 or float64. Kernel selection and data conversion
+    follow the single solver rules. Totals use float64.
+
+    Results keep the input order regardless of the thread count.
     """
     A = np.asarray(costs)
     if A.ndim != 3:
@@ -251,28 +249,38 @@ def lapjvsa_batch(
     n_threads: Optional[int] = 0,
     prefer_float32: bool = True,
 ) -> Union[Tuple[np.ndarray, List[np.ndarray]], List[np.ndarray]]:
-    """
-    Batched lapjvsa solver, returning (K_b, 2) arrays per instance.
+    """Solve a batch of cost matrices with lapjvsa.
 
-    Runs `lapjvsa` on each (N, M) slice of a (B, N, M) batch and aggregates
-    the results while preserving order.
+    The function returns an array of assignment pairs with shape (K_b, 2) for each problem.
+
+    It runs lapjvsa on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
 
     Parameters
     ----------
     costs : np.ndarray, shape (B, N, M)
-        Batch of cost matrices.
-        Prepare costs without NaN or negative infinity; values are not scanned
-        for them, and results with them are undefined. Positive infinity can
-        represent a forbidden assignment.
+        A batch of cost matrices with data type float32 or float64.
+        Each costs[b] contains one assignment problem.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        If True, rectangular instances are solved via internal zero-padding.
+        If True, the solver pads rectangular problems with zeros.
+        If False, each problem must be square.
+        The wrapper passes this option to lapjvsa.
     return_cost : bool, default True
-        If True, include per-instance totals as the first returned array.
-    n_threads : int, default 0
-        Number of worker threads. 0 or None uses `os.cpu_count()`.
+        If True, return the array of total costs first.
+    n_threads : int or None, default 0
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        The function creates no thread pool for one worker or at most one problem.
     prefer_float32 : bool, default True
-        Hint to run each kernel in float32 (forwarded to the single solver; 
-        see the `lapjvsa` for the details).
+        Request a float32 kernel for each problem.
+        The wrapper passes this option to lapjvsa. See lapjvsa for details.
 
     Returns
     -------
@@ -285,13 +293,14 @@ def lapjvsa_batch(
     Raises
     ------
     ValueError
-        If `costs` is not a 3D array, or if any instance is rectangular while
-        `extend_cost=False`.
+        The function raises this exception if costs is not a 3D array.
+        It also raises this exception for rectangular problems when extend_cost=False.
 
     Notes
     -----
-    - See `lapjvsa` for details on dtype handling and total-cost accumulation.
-    - Results are reassembled in batch order irrespective of threading.
+    See lapjvsa for data types, total-cost sums, and other single solver behavior.
+
+    Results keep the input order regardless of the thread count.
     """
     A = np.asarray(costs)
     if A.ndim != 3:

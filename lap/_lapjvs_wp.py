@@ -65,70 +65,70 @@ def lapjvs(
     Tuple[float, np.ndarray, np.ndarray],
     Tuple[np.ndarray, np.ndarray]
 ]:
-    """
-    This function wraps a high-performance JV solver and provides flexible
-    I/O to match either lapjv-style vector outputs (x, y) or lapjvx/SciPy-style
-    pair lists (rows, cols). It handles rectangular inputs by zero-padding to a
-    square matrix internally when requested.
+    """Solve a linear assignment problem with a Jonker-Volgenant solver.
+
+    The function returns mapping arrays (x, y), as in lapjv, or aligned index arrays
+    (rows, cols), as in lapjvx and SciPy. When requested, it adds zeros to make
+    rectangular inputs square.
 
     Parameters
     ----------
     cost : np.ndarray, shape (n, m)
-        The cost matrix. Must be 2D and a real floating dtype. Values are treated
-        as minimization costs. Rectangular matrices are supported via internal
-        zero-padding when `extend_cost=True` or `extend_cost=None and n != m`.
+        The cost matrix must be 2D with a real floating data type.
+        The solver treats the values as costs to minimize.
+        It pads rectangular inputs with zeros when extend_cost=True or
+        when extend_cost=None and n != m.
     extend_cost : Optional[bool], default None
-        Controls how rectangular inputs are handled:
-        - True: Always zero-pad to a square internally (if needed).
-        - False: Require a square matrix, otherwise raise ValueError.
-        - None: Auto mode; pad iff the input is rectangular.
+        This option controls padding for rectangular inputs:
+        - True: Add zeros to make the matrix square, if necessary.
+        - False: Require a square matrix. Otherwise, raise ValueError.
+        - None: Add zeros if and only if the input is rectangular.
     return_cost : bool, default True
-        If True, include the total assignment cost as the first return value.
-        The total is always recomputed from the ORIGINAL input array `cost`
-        (float64 accumulation) to match previous numeric behavior.
+        If True, return the total assignment cost first.
+        The solver always recalculates this total from the original cost array
+        with float64 sums. This preserves the previous numerical behavior.
     jvx_like : bool, default True
-        Selects the output format.
-        - True: Return lapjvx/SciPy-style indexing arrays:
+        This option selects the output format:
+        - True: Return aligned index arrays, as in lapjvx and SciPy:
             return_cost=True  -> (total_cost: float, rows: (k,), cols: (k,))
             return_cost=False -> (rows: (k,), cols: (k,))
-          Here, `rows[i]` is assigned to `cols[i]`.
-        - False: Return lapjv-style mapping vectors:
+          The solver assigns rows[i] to cols[i].
+        - False: Return mapping arrays, as in lapjv:
             return_cost=True  -> (total_cost: float, x: (n0,), y: (m0,))
             return_cost=False -> (x: (n0,), y: (m0,))
-          `x[i]` gives the assigned column for row i or -1 if unassigned.
-          `y[j]` gives the assigned row for column j or -1 if unassigned.
+          x[i] gives the assigned column for row i, or -1 if the row has no assignment.
+          y[j] gives the assigned row for column j, or -1 if the column has no assignment.
     prefer_float32 : bool, default True
-        When True, the solver kernel runs in float32 to reduce memory bandwidth
-        and improve speed. When False and the input is float64, the kernel runs
-        in float64. Regardless of kernel dtype, the returned total cost is
-        recomputed against the ORIGINAL `cost` array.
+        If True, the kernel uses float32 to reduce memory bandwidth and improve speed.
+        If False and the input is float64, the kernel uses float64.
+        The solver recalculates the total from the original cost array,
+        regardless of the kernel data type.
 
     Returns
     -------
-    See `jvx_like` and `return_cost` above for exact signatures. In all cases,
-    index arrays are int64 and refer to indices in the ORIGINAL orientation of
-    `cost` (not the internally transposed one).
+    See jvx_like and return_cost above for the exact return formats.
+    All index arrays use int64. Their indices refer to the original orientation
+    of cost, before any internal transpose.
 
     Raises
     ------
     ValueError
-        - If `cost` is not a 2D array.
-        - If `extend_cost=False` and the input matrix is rectangular.
-        - If the assignment is infeasible.
+        The function raises this exception in these cases:
+        - cost is not a 2D array.
+        - extend_cost=False and the input matrix is rectangular.
+        - No feasible assignment exists.
 
     Notes
     -----
-    - Cost values are not scanned for NaN or negative infinity. Check or clean
-      these values before calling; results with them are undefined. Positive
-      infinity can represent a forbidden assignment.
-    - Rectangular handling:
-      Internally, the solver normalizes orientation so that the working matrix
-      has rows <= cols. Rectangular problems are modeled by zero-padding on
-      the right and/or bottom to become square. Only assignments within the
-      original (n, m) region are returned and used for the total.
-    - Dtype:
-      The kernel may operate in float32 or float64, but accumulation for the
-      returned total cost is performed in float64 on the ORIGINAL `cost`.
+    - The solver does not check for NaN (not a number) or negative infinity.
+      Check or remove these values before you call the solver. Results with these
+      values are undefined. Positive infinity can represent a forbidden assignment.
+    - The solver adjusts the matrix orientation so the working matrix has rows <= cols.
+      It pads the right, bottom, or both with zeros to make rectangular problems square.
+      It returns only assignments within the original (n, m) region.
+      It uses only these assignments for the total cost.
+    - The kernel may use float32 or float64.
+      The solver always sums total costs in float64 from the original cost array.
     """
     # Keep the original array to compute the final cost from it (preserves previous behavior)
     A = np.asarray(cost)
@@ -308,27 +308,26 @@ def lapjvsa(
     Tuple[float, np.ndarray],
     np.ndarray
 ]:
-    """
-    This variant returns a compact pairs array of shape (K, 2), where each row
-    is a (row_index, col_index) assignment in the ORIGINAL orientation of the
-    input matrix. Rectangular inputs are handled by internal zero-padding if
-    requested.
+    """Return assignment pairs with shape (K, 2).
+
+    Each row contains (row_index, col_index) in the original orientation of the
+    input matrix. When requested, the solver pads rectangular inputs with zeros.
 
     Parameters
     ----------
     cost : np.ndarray, shape (n, m)
-        Cost matrix (float32/float64). Must be 2D.
+        The cost matrix must be 2D with data type float32 or float64.
     extend_cost : Optional[bool], default None
-        Rectangular handling:
-        - True: Zero-pad to square internally (if needed).
-        - False: Require square, else raise ValueError.
-        - None: Auto; pad iff rectangular.
+        This option controls padding for rectangular inputs:
+        - True: Add zeros to make the matrix square, if necessary.
+        - False: Require a square matrix. Otherwise, raise ValueError.
+        - None: Add zeros if and only if the input is rectangular.
     return_cost : bool, default True
-        If True, include the total cost as the first return value. The total is
-        computed from the ORIGINAL input matrix.
+        If True, return the total cost first.
+        The solver calculates this total from the original input matrix.
     prefer_float32 : bool, default True
-        Hint to run the solver kernel in float32 for performance. When False and
-        the input is float64, the kernel uses float64.
+        Request a float32 kernel for performance.
+        If False and the input is float64, the kernel uses float64.
 
     Returns
     -------
@@ -340,19 +339,20 @@ def lapjvsa(
     Raises
     ------
     ValueError
-        If `cost` is not 2D, or if `extend_cost=False` and `cost` is rectangular.
-        Also raised for infeasible assignments.
+        The function raises this exception in these cases:
+        - cost is not a 2D array.
+        - extend_cost=False and cost is rectangular.
+        - No feasible assignment exists.
 
     Notes
     -----
-    - Orientation is normalized internally so the kernel sees rows <= cols.
-      Returned pairs are always mapped back to the ORIGINAL orientation.
-    - Cost values are not scanned for NaN or negative infinity. Check or clean
-      these values before calling; results with them are undefined. Positive
-      infinity can represent a forbidden assignment.
-    - Pairs only include assignments within the original (n, m) region for
-      rectangular inputs.
-    - Total is accumulated in float64 from the ORIGINAL `cost`.
+    - The solver adjusts the matrix orientation so the kernel has rows <= cols.
+      The returned pairs always use the original orientation.
+    - The solver does not check for NaN (not a number) or negative infinity.
+      Check or remove these values before you call the solver. Results with these
+      values are undefined. Positive infinity can represent a forbidden assignment.
+    - For rectangular inputs, pairs contain only assignments within the original (n, m) region.
+    - The solver sums total costs in float64 from the original cost array.
     """
     A = np.asarray(cost)
     if A.ndim != 2:

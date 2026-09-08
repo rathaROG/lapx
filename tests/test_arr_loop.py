@@ -5,24 +5,23 @@ from lap import lapmod, lapjv
 
 
 def prepare_sparse_cost(shape, cc, ii, jj, cost_limit):
-    '''
-    Transform the given sparse matrix extending it to a square sparse matrix.
+    """Extend a sparse matrix to make a square sparse matrix.
 
     Parameters
     ==========
     shape: tuple
-       - cost matrix shape
-    (cc, ii, jj): tuple of floats, ints, ints)
-        - cost matrix in COO format, see [1]
+        The cost matrix shape.
+    (cc, ii, jj): tuple of floats, ints, ints
+        The cost matrix in coordinate (COO) format. See reference [1].
     cost_limit: float
 
     Returns
     =======
     cc, ii, kk
-      - extended square cost matrix in CSR format
+        The extended square cost matrix in compressed sparse row (CSR) format.
 
     1. https://en.wikipedia.org/wiki/Sparse_matrix
-    '''
+    """
     assert cost_limit < np.inf
     n, m = shape
     cc_ = np.r_[cc, [cost_limit] * n,

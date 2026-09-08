@@ -373,25 +373,30 @@ def lapmod(
     Tuple[float, np.ndarray, np.ndarray],
     Tuple[np.ndarray, np.ndarray],
 ]:
-    """Solve sparse linear assignment problem using Jonker-Volgenant algorithm.
+    """Solve the sparse linear assignment problem with the Jonker-Volgenant algorithm.
 
-    n: number of rows of the assignment cost matrix
-    cc: 1D array of all finite elements of the assignment cost matrix
-    ii: 1D array of indices of the row starts in cc. The following must hold:
-            len(ii) = n + 1, ii[0] = 0 and ii[n] = len(cc).
-    kk: 1D array of the column indices so that:
+    n: The number of rows in the cost matrix.
+    cc: A 1D array of all finite entries in the cost matrix.
+    ii: A 1D array of indices that locate each row's start in cc.
+        These conditions must hold:
+        - len(ii) = n + 1
+        - ii[0] = 0
+        - ii[n] = len(cc)
+    kk: A 1D array of column indices such that:
             cost[i, kk[ii[i] + k]] == cc[ii[i] + k].
-        Indices within one row must be strictly increasing and in [0, n).
-    return_cost: whether or not to return the assignment cost
+        Indices in each row must increase strictly and remain in [0, n).
+    return_cost: This option controls whether the function returns the assignment cost.
 
-    Returns (opt, x, y) where:
-      opt: cost of the assignment, accumulated in float64
-      x: vector of columns assigned to rows
-      y: vector of rows assigned to columns
-    or (x, y) if return_cost is not True.
+    If return_cost is True, the function returns (opt, x, y):
+    - opt is the assignment cost, which the solver sums in float64.
+    - x maps rows to their assigned columns.
+    - y maps columns to their assigned rows.
 
-    The sparse cost matrix must be square, with finite non-negative values
-    less than LARGE. Malformed sparse arrays raise ValueError before solving.
+    If return_cost is not True, the function returns (x, y).
+
+    The sparse cost matrix must be square. Its stored values must be finite,
+    non-negative, and less than LARGE. The wrapper raises ValueError for malformed
+    sparse arrays before it solves the problem.
     """
     # log = logging.getLogger('lapmod')
 

@@ -1,4 +1,4 @@
-"""Large-cost regressions across public solvers, within each solver's range."""
+"""Check for regressions with large costs in public solvers, within each solver's cost range."""
 
 import numpy as np
 import pytest

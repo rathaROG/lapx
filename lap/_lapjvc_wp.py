@@ -40,39 +40,38 @@ def lapjvc(
     Tuple[float, np.ndarray, np.ndarray],
     Tuple[np.ndarray, np.ndarray],
 ]:
-    """
-    Solve the Linear Assignment Problem using the classic dense Jonker-Volgenant algorithm.
+    """Solve the linear assignment problem with the classic dense Jonker-Volgenant algorithm.
 
-    This is a thin wrapper around the C++ binding that computes an optimal assignment for a 2D
-    cost matrix. It returns row/column index arrays (JVX-like) matching SciPy's
-    linear_sum_assignment ordering.
+    This wrapper calls the C++ binding to calculate an optimal assignment for a 2D
+    cost matrix. It returns aligned row and column index arrays, as in lapjvx.
+    The order matches SciPy's linear_sum_assignment.
 
     Parameters
     ----------
     cost : np.ndarray, shape (M, N)
-        2D cost matrix. Supported dtypes: int32, int64, float32, float64.
-        - Rectangular inputs are handled internally (the dense solver pads as needed).
-        - NaN and positive or negative infinity are treated as forbidden assignments.
+        A 2D cost matrix with data type int32, int64, float32, or float64.
+        The dense solver pads rectangular inputs when necessary.
+        It treats NaN and positive or negative infinity as forbidden assignments.
     return_cost : bool, default True
         If True, return (total_cost, row_indices, col_indices).
-        If False, return only (row_indices, col_indices).
+        If False, return (row_indices, col_indices).
 
     Returns
     -------
     If return_cost is True:
         total_cost : float
-            Sum of cost at the selected (row, col) pairs, accumulated in float64.
+            The solver sums the costs at the assigned (row, col) pairs in float64.
         row_indices : np.ndarray with shape (K,), dtype int64 (platform-dependent via NumPy)
-            Row indices of the assignment.
+            This array contains the assigned row indices.
         col_indices : np.ndarray with shape (K,), dtype int64 (platform-dependent via NumPy)
-            Column indices of the assignment.
+            This array contains the assigned column indices.
     Else:
         row_indices, col_indices
 
     Notes
     -----
-    - This is the classic dense JV routine; for very large, sparse, or otherwise
-      structured problems, consider using lapjv/lapjvx variants optimized for those cases.
-    - Forbidden assignments can be encoded with np.nan or np.inf (float inputs).
+    - This function uses the classic dense JV algorithm.
+      For very large, sparse, or otherwise structured problems, consider lapjv or lapjvx variants optimized for those cases.
+    - Use np.nan or np.inf to represent forbidden assignments in floating inputs.
     """
     return _lapjvc(cost, return_cost=return_cost)

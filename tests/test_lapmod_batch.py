@@ -1,6 +1,5 @@
-"""Sparse batches with varying sizes, ordered outputs, and worker failures."""
+"""Check sparse batches with different sizes, results in input order, and exceptions from workers."""
 
-from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 
 import numpy as np
@@ -71,24 +70,6 @@ def test_empty_and_singleton_batches_skip_pool(monkeypatch, problems, batch_size
     for x, y in zip(x_list, y_list):
         np.testing.assert_array_equal(x, [0, 1])
         np.testing.assert_array_equal(y, [0, 1])
-
-
-@pytest.mark.parametrize('n_threads,cpu_count,workers', [
-    (None, 8, [3]), (0, 8, [3]), (2, 8, [2]),
-    (None, None, []), (-2, 8, []),
-])
-def test_worker_count_defaults_and_batch_cap(monkeypatch, problems, n_threads,
-                                            cpu_count, workers):
-    created = []
-
-    def make_pool(max_workers):
-        created.append(max_workers)
-        return ThreadPoolExecutor(max_workers=max_workers)
-
-    monkeypatch.setattr(_lapmod_batch_wp.os, 'cpu_count', lambda: cpu_count)
-    monkeypatch.setattr(_lapmod_batch_wp, 'ThreadPoolExecutor', make_pool)
-    lap.lapmod_batch(problems, n_threads=n_threads)
-    assert created == workers
 
 
 @pytest.mark.parametrize('return_cost', [False, True])

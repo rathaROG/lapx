@@ -1,34 +1,32 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-"""
-LAPX — Jonker-Volgenant (JV) linear assignment solvers.
+"""LAPX provides Jonker-Volgenant (JV) solvers for linear assignment problems.
 
-Provided solvers (single-matrix)
---------------------------------
-- lapmod   : Sparse assignment solver (for sparse cost matrices) by Tomas Kazmar's lap.
-- lapjv    : JV assignment solver by Tomas Kazmar's lap; returns JV-style mappings (x, y).
-- lapjvx   : Enhanced lapjv by lapx; returns SciPy-like outputs (rows, cols).
-- lapjvxa  : Convenience wrapper of lapjvx by lapx; returns (K, 2) assignment pairs.
-- lapjvc   : Classic JV variant by Christoph Heindl's lapsolver; returns (rows, cols).
-- lapjvs   : Enhanced Vadim Markovtsev's lapjv by lapx; returns either style.
-- lapjvsa  : Convenience wrapper of lapjvs by lapx; returns (K, 2) assignment pairs.
+Single-matrix solvers
+---------------------
+- lapmod is the sparse solver from Tomas Kazmar's lap.
+- lapjv is the JV solver from Tomas Kazmar's lap. It returns mapping arrays (x, y).
+- lapjvx extends lapjv. It returns aligned index arrays (rows, cols), as in SciPy.
+- lapjvxa wraps lapjvx. It returns assignment pairs with shape (K, 2).
+- lapjvc uses Christoph Heindl's classic JV variant. It returns (rows, cols).
+- lapjvs extends Vadim Markovtsev's lapjv. It supports mapping arrays and aligned index arrays.
+- lapjvsa wraps lapjvs. It returns assignment pairs with shape (K, 2).
 
-Provided solvers (batch)
-------------------------
-- lapjvx_batch  : Batched lapjvx; returns (totals, rows_list, cols_list) or (rows_list, cols_list).
-- lapjvxa_batch : Batched lapjvxa; returns (totals, pairs_list) or pairs_list with (K_b, 2).
-- lapjvs_batch  : Batched lapjvs; returns (totals, rows_list, cols_list) or (rows_list, cols_list).
-- lapjvsa_batch : Batched lapjvsa; returns (totals, pairs_list) or pairs_list with (K_b, 2).
-- lapmod_batch : Batched lapmod; returns (totals, x_list, y_list) or (x_list, y_list).
+Batch solvers
+-------------
+- lapjvx_batch runs lapjvx. It returns (totals, rows_list, cols_list) or (rows_list, cols_list).
+- lapjvxa_batch runs lapjvxa. It returns (totals, pairs_list) or pairs_list, with pair arrays of shape (K_b, 2).
+- lapjvs_batch runs lapjvs. It returns (totals, rows_list, cols_list) or (rows_list, cols_list).
+- lapjvsa_batch runs lapjvsa. It returns (totals, pairs_list) or pairs_list, with pair arrays of shape (K_b, 2).
+- lapmod_batch runs lapmod. It returns (totals, x_list, y_list) or (x_list, y_list).
 
 Notes
 -----
-- Dense solvers handle square and rectangular matrices; lapmod requires square problems.
-- Dense batch solvers accept costs shaped (B, N, M).
-- lapmod_batch accepts a sequence of (n, cc, ii, kk) sparse problems of varying sizes.
-- lapjvs* family wrappers may recompute the total cost from the original input for 
-  consistency; this has negligible overhead.
-- For tests and benchmarks, see the official repo: https://github.com/rathaROG/lapx
+- Dense solvers accept square and rectangular matrices. lapmod requires square problems.
+- Dense batch solvers accept costs with shape (B, N, M).
+- lapmod_batch accepts a sequence of sparse (n, cc, ii, kk) problems. The problem sizes can differ.
+- The lapjvs family may recalculate total costs from the original input for consistency. This adds negligible overhead.
+- For tests and benchmarks, see https://github.com/rathaROG/lapx.
 """
 
 from typing import TYPE_CHECKING

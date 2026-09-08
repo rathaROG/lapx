@@ -1,14 +1,12 @@
-"""
-Regression tests for upstream gatagat/lap issues affecting extend_cost padding:
+"""Check for regressions in extend_cost padding from these gatagat/lap issues:
 
-- Issue #20: Non-square matrix with infinite costs in lapjv
+- Issue #20 concerns a rectangular matrix with infinite costs in lapjv.
   https://github.com/gatagat/lap/issues/20
-
-- Issue #21: Extension of non-square matrix with all negative values in lapjv
+- Issue #21 concerns extension of a rectangular matrix with only negative values in lapjv.
   https://github.com/gatagat/lap/issues/21
 
-These tests are applied to lapx single-matrix solvers (lapjv/lapjvx/lapjvxa/lapjvs/lapjvsa)
-to prevent regressions in rectangular padding/extension behavior.
+These tests check the lapx solvers lapjv, lapjvx, lapjvxa, lapjvs, and lapjvsa.
+They prevent regressions in padding and extension of rectangular matrices.
 """
 
 import numpy as np
@@ -17,7 +15,7 @@ import lap
 
 
 def _pairs_from_lapjv_x(x):
-    """Convert lapjv row->col mapping x into (K,2) pairs."""
+    """Convert the lapjv mapping array x from rows to columns into assignment pairs with shape (K, 2)."""
     x = np.asarray(x)
     rows = np.where(x >= 0)[0]
     cols = x[rows]
@@ -29,7 +27,7 @@ def _pairs_from_rows_cols(rows, cols):
 
 
 def _normalize_pairs(pairs):
-    """Sort pairs for stable comparison."""
+    """Sort pairs for a stable comparison."""
     p = np.asarray(pairs, dtype=np.int64)
     if p.size == 0:
         return p.reshape(0, 2)

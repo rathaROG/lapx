@@ -1,4 +1,4 @@
-"""Shared cost data and sparse conversions; this module contains no tests."""
+"""Provide shared cost data and sparse conversions. This module contains no tests."""
 
 import numpy as np
 import os

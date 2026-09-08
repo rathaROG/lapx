@@ -35,27 +35,31 @@ cdef extern from "lapjv.h" nogil:
 @cython.wraparound(False)
 def lapjvx(cnp.ndarray cost not None, char extend_cost=False,
            double cost_limit=np.inf, char return_cost=True):
-    """
-    Solve linear assignment problem using Jonker-Volgenant algorithm,
-    returning (row_indices, col_indices) like scipy.optimize.linear_sum_assignment.
+    """Solve the linear assignment problem with the Jonker-Volgenant algorithm.
 
-    Orientation is normalized internally (kernel sees rows <= cols) and results
-    are mapped back to the original orientation.
+    The function returns (row_indices, col_indices), as in
+    scipy.optimize.linear_sum_assignment.
+    The solver adjusts the matrix orientation so the kernel has rows <= cols.
+    The returned results use the original orientation.
 
-    Unified augmentation policy
-    ---------------------------
-    - If cost_limit < inf: augment to (N+M) with cost_limit/2 sentinels (rectangular allowed).
-    - Elif (N != M) or extend_cost: zero-pad to square max(N, M) (rectangular allowed when extend_cost=True).
-    - Else (square, un-augmented): run on the given square.
+    Matrix extension rules
+    ----------------------
+    - If cost_limit < inf, extend the matrix to size (N+M) with cost_limit/2 costs on added edges.
+      This permits rectangular inputs.
+    - Otherwise, if N != M or extend_cost=True, add zeros to make a square of size max(N, M).
+      This permits rectangular inputs when extend_cost=True.
+    - Otherwise, solve the original square matrix without extension.
 
-    Cost values are not scanned for NaN or negative infinity. Check or clean
-    these values before calling; results with them are undefined. Positive
-    infinity can represent a forbidden assignment.
+    The solver does not check for NaN (not a number) or negative infinity.
+    Check or remove these values before you call the solver.
+    Results with these values are undefined.
+    Positive infinity can represent a forbidden assignment.
 
     Returns
     -------
     opt : float
-        Total cost (if return_cost=True), computed on the ORIGINAL input (not padded).
+        The total cost, if return_cost=True.
+        The solver calculates it from the original input, before padding.
     row_indices : (K,) ndarray (np.where -> int64)
     col_indices : (K,) ndarray (sliced from x_c -> int32)
     """
@@ -176,9 +180,9 @@ def lapjvx(cnp.ndarray cost not None, char extend_cost=False,
 @cython.wraparound(False)
 def lapjvxa(cnp.ndarray cost not None, char extend_cost=False,
             double cost_limit=np.inf, char return_cost=True):
-    """
-    Like lapjvx, but returns assignment pairs as a (K,2) ndarray of (row, col).
-    Uses int32 pairs to match legacy behavior.
+    """Solve with lapjvx and return (row, col) pairs in an array with shape (K, 2).
+
+    The pairs use int32 to preserve the previous behavior.
     """
     if return_cost:
         opt, row_indices, col_indices = lapjvx(cost, extend_cost=extend_cost,

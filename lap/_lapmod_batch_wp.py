@@ -1,12 +1,12 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
 
+from ._batch_utils import _normalize_threads
 from ._lapmod_wp import FP_DYNAMIC, lapmod as _lapmod_single
 
 
@@ -79,24 +79,28 @@ def lapmod_batch(
     Parameters
     ----------
     problems : sequence of (n, cc, ii, kk) tuples
-        Each tuple describes a square sparse problem as accepted by `lapmod`.
-        Sizes, numbers of stored entries, and array dtypes may differ between
-        problems. Stored costs must be finite, non-negative, and less than
-        `lap.LARGE`; row pointers and sorted column indices are validated by
-        the single-instance wrapper. Input arrays are not modified and must
-        not be mutated by the caller while solving.
+        Each tuple describes a square sparse problem that lapmod accepts.
+        Problem sizes, numbers of stored entries, and array data types may differ.
+        Stored costs must be finite, non-negative, and less than lap.LARGE.
+        The single solver wrapper checks row pointers and sorted column indices.
+        The solver does not change input arrays. Do not change these arrays while the solver runs.
     fast : bool, default True
-        Use the native solver, which releases the GIL during each solve.
-        False uses the Python fallback, where the GIL limits thread speedup.
+        Use the native solver, which releases the global interpreter lock (GIL)
+        during each solve. False selects the Python solver, where the GIL limits
+        speedup from threads.
     return_cost : bool, default True
-        Include per-problem totals. False skips total-cost calculation.
+        Include the total cost for each problem. If False, do not calculate total costs.
     fp_version : int, default FP_DYNAMIC
-        Native path-search version, forwarded to `lapmod`. Ignored when
-        fast=False, as in the single-instance solver.
+        This option selects the native path-search version.
+        The wrapper passes it to lapmod. When fast=False, lapmod ignores this option.
     n_threads : int or None, default 0
-        Number of worker threads. 0 or None uses `os.cpu_count()`, capped to
-        the batch size. Negative values use one worker. No pool is created for
-        one worker or a batch containing at most one problem.
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        The function creates no thread pool for one worker or at most one problem.
 
     Returns
     -------
@@ -106,19 +110,20 @@ def lapmod_batch(
     Else:
         x_list, y_list
 
-    Each x_list[b] maps rows to columns and y_list[b] maps columns to rows,
-    exactly as returned by `lapmod`, with length n for that problem. An empty
-    batch returns empty lists and, when requested, an empty totals array.
+    For problem b, x_list[b] maps rows to columns and y_list[b] maps columns to rows.
+    These arrays match the lapmod outputs and have length n for that problem.
+    An empty batch returns empty lists. If return_cost=True, it also returns an
+    empty totals array.
 
     Notes
     -----
-    Exceptions from individual problems propagate to the caller after the
-    thread pool is shut down. Each solve remains single-threaded; the pool
-    runs separate problems concurrently. Python-side validation and cost
-    calculation can limit speedup, especially for small problems.
+    If a problem raises an exception, the caller receives it after the thread pool
+    stops. Each solve uses one thread. The pool runs separate problems concurrently.
+    Python code that checks inputs and calculates costs can limit speedup,
+    especially for small problems.
     """
     batch_size = len(problems)
-    threads = max(1, int(n_threads or os.cpu_count() or 1))
+    threads = _normalize_threads(n_threads)
     totals = np.empty(batch_size, dtype=np.float64) if return_cost else None
     x_list: List[np.ndarray] = []
     y_list: List[np.ndarray] = []

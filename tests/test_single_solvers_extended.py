@@ -91,7 +91,7 @@ def test_noncontiguous_inputs_single(solver_name, make_view):
 @pytest.mark.parametrize("solver_name", ["lapjv", "lapjvx", "lapjvxa", "lapjvc", "lapjvs", "lapjvsa"])
 @pytest.mark.parametrize("return_cost", [False, True])
 def test_empty_matrices_behave_gracefully(solver_name, shape, return_cost):
-    """All dense solvers support empty inputs; an exception is a regression."""
+    """All dense solvers support empty inputs. An exception indicates a regression."""
     options = {'return_cost': return_cost}
     if solver_name != 'lapjvc':
         options['extend_cost'] = shape[0] != shape[1]

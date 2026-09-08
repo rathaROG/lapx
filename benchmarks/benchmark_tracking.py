@@ -1,37 +1,30 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-"""
-Benchmark `lapx` Assignment Methods for Object Tracking
-=======================================================
+"""Benchmark lapx assignment methods for object tracking.
 
-Short summary
--------------
-Benchmark wrapper utilities that compare LAPX assignment solvers (lapjv, lapjvx, lapjvc)
-against SciPy's :func:`scipy.optimize.linear_sum_assignment` (LSA) in common object-tracking
-scenarios where partial assignment and cost thresholding are required.
+This module compares LAPX solvers (lapjv, lapjvx, lapjvc) with SciPy's
+:func:`scipy.optimize.linear_sum_assignment` (LSA). The object tracking cases
+require partial assignments and cost thresholds.
 
-Extended description
---------------------
-This module provides small wrapper functions that adapt solver outputs into a common
-(matched pairs + unmatched lists) format used by tracking code, and it measures
-end-to-end wrapper performance (assignment + post-filtering + unmatched computation).
-It tests both square and rectangular cost matrices and highlights differences that
-can arise from thresholding semantics and solver internals.
+The wrappers convert solver outputs to a common format: matched pairs and
+lists of unmatched indices. The benchmark measures the full wrapper call.
+This includes the solve, the removal of matches above the cost threshold,
+and the calculation of unmatched indices.
+
+The benchmark uses square and rectangular cost matrices. It shows differences
+that can result from threshold rules and solver internals.
 
 Notes
 -----
-- The benchmark measures application-level behaviour (what tracking code typically needs):
-  the solver is run to produce a full assignment, and then matches are filtered by a
-  cost threshold to produce the matched/unmatched sets.
-- For object tracking this post-filtering approach (run solver -> drop matches above
-  threshold) is intentionally used because it:
-    * Produces matched and unmatched sets in the form tracking code expects.
-    * Avoids slower solver internal paths that may be triggered when using in-solver
-      partial-assignment options (e.g., passing ``cost_limit`` into the solver).
-- If you require the solver to enforce partial assignment during optimization (i.e.,
-  the solver must avoid assigning costly matches while solving), pass ``cost_limit``
-  directly to the solver. Expect differences in performance and in the unmatched sets
-  compared to the post-filter approach.
+- The benchmark measures behavior that object tracking code typically needs.
+  Each solver produces a full assignment. The wrapper then removes matches
+  above the cost threshold to create matched and unmatched sets.
+- The benchmark intentionally applies the threshold after the solve for these reasons:
+  * The output has the matched and unmatched sets that tracking code expects.
+  * This avoids slower internal paths that partial-assignment options such as cost_limit may select.
+- To enforce partial assignment during optimization, pass cost_limit directly
+  to a solver that accepts it. This prevents costly matches during the solve.
+  Expect differences in performance and unmatched sets compared with threshold checks after the solve.
 """
 
 import sys
@@ -46,35 +39,32 @@ import scipy.optimize
 
 
 def _decorate_return(n_rows, n_cols, matches):
-    """
-    Normalize `matches` and compute unmatched index lists.
+    """Convert matches to a standard array. Calculate lists of unmatched indices.
 
     Parameters
     ----------
     n_rows : int
-        Number of rows in the original cost matrix (number of left-side items).
+        The number of rows in the original cost matrix, or left-side items.
     n_cols : int
-        Number of columns in the original cost matrix (number of right-side items).
+        The number of columns in the original cost matrix, or right-side items.
     matches : array-like
-        Sequence of (row, col) pairs representing matched indices. May be a Python
-        list of pairs or a numpy array. An empty sequence indicates no matches.
+        A sequence of matched (row, col) pairs. This can be a Python list or a
+        NumPy array. An empty sequence means that no matches exist.
 
     Returns
     -------
     matches : ndarray, shape (k, 2), dtype=int
-        Normalized matches array. When there are no matches an empty array with shape
-        (0, 2) and dtype int is returned.
+        The array of matches in the standard format.
+        If no matches exist, the array has shape (0, 2) and data type int.
     unmatched_rows : list of int
-        Indices of rows (left-side items) that are unmatched.
+        These indices identify rows, or left-side items, without matches.
     unmatched_cols : list of int
-        Indices of columns (right-side items) that are unmatched.
+        These indices identify columns, or right-side items, without matches.
 
     Notes
     -----
-    This helper centralizes:
-      - conversion of arbitrary sequence-like `matches` into the canonical numpy
-        shape/dtype used by the wrappers,
-      - consistent generation of unmatched lists across all wrappers.
+    All wrappers use this helper to convert matches to the same NumPy shape and
+    data type. They also use it to create consistent lists of unmatched indices.
     """
     # Ensure ndarray
     matches = np.asarray(matches)
@@ -97,26 +87,26 @@ def _decorate_return(n_rows, n_cols, matches):
 
 
 def lapx_jv_ift(cost_matrix, thresh):
-    """
-    Run :func:`lap.lapjv` (LAPX JV) with in-function filtering using `cost_limit`.
+    """Run :func:`lap.lapjv` (LAPX JV) with cost_limit to control partial assignment.
 
-    This variant passes ``cost_limit=thresh`` into the solver so the solver enforces
-    the partial-assignment constraint internally. As a result, some matches that would
-    be produced by the post-filter approach are prevented during optimization.
+    The wrapper passes cost_limit=thresh to the solver.
+    The solver then enforces the partial-assignment constraint during optimization.
+    This prevents some matches that could occur if the wrapper applied the
+    threshold only after the solve.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
 
     Notes
     -----
-    - In-solver filtering may trigger slower internal code paths depending on the
-      solver implementation and options; expect different performance characteristics.
-    - We still normalize the solver output into the common (matches, unmatched_rows, unmatched_cols)
-      format using :func:`_decorate_return` for consistency with other wrappers.
+    - The partial-assignment option may select slower internal paths, depending
+      on the solver implementation and options. Expect differences in performance.
+    - The wrapper uses :func:`_decorate_return` to return
+      (matches, unmatched_rows, unmatched_cols), consistent with the other wrappers.
     """
     x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh, return_cost=False)
     # Solver should already respect cost_limit, but for safety we still ensure matched pairs
@@ -128,27 +118,24 @@ def lapx_jv_ift(cost_matrix, thresh):
 
 
 def lapx_jv(cost_matrix, thresh):
-    """
-    Run :func:`lap.lapjv` (LAPX JV) and post-filter assignments by cost threshold.
+    """Run :func:`lap.lapjv` (LAPX JV). Then remove assignments above the cost threshold.
 
-    The function calls ``lap.lapjv`` without passing ``cost_limit`` and then removes
-    any matches whose cost exceeds ``thresh``. This mirrors the post-filtering
-    strategy used for other wrappers in this benchmark.
+    The wrapper calls lap.lapjv without cost_limit. It then removes matches whose
+    cost exceeds thresh. The other wrappers in this benchmark use the same method.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
 
     Notes
     -----
-    - Post-filtering (run solver -> drop matches above ``thresh``) is chosen here
-      to match the behaviour used by :func:`lapx_jvx` and :func:`scipy_lsa`.
-    - If you require the solver to enforce partial assignment during optimization,
-      call :func:`lap.lapjv` with ``cost_limit`` set; expect potential performance
-      differences and different unmatched sets.
+    - The wrapper applies the threshold after the solve, as in :func:`lapx_jvx`
+      and :func:`scipy_lsa`.
+    - To enforce partial assignment during optimization, call :func:`lap.lapjv`
+      with cost_limit. Performance and unmatched sets may differ.
     """
     x, y = lap.lapjv(cost_matrix, extend_cost=True, return_cost=False)
     # matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0 and cost_matrix[ix, mx] <= thresh]
@@ -158,21 +145,20 @@ def lapx_jv(cost_matrix, thresh):
 
 
 def lapx_jvx(cost_matrix, thresh):
-    """
-    Run :func:`lap.lapjvx` (LAPX JVX) and post-filter assignments by cost threshold.
+    """Run :func:`lap.lapjvx` (LAPX JVX). Then remove assignments above the cost threshold.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
 
     Notes
     -----
-    - Passing ``cost_limit`` and/or ``return_cost=True`` into ``lapjvx`` may trigger
-      slower code paths. The benchmark uses post-filtering to measure the wrapper
-      end-to-end performance consistently.
+    cost_limit, return_cost=True, or both may select slower code paths in lapjvx.
+    The benchmark applies the threshold after the solve to measure the full
+    wrapper call consistently.
     """
     rids, cids = lap.lapjvx(cost_matrix, extend_cost=True, return_cost=False)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -182,21 +168,20 @@ def lapx_jvx(cost_matrix, thresh):
 
 
 def lapx_jvs(cost_matrix, thresh):
-    """
-    Run :func:`lap.lapjvs` (LAPX JVS) and post-filter assignments by cost threshold.
+    """Run :func:`lap.lapjvs` (LAPX JVS). Then remove assignments above the cost threshold.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
 
     Notes
     -----
-    - Passing ``cost_limit`` and/or ``return_cost=True`` into ``lapjvs`` may trigger
-      slower code paths. The benchmark uses post-filtering to measure the wrapper
-      end-to-end performance consistently.
+    return_cost=True may select slower code paths in lapjvs.
+    The benchmark applies the threshold after the solve to measure the full
+    wrapper call consistently.
     """
     rids, cids = lap.lapjvs(cost_matrix, extend_cost=True, return_cost=False)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -206,15 +191,14 @@ def lapx_jvs(cost_matrix, thresh):
 
 
 def lapx_jvc(cost_matrix, thresh):
-    """
-    Run :func:`lap.lapjvc` (LAPX JVC) and post-filter assignments by cost threshold.
+    """Run :func:`lap.lapjvc` (LAPX JVC). Then remove assignments above the cost threshold.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
     """
     rids, cids = lap.lapjvc(cost_matrix, return_cost=False)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -224,16 +208,17 @@ def lapx_jvc(cost_matrix, thresh):
 
 
 def scipy_lsa(cost_matrix, thresh):
-    """
-    Wrapper for :func:`scipy.optimize.linear_sum_assignment` (LSA). Builds (row, col)
-    pairs and post-filters by `thresh` to produce matches and unmatched lists.
+    """Solve with :func:`scipy.optimize.linear_sum_assignment` (LSA).
+
+    The wrapper creates (row, col) pairs. It then applies thresh to produce
+    matched pairs and lists of unmatched indices.
 
     Parameters
     ----------
     cost_matrix : ndarray, shape (n_rows, n_cols)
-        Cost matrix for assignment.
+        The cost matrix for assignment.
     thresh : float
-        Cost threshold. Matches with cost > thresh will be discarded.
+        The cost threshold. The wrapper removes matches with cost > thresh.
     """
     rids, cids = scipy.optimize.linear_sum_assignment(cost_matrix)
     # matches = [[rids[i], cids[i]] for i in range(len(rids)) if cost_matrix[rids[i], cids[i]] <= thresh]
@@ -248,10 +233,10 @@ def compare_results_tabular(
     table_rows,
     all_results,
 ):
-    """
-    Accumulate a table row for the summary table for all methods.
-    Each row: (size, baseline_time, [candidate_times + remarks])
-    Also accumulates method-wise times and remarks for overall summary.
+    """Add one row for all methods to the summary table.
+
+    Each row contains (size, baseline_time, [candidate_times + remarks]).
+    The function also collects times and remarks by method for the overall summary.
     """
     b_m, b_un_a, b_un_b, b_time, b_name = baseline
 
@@ -292,9 +277,10 @@ def compare_results_tabular(
     table_rows.append(row)
 
 def print_overall_ranking(header, all_results, position_records):
-    """
-    Print the overall ranking summary below the table.
-    Shows for each method how many times it placed 1st, 2nd, etc. using medals/flags.
+    """Print the overall rankings below the table.
+
+    For each method, show how often it ranks first, second, and so on.
+    Use medals and flags to indicate the ranks.
     """
     method_count = len(header) - 1
     method_names = header[1:]
@@ -336,9 +322,9 @@ def print_overall_ranking(header, all_results, position_records):
 
 
 def benchmark_tabular(sizes, thresh=1e6, debug=False):
-    """
-    For each size, run a single random cost matrix and race the solvers.
-    Accumulate results for a tabular summary at the end.
+    """For each size, compare the solvers on one random cost matrix.
+
+    Collect the results for a final summary table.
     """
     table_rows = []
     header = [

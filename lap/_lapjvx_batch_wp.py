@@ -1,18 +1,12 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-import os
 import numpy as np
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from ._batch_utils import _normalize_threads
 from ._lapjvx import lapjvx as _lapjvx_single  # type: ignore
 from ._lapjvx import lapjvxa as _lapjvxa_single  # type: ignore
-
-
-def _normalize_threads(n_threads: Optional[int]) -> int:
-    if not n_threads:
-        return max(1, int(os.cpu_count() or 1))
-    return max(1, int(n_threads))
 
 
 # Describe return_cost for type checkers without registering overloads at runtime.
@@ -71,51 +65,61 @@ def lapjvx_batch(
     Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]],
     Tuple[List[np.ndarray], List[np.ndarray]]
 ]:
-    """
-    Batched lapjvx solver with a thread pool.
+    """Solve a batch of cost matrices with lapjvx.
 
-    This function applies a JVX-style solver (`lapjvx`) across a batch of cost
-    matrices and aggregates the results. It preserves batch order and supports
-    multi-threaded execution.
+    It runs lapjvx on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
 
     Parameters
     ----------
     costs : np.ndarray, shape (B, N, M)
-        Batch of cost matrices (float32/float64).
-        Prepare costs without NaN or negative infinity; values are not scanned
-        for them, and results with them are undefined. Positive infinity can
-        represent a forbidden assignment.
+        A batch of cost matrices with data type float32 or float64.
+        Each costs[b] contains one assignment problem.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        If True, rectangular matrices are handled via internal zero-padding.
-        If False, instances must be square.
+        If True, the solver pads rectangular problems with zeros.
+        If False, each problem must be square.
+        The wrapper passes this option to lapjvx.
     cost_limit : float, default np.inf
-        A per-instance threshold to prune/limit assignments, forwarded to the
-        underlying `lapjvx` implementation.
-        Must be finite or positive infinity.
+        This threshold limits assignments for each problem.
+        The wrapper passes it to lapjvx.
+        The value must be finite or positive infinity.
     return_cost : bool, default True
-        If True, returns per-instance totals first.
-    n_threads : int, default 0
-        Number of worker threads. 0 or None uses `os.cpu_count()`.
+        If True, return the array of total costs first.
+    n_threads : int or None, default 0
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        The function creates no thread pool for one worker or at most one problem.
 
     Returns
     -------
     If return_cost is True:
         totals : np.ndarray, shape (B,), float64
+            Each entry gives the total cost for one original cost matrix.
         rows_list : List[np.ndarray[int64]] of length B
+            Each array contains the assigned row indices for one problem, with length K_b.
         cols_list : List[np.ndarray[int64]] of length B
+            Each array contains the assigned column indices for one problem, with length K_b.
     Else:
         rows_list, cols_list
 
     Raises
     ------
     ValueError
-        - If `costs` is not a 3D array.
-        - If any instance is rectangular while `extend_cost=False`.
+        The function raises this exception if costs is not a 3D array.
+        It also raises this exception for rectangular problems when extend_cost=False.
 
     Notes
     -----
-    - See the single-instance `lapjvx` for detailed behavior around `extend_cost`
-      and `cost_limit`.
+    See lapjvx for the single solver behavior and cost_limit rules.
+
+    Results keep the input order regardless of the thread count.
     """
     A = np.asarray(costs)
     if A.ndim != 3:
@@ -210,25 +214,39 @@ def lapjvxa_batch(
     return_cost: bool = True,
     n_threads: Optional[int] = 0,
 ) -> Union[Tuple[np.ndarray, List[np.ndarray]], List[np.ndarray]]:
-    """
-    Batched lapjvxa solver, returning (K_b, 2) arrays per instance.
+    """Solve a batch of cost matrices with lapjvxa.
+
+    The function returns an array of assignment pairs with shape (K_b, 2) for each problem.
+
+    It runs lapjvxa on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
 
     Parameters
     ----------
     costs : np.ndarray, shape (B, N, M)
-        Batch of cost matrices.
-        Prepare costs without NaN or negative infinity; values are not scanned
-        for them, and results with them are undefined. Positive infinity can
-        represent a forbidden assignment.
+        A batch of cost matrices with data type float32 or float64.
+        Each costs[b] contains one assignment problem.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        If True, rectangular matrices are solved by internal zero-padding.
+        If True, the solver pads rectangular problems with zeros.
+        If False, each problem must be square.
+        The wrapper passes this option to lapjvxa.
     cost_limit : float, default np.inf
-        Forwarded to `lapjvxa` to limit/prune assignments.
-        Must be finite or positive infinity.
+        This threshold limits assignments for each problem.
+        The wrapper passes it to lapjvxa.
+        The value must be finite or positive infinity.
     return_cost : bool, default True
-        If True, includes per-instance totals as the first returned array.
-    n_threads : int, default 0
-        Number of worker threads. 0 or None uses `os.cpu_count()`.
+        If True, return the array of total costs first.
+    n_threads : int or None, default 0
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        The function creates no thread pool for one worker or at most one problem.
 
     Returns
     -------
@@ -241,13 +259,14 @@ def lapjvxa_batch(
     Raises
     ------
     ValueError
-        If `costs` is not a 3D array, or if any instance is rectangular while
-        `extend_cost=False`.
+        The function raises this exception if costs is not a 3D array.
+        It also raises this exception for rectangular problems when extend_cost=False.
 
     Notes
     -----
-    - See `lapjvxa` for single-instance behavior and semantics of `cost_limit`.
-    - Results are returned in the original batch order.
+    See lapjvxa for the single solver behavior and cost_limit rules.
+
+    Results keep the input order regardless of the thread count.
     """
     A = np.asarray(costs)
     if A.ndim != 3:

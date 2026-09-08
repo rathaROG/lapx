@@ -1,4 +1,4 @@
-"""Regression checks for LTO selection, without requiring a native compiler."""
+"""Check for regressions in link-time optimization (LTO) selection without a native compiler."""
 
 import runpy
 from pathlib import Path

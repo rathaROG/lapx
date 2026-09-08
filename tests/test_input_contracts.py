@@ -1,4 +1,4 @@
-"""Small public-API error cases, including failures inside batch workers."""
+"""Check small error cases in the public API, including exceptions from batch workers."""
 
 import numpy as np
 import pytest

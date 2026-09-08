@@ -79,13 +79,14 @@ def filter_assignment(assignment, n_m):
     return np.array([[r, c] for r, c in assignment if 0 <= r < n_m[0] and 0 <= c < n_m[1]])
 
 def assignments_equal(a1, a2):
-    """Returns True if two assignment arrays (N,2) contain the same pairs, regardless of order."""
+    """Return True if two assignment arrays with shape (N, 2) contain the same pairs, regardless of order."""
     return set(map(tuple, a1)) == set(map(tuple, a2))
 
 def compare_results(baseline, candidates, debug=False):
-    """
-    baseline: (result, time, name)
-    candidates: list of (result, time, name)
+    """Compare a baseline result with candidate results.
+
+    baseline is a (result, time, name) tuple.
+    candidates is a list of (result, time, name) tuples.
     """
     if debug:
         print(f"\n # {baseline[2]}:")

@@ -1,7 +1,8 @@
-"""Static API checks; run with pyright, not as a runtime benchmark.
+"""Run static API checks with pyright. Do not use this file as a runtime benchmark.
 
-The expected-error lines must keep producing diagnostics: Pyright reports an
-unnecessary ignore if an invalid call or incorrect unpacking becomes accepted.
+Lines that expect errors must continue to produce diagnostics.
+Pyright reports an unnecessary ignore if it accepts an invalid call or incorrect
+tuple unpacking.
 """
 # pyright: reportUnnecessaryTypeIgnoreComment=true
 

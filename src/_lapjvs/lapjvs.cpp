@@ -7,15 +7,15 @@
 #include "lapjvs.h"
 
 static char module_docstring[] =
-    "This module wraps LAPJVS - Jonker-Volgenant linear sum assignment algorithm (Scalar-only, no AVX2/SIMD).";
+    "This module wraps the LAPJVS Jonker-Volgenant algorithm for linear sum assignment. It uses scalar instructions without AVX2 or SIMD.";
 static char lapjvs_native_docstring[] =
-    "Solves the linear sum assignment problem following the input dtype (float32 or float64). Returns (row_ind, col_ind).";
+    "Solve the linear sum assignment problem with the input data type (float32 or float64). Return (row_ind, col_ind).";
 static char lapjvs_float32_docstring[] =
-    "Solves the linear sum assignment problem in float32 (casts inputs if needed). Returns (row_ind, col_ind).";
+    "Solve the linear sum assignment problem in float32. Convert the input if necessary. Return (row_ind, col_ind).";
 static char lapjvsa_native_docstring[] =
-    "Solves the linear sum assignment problem following the input dtype (float32 or float64). Returns pairs (K,2).";
+    "Solve the linear sum assignment problem with the input data type (float32 or float64). Return pairs with shape (K, 2).";
 static char lapjvsa_float32_docstring[] =
-    "Solves the linear sum assignment problem in float32 (casts inputs if needed). Returns pairs (K,2).";
+    "Solve the linear sum assignment problem in float32. Convert the input if necessary. Return pairs with shape (K, 2).";
 
 static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs);
 static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs);

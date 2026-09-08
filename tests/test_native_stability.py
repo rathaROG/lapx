@@ -1,4 +1,4 @@
-"""Regression coverage for the native solvers through the public wrappers."""
+"""Check for regressions in native solvers through the public wrappers."""
 
 from concurrent.futures import ThreadPoolExecutor
 

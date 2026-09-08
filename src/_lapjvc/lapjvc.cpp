@@ -11,21 +11,23 @@ void register_lapjvc(py::module_& m) {
         py::arg("costs").noconvert(),
         py::arg("return_cost") = true,
         R"pbdoc(
-Solve the Linear Assignment Problem using the classic dense Jonker-Volgenant algorithm (O(n³)).
+Solve the linear assignment problem with the classic dense Jonker-Volgenant algorithm (O(n³)).
 
-This function computes the optimal assignment for a given cost matrix using the classic shortest augmenting path
-algorithm described by Jonker & Volgenant (1987). This is the "dense" version (also known as the classic JV algorithm),
-not the modern sparse-optimized LAPJV.
+This function calculates an optimal assignment for a cost matrix.
+It uses the shortest augmenting path algorithm from Jonker and Volgenant (1987).
+This is the dense version, also called the classic JV algorithm.
+It differs from the modern LAPJV version optimized for sparse matrices.
 
 Features:
-- Handles both square and rectangular cost matrices (internally pads with large costs as needed).
-- NaN entries in the cost matrix are treated as forbidden assignments.
-- Supports multiple data types: int32, int64, float32, float64.
+- The solver accepts square and rectangular cost matrices. It pads with large costs when necessary.
+- The solver treats NaN entries as forbidden assignments.
+- The solver supports int32, int64, float32, and float64.
 
 Args:
-    costs (numpy.ndarray): 2D cost matrix (MxN), convertible to float64, float32, int32, or int64.
+    costs (numpy.ndarray): A 2D cost matrix with shape (M, N).
+                          It must permit conversion to float64, float32, int32, or int64.
     return_cost (bool): If True (default), return (total_cost, row_indices, col_indices).
-                        If False, return only (row_indices, col_indices).
+                       If False, return (row_indices, col_indices).
 
 Returns:
     tuple: (total_cost, row_indices, col_indices), or (row_indices, col_indices) if return_cost=False.
@@ -39,13 +41,14 @@ Example:
     [(0, 2), (1, 1), (2, 0)]
 
 Notes:
-    - This is the classic O(n³) dense Jonker-Volgenant algorithm, ideal for only square cost matrices.
+    - The classic O(n³) dense Jonker-Volgenant algorithm is best suited to square cost matrices.
     - For large, sparse, or rectangular problems, consider lapjv() or lapjvx() for better performance.
-    - Forbidden assignments can be specified with np.nan (float types).
+    - Use np.nan to represent forbidden assignments in floating inputs.
 
 References:
     - Jonker, R., & Volgenant, A. (1987). "A shortest augmenting path algorithm for dense and sparse linear assignment problems." Computing, 38(4), 325–340.
-    - Code adapted and vendored from py-lapsolver (MIT License) by Christoph Heindl, based on Jaehyun Park's MinCostMatching.cc.
+    - This code adapts and includes Christoph Heindl's py-lapsolver (MIT License).
+      That project uses Jaehyun Park's MinCostMatching.cc as its basis.
 
 )pbdoc"
     );
