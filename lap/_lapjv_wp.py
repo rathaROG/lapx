@@ -3,7 +3,7 @@
 import numpy as np
 from typing import TYPE_CHECKING, Tuple, Union
 
-from ._lapjv import lapjv as _lapjv
+from ._lapjv import lapjv as _lapjv  # type: ignore
 
 
 # Describe return_cost for type checkers without registering overloads at runtime.

@@ -1,0 +1,78 @@
+name: Rust and hybrid integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/_lapjvr/**'
+      - 'lap/**'
+      - 'tests/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - '.github/workflows/rh.yaml'
+
+jobs:
+  installed_wheel:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Use current stable Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy --component rustfmt
+          rustup default stable
+          rustc -Vv
+      - name: Check shared Rust and C++ core
+        run: |
+          cargo fmt --check --manifest-path src/_lapjvr/Cargo.toml
+          cargo test --locked --manifest-path src/_lapjvr/Cargo.toml
+          cargo test --locked --all-features --manifest-path src/_lapjvr/Cargo.toml
+          cargo clippy --locked --all-targets --all-features --manifest-path src/_lapjvr/Cargo.toml -- -D warnings
+      - name: Build source archive and wheel
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Install and check the built wheel
+        run: |
+          python -m pip install numpy scipy pytest pytest-timeout pyright typing_extensions
+          python -m pip install --no-deps --no-index --find-links=dist lapx
+          python tests/check_rh_wheel.py
+          python -m pyright tests/typing/return_cost.py
+      - name: Test installed package
+        working-directory: tests
+        run: python -m pytest -q
+      - name: Build and check legacy-only wheel
+        env:
+          LAPX_BUILD_RUST: '0'
+        run: |
+          python -m build --wheel --outdir legacy-dist
+          python -m pip install --force-reinstall --no-deps --no-index --find-links=legacy-dist lapx
+      - name: Check legacy-only exports
+        working-directory: tests
+        run: |
+          python check_rh_wheel.py --legacy-only
+          python -m pytest -q test_setup.py test_smoke.py test_input_contracts.py test_wrapper_stability.py
+      - name: Install legacy-only editable package
+        working-directory: tests
+        env:
+          LAPX_BUILD_RUST: '0'
+        run: |
+          python -m pip uninstall -y lapx
+          python -m pip install --no-deps --editable ..
+      - name: Check legacy-only editable exports
+        working-directory: tests
+        run: |
+          python check_rh_wheel.py --legacy-only
+          python -c "from lap import *"
+          python -m pytest -q test_smoke.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rh-${{ matrix.os }}
+          path: dist/*

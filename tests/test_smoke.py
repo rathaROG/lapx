@@ -139,7 +139,7 @@ def test_single_matrix_solvers_smoke():
     N, M = 4, 5
     C = rng.random((N, M), dtype=np.float64)
 
-    solver_names = ("lapjv", "lapjvx", "lapjvxa", "lapjvc", "lapjvs", "lapjvsa")
+    solver_names = ("lapjv", "lapjvx", "lapjvxa", "lapjvc", "lapjvs", "lapjvsa", "lapjvr", "lapjvh")
     found = [(n, getattr(lap, n)) for n in solver_names if _has_attr(n)]
     if not found:
         pytest.skip("No single-matrix solvers found")
@@ -167,7 +167,7 @@ def test_batch_matrix_solvers_smoke():
     B, N, M = 3, 4, 5
     Cb = rng.random((B, N, M), dtype=np.float64)
 
-    solver_names = ("lapjvx_batch", "lapjvxa_batch", "lapjvs_batch", "lapjvsa_batch")
+    solver_names = ("lapjvx_batch", "lapjvxa_batch", "lapjvs_batch", "lapjvsa_batch", "lapjvr_batch", "lapjvh_batch")
     found = [(n, getattr(lap, n)) for n in solver_names if _has_attr(n)]
     if not found:
         pytest.skip("No batch solvers found")

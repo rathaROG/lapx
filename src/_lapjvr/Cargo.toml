@@ -1,0 +1,29 @@
+[package]
+name = "lapjvr-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.83"
+license = "MIT"
+publish = false
+
+[lib]
+name = "lapjvr_core"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+rayon = "1.12"
+
+[build-dependencies]
+cc = { version = "1.8", optional = true }
+
+[features]
+profile = []
+cpp-completion = ["dep:cc"]
+
+[[example]]
+name = "profile"
+required-features = ["profile"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

@@ -14,8 +14,10 @@ Portions of the software are derived from three other projects as follows:
     - URL: https://github.com/gatagat/lap
     - Copyright (c) 2012-2025 Tomas Kazmar
 
-    All source files under `src/_lapjv/` and `tests` are derived from the 
-    original project and retain their BSD-2-Clause License.
+    Source files under `src/_lapjv/` and the original test suite are derived
+    from this project and retain their BSD-2-Clause License. New LAPJVR/LAPJVH tests
+    (`tests/test_lapjvr.py` and `tests/lapjvr_cases.py`) are LAPX additions under
+    the MIT License.
 
     See `src/_lapjv/LICENSE` or `tests/LICENSE` for more details.
 
@@ -46,7 +48,19 @@ Portions of the software are derived from three other projects as follows:
     All source files under `src/_lapjvs/` are derived from the original project 
     and retain their MIT License.
 
-    See `src/_lapjvs/LICENSE` for more details.
+    The shared Rust/hybrid core under `src/_lapjvr/` adapts the scalar JV strategy
+    from LAPX JVS and retains this attribution. New LAPX implementation work
+    is Copyright (c) 2026 Ratha SIV.
+
+    See `src/_lapjvs/LICENSE` and `src/_lapjvr/LICENSE` for more details.
+
+    Rust runtime dependency licenses are reproduced in
+    `src/_lapjvr/THIRD_PARTY_NOTICES`. The LAPJVH C++ completion is an
+    adaptation of the same JVS-derived strategy under the MIT License.
+
+    Benchmark-only experiments, measured sources, results, and their license
+    notices are maintained separately at https://github.com/rathaROG/lapx-benchmarks.
+    They are excluded from LAPX package distributions.
 
 ---
 

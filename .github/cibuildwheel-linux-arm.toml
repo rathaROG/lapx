@@ -1,7 +1,24 @@
 # CI-only configuration for the Python 3.9-3.15 Linux ARM job.
+[tool.cibuildwheel]
+test-command = "python {project}/tests/check_rh_wheel.py"
+
+[tool.cibuildwheel.linux]
+before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable"
+
+[tool.cibuildwheel.linux.environment]
+PATH = "$HOME/.cargo/bin:$PATH"
+
 [[tool.cibuildwheel.overrides]]
 select = "cp3{12,13,14,15}-manylinux_armv7l"
 # manylinux_2_31 has GCC 9; NumPy 2.5 source builds require GCC >= 10.3.
 environment.PIP_CONSTRAINT = "/project/.github/constraints/numpy-armv7-build.txt"
-# Allow wheel tests to install newer NumPy independently of the build constraint.
-test-environment.PIP_CONSTRAINT = ""
+environment.PATH = "$HOME/.cargo/bin:$PATH"
+# Wheel tests install NumPy in the same GCC 9 image, so keep the constraint active.
+test-environment.PIP_CONSTRAINT = "/project/.github/constraints/numpy-armv7-build.txt"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux_armv7l"
+# Rust has no native host tools here; retain every pre-existing solver.
+before-all = ""
+environment.LAPX_BUILD_RUST = "0"
+test-command = "python {project}/tests/check_rh_wheel.py --legacy-only"

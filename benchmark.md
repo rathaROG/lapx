@@ -6,112 +6,119 @@
 
 # 🏆 Quick Benchmark
 
-The [batch benchmark](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_batch.py)
-and [single-matrix benchmark](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_single.py) compare application workflows on your machine.
-These scripts are not intended for scientific research or competitive evaluation.
-The results below record sample runs on selected platforms and architectures.
+The [single-matrix](benchmarks/benchmark_single.py), [batch](benchmarks/benchmark_batch.py),
+and [tracking](benchmarks/benchmark_tracking.py) scripts compare assignment workflows with SciPy on your machine.
+The recorded results below come from earlier versions of the scripts.
 
-See [Cost values in the README](README.md#cost-values) for cost limits, total costs, and the difference between solver limits and filtering after solving.
+## 💡 Run the benchmarks
 
-## 💡 Run the quick benchmark
-
-Run these commands:
-
-```
-pip install -U lapx
-pip install scipy
+```bash
+python -m pip install -U lapx scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/benchmarks
-python benchmark_batch.py
-python benchmark_single.py
+python benchmark_single.py --quick
+python benchmark_batch.py --quick
+python benchmark_tracking.py --quick
 ```
 
-Both scripts use [SciPy](https://pypi.org/project/scipy/) for comparison.
-
-<details><summary>Read the batch benchmark methods</summary><br>
-
-### Batch cost calculation
-
-`benchmark_batch.py` uses `return_cost=False` by default for all dense and sparse solvers, including loops over single problems.
-Solver lines print only `time`. Add `--cost` to select `return_cost=True`.
-In this mode, each line prints `cost` (the total across the batch) and `time`.
-Each section title shows the selected `return_cost` value. Each case runs once in that mode.
-
-The `scipy-loop` row calls `scipy.optimize.linear_sum_assignment` in sequence on the same matrices, including `np.inf` for missing edges.
-SciPy returns only assignment indices. With `--cost`, the loop also sums selected costs with NumPy inside the timed region.
-It uses the same initial untimed calls and independent result checks as the lapx rows.
-
-`--threads` controls the lapx batch solvers. The loop baselines remain sequential.
+For a local build, install and run from the repository root:
 
 ```bash
-python benchmark_batch.py --quick --threads 2
-python benchmark_batch.py --quick --threads 2 --cost
-```
-
-### Sparse batch comparisons
-
-The sparse section compares `lapmod_batch` with dense batch solvers on square problems.
-All solvers receive the same costs and allowed assignments.
-Dense arrays use `np.inf` for missing edges. `lapmod` receives finite entries as `(n, cc, ii, kk)` tuples.
-
-The generator adds a finite diagonal to guarantee a full assignment.
-The output reports the actual density after this step.
-The dense section contains the rectangular cases because `lapmod` requires square inputs.
-
-By default, the sparse section runs two batches:
-
-- **100 matrices of size 1000x1000**, at a requested density of **1%**.
-- **50 matrices of size 2000x2000**, at a requested density of **5%**.
-
-`--quick` replaces these cases with one batch of **4 matrices of size 32x32**, at a requested density of **10%**.
-This mode also uses smaller dense batches.
-
-The script measures conversion from dense arrays to compressed sparse row (CSR) format separately.
-The preparation line reports only this conversion time.
-Solver times start with prepared inputs and include input checks and the solve.
-With `--cost`, solver times also include the total-cost calculation.
-They exclude conversion, initial untimed calls, and independent result checks.
-
-The sparse section compares these methods:
-
-- A loop over `lapmod` calls.
-- `lapmod_batch` with one worker.
-- `lapmod_batch` with the requested thread count.
-
-With `--threads 1`, the script prints the batch result only once. Cases use fixed random seeds.
-
-In both modes, the benchmark checks assignments after the timed call.
-It calculates costs from the original matrices and compares them with `lapjvx_batch`, using floating-point tolerances.
-With `--cost`, it also compares the returned totals with these independently calculated costs.
-Successful checks produce no output. A mismatch raises an error.
-These checks also apply to dense cases and never contribute to `time`.
-
-From `benchmarks/`, use these commands for a small check or only the sparse cases:
-
-```bash
-python benchmark_batch.py --quick --threads 2
-python benchmark_batch.py --sparse-only --threads 8
-python benchmark_batch.py --sparse-only --threads 8 --cost
-```
-
-To use a local build, run this command from the repository root:
-
-```bash
+python -m pip install . scipy
+python -m benchmarks.benchmark_single --quick
 python -m benchmarks.benchmark_batch --quick --threads 2
+python -m benchmarks.benchmark_tracking --quick
 ```
 
-The sparse section requires a build that provides `lapmod_batch`.
-If the installed package lacks this function, the script prints a skip message.
-It still runs the selected dense cases. The default dense cases use large matrices.
-Use `--quick` for a small run.
+### Repeats and timing
 
-The batch workflow runs the script without arguments.
-It uses the default cases, the CPU count for threads, and `return_cost=False`.
-The workflow installs lapx from PyPI. That package must provide `lapmod_batch` to run the sparse section.
+All three scripts accept `--repeats N` and `--seed N` (default **2026**).
+Batch defaults to **2 shuffled rounds**, using seeds **2026 and 2027**; single and tracking default to **3 rounds**.
+Each round generates a fresh input using `seed + round_index`, with the matrix dimensions included in the seed.
+Every solver receives the same input, warms up on it, and runs in a shuffled order.
+Input generation, sparse preparation, warmup, and independent result checks are outside timing.
+
+Single and batch tables are sorted by time and show milliseconds, correctness, and speed relative to SciPy.
+Tracking keeps sizes as rows and groups four solvers per table, with times in seconds, followed by an overall ranking in milliseconds.
+The reported time is the median across rounds. For two rounds, this is the average of the two timings.
+With `--repeats 1`, it is the single timed round.
+
+| Script | `--quick` selection | Forced one-round cases |
+| --- | --- | --- |
+| Single | Sizes through 2500x5000 | Either dimension ≥5000 |
+| Batch | Skips only the 10 × 4000x4000 dense batch | Either dimension ≥3000 |
+| Tracking | Sizes through 2000x2500; thresholds 0.05 and 0.5 | Either dimension ≥5000 |
+
+The one-round limits apply per case, even when `--repeats` is larger. Smaller cases retain the requested count.
+For single and tracking matrices no larger than 64x64, each round averages **25 calls** per solver.
+Larger matrices use one call per round. Batch rounds measure one call over the entire batch.
+
+```bash
+python benchmark_batch.py --quick --repeats 2 --seed 2026 --threads 2
+python benchmark_tracking.py --quick --repeats 1
+```
+
+### Assignment outputs
+
+Single and tracking benchmarks use `return_cost=False` and include pair construction where needed.
+R/H request `output='pairs'` directly with `precision='native'` on float64 inputs.
+The other solvers keep their default precision settings: JVS uses float32, while the batch `jvsa64` row uses float64.
+Unavailable R/H solvers are skipped.
+
+Single checks compare assignment pairs with SciPy in every round. Tracking also compares unmatched row and column sets.
+A mismatch in any round remains visible in the final table.
+
+<details><summary>Batch benchmark methods</summary>
+
+### Costs and threads
+
+Batch solvers and sequential loops use `return_cost=False` by default.
+Add `--cost` to include total-cost calculation in the timed calls.
+The optional `Cost (last round)` column shows the total across the final round's batch; the time remains the median across rounds.
+SciPy's loop sums selected costs with NumPy when `--cost` is enabled.
+
+`--threads N` controls batch solvers; **0** uses the CPU count, capped by batch size.
+R/H may run small workloads serially. Explicit positive requests are capped by batch size, with no fixed eight-thread ceiling.
+The loop rows remain sequential. R/H batch and loop rows use direct pairs.
+
+```bash
+python benchmark_batch.py --quick --threads 2 --cost
+python benchmark_batch.py --sparse-only --threads 8
+```
+
+### Sparse comparisons
+
+Sparse cases compare dense solvers with a `lapmod` loop and `lapmod_batch`.
+Each round uses the same costs and allowed assignments: dense arrays mark missing edges with `np.inf`,
+while `lapmod` receives finite entries in `(n, cc, ii, kk)` form.
+Preparing these sparse arrays is excluded from solver times.
+
+The generator keeps a finite diagonal so every problem has a full assignment.
+Headers show the **target density**; the diagonal can increase the actual density.
+The default sparse cases are **100 × 1000x1000 at 1%** and **50 × 2000x2000 at 5%**.
+`--quick` keeps both sparse cases and all dense cases except 4000x4000.
+
+The sparse rows include `lapmod_batch` with one worker and, when a larger or automatic thread count is selected, a second batch row.
+With `--threads 1`, only the one-worker batch row appears.
+The sparse section is skipped if `lapmod_batch` is unavailable.
+
+### Result checks
+
+Every timed result is checked for valid assignments and per-problem costs matching SciPy within floating-point tolerances.
+With `--cost`, returned totals must also match costs calculated from the original input.
+Passing rows show `PASS`; a mismatch raises an error. All checks run outside timing.
 
 </details>
 
-### Benchmark results
+The [single](.github/workflows/benchmark_single.yaml) and [tracking](.github/workflows/benchmark_tracking.yaml)
+workflows use `--quick --repeats 3`. The [batch](.github/workflows/benchmark_batch.yaml) workflow uses
+`--quick --repeats 2 --seed 2026`.
+They build the checkout and check R/H availability before benchmarking.
+
+### Historical results (lapx 0.10.0rc1)
+
+These logs use lapx 0.10.0rc1 and older benchmark scripts. They retain the earlier output format,
+do not include R/H, and were not measured with the current repeat method.
 
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
 
@@ -121,7 +128,7 @@ scipy==1.17.1
 numpy==2.4.6
 ```
 
-<details><summary>📄 Single:</summary><br>
+<details><summary>📄 Historical single results:</summary><br>
 
 ```
 Microsoft Windows [Version 10.0.26200.9168]
@@ -371,7 +378,7 @@ Test (5000, 7500)
 
 </details>
 
-<details><summary>🗂️ Batch:</summary><br>
+<details><summary>🗂️ Historical batch results:</summary><br>
 
 ```
 Microsoft Windows [Version 10.0.26200.9168]
@@ -478,28 +485,29 @@ and [batch workflow](https://github.com/rathaROG/lapx/actions/workflows/benchmar
 
 ### 👣 Object Tracking
 
-The [tracking benchmark](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) compares object tracking workflows with [SciPy](https://pypi.org/project/scipy/) as the baseline.
-Times include the solve, conversion to assignment pairs, and calculation of unmatched indices.
-All lapx calls use `return_cost=False`.
+The [tracking benchmark](benchmarks/benchmark_tracking.py) measures matched pairs and unmatched row and column indices.
+Times include solving, pair construction where needed, threshold filtering, and unmatched-index creation.
+All solvers use `return_cost=False`.
 
-The table labels identify two threshold methods:
+- `LAPX LAPJV-IFT` passes `cost_limit=thresh` to `lapjv` during optimization.
+- The other rows, including SciPy, remove pairs above `thresh` after solving.
 
-- **LAPX LAPJV-IFT** passes `cost_limit=thresh` to `lapjv`.
-- **The other rows**, including SciPy, remove pairs above `thresh` after solving. Their times include this filtering step.
+Each threshold produces two tables with up to four solvers each and a repeated Size column, followed by the overall ranking across all solvers.
+`✓` means matched pairs and unmatched indices equal SciPy in every round; `✗` marks a difference in any round.
+`LAPX LAPJV-IFT` can differ because its threshold is applied during optimization.
+The overall ranking sums median times across sizes and counts each solver's placements with 🥇, 🥈, 🥉, 🚩, 🏳️, 🥴, 🗿, and 🙅‍♂️.
+See [Cost values in the README](README.md#cost-values) for the distinction between the threshold methods.
 
-See [Cost values in the README](README.md#cost-values) for the behavior and performance implications of these methods.
-The `✓` and `✗` symbols show whether matched pairs and unmatched indices equal the SciPy baseline.
-A difference between threshold methods does not by itself indicate a solver error.
+The full run uses thresholds **0.05, 0.1, 0.5, 1.0, and 1e9**.
+`--quick` uses **0.05 and 0.5** and omits 5000x5000.
 
+```bash
+python benchmark_tracking.py --quick --repeats 3 --seed 2026
 ```
-pip install -U lapx
-pip install scipy
-git clone https://github.com/rathaROG/lapx.git
-cd lapx/benchmarks
-python benchmark_tracking.py
-```
 
-<details><summary>📊 Show the results:</summary><br>
+<details><summary>📊 Historical tracking results (lapx 0.10.0rc1):</summary><br>
+
+These logs predate the current repeat method and R/H rows.
 
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
 
@@ -667,7 +675,7 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
 </details>
 
-In these recorded runs, `lapjv` and `lapjvx` match the SciPy baseline outputs.
+In these historical runs, `lapjv` and `lapjvx` match the SciPy baseline outputs.
 Both are faster than SciPy in most cases. `lapjvs` has the lowest total time in each tracking summary.
 `LAPX LAPJV-IFT` has a higher total time and produces different assignments in some cases.
 

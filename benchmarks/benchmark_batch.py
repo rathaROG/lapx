@@ -1,9 +1,19 @@
-"""Compare dense batches and equivalent dense and compressed sparse row (CSR) forms of sparse problems."""
+"""Compare dense and sparse batch assignment timings.
+
+R/H use direct pairs and precision='native' on float64 inputs.
+Total-cost calculation is optional via --cost. Input preparation, warmup,
+and result checks are outside timing.
+"""
 
 import argparse
 from functools import partial
-import os
+from io import TextIOWrapper
+import sys
 import time
+from unicodedata import east_asian_width
+
+if isinstance(sys.stdout, TextIOWrapper):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 import lap
 import numpy as np
@@ -11,23 +21,20 @@ from scipy.optimize import linear_sum_assignment
 
 
 def do_lapx_loop(cost_matrix_batch, extend_cost=False, backend='lapjvx', return_cost=False):
-    if backend == 'lapjvs':
-        solver = lap.lapjvs
-    elif backend == 'lapjvx':
-        solver = lap.lapjvx
-    else:
+    if backend not in ('lapjvx', 'lapjvs', 'lapjvr', 'lapjvh'):
         raise ValueError(f'Unknown backend: {backend}')
+    solver = getattr(lap, backend)
+    direct_pairs = backend in ('lapjvr', 'lapjvh')
+    if direct_pairs:
+        solver = partial(solver, precision='native', output='pairs')
     totals = np.empty(len(cost_matrix_batch), dtype=np.float64) if return_cost else None
     assignments = []
     for i, cost_matrix in enumerate(cost_matrix_batch):
+        result = solver(cost_matrix, extend_cost=extend_cost, return_cost=return_cost)
         if totals is not None:
-            cost, row_indices, col_indices = solver(
-                cost_matrix, extend_cost=extend_cost, return_cost=True)
-            totals[i] = cost
-        else:
-            row_indices, col_indices = solver(
-                cost_matrix, extend_cost=extend_cost, return_cost=False)
-        assignments.append(np.stack([row_indices, col_indices], axis=1))
+            totals[i] = result[0]
+            result = result[1] if direct_pairs else result[1:]
+        assignments.append(result if direct_pairs else np.column_stack(result))
     return (totals, assignments) if totals is not None else assignments
 
 
@@ -87,7 +94,7 @@ def make_sparse_costs(batch_size, n, density, seed):
 
 
 def checked_assignment_costs(batch_costs, assignments, assignment_format):
-    """Check each solver's output. Calculate costs outside the time measurement for the solve."""
+    """Validate assignments and sum their costs outside timing."""
     batch_size, n, m = batch_costs.shape
     size = min(n, m)
     if assignment_format == 'pairs':
@@ -120,21 +127,19 @@ def checked_assignment_costs(batch_costs, assignments, assignment_format):
     return totals
 
 
-def measure(label, solve, warmup, batch_costs, return_cost=False,
-            assignment_format='indices', expected=None):
-    """Measure the time for one solve. Then check the results. Print costs only when requested."""
-    warmup()
+def measure(label, solve, batch_costs, return_cost=False,
+            assignment_format='indices', expected=None, problems=None):
+    """Time one solve, then validate its assignments and optional costs."""
+    inputs = problems if assignment_format == 'mapping' else batch_costs
     start = time.perf_counter()
-    result = solve()
+    result = solve(inputs)
     elapsed = time.perf_counter() - start
     if return_cost:
         reported_totals = np.asarray(result[0], dtype=np.float64)
         assignments = result[1] if assignment_format == 'pairs' else result[1:]
-        cost_text = f'cost={reported_totals.sum():.8f}, '
     else:
         reported_totals = None
         assignments = result
-        cost_text = ''
     totals = checked_assignment_costs(batch_costs, assignments, assignment_format)
     if reported_totals is not None:
         np.testing.assert_allclose(
@@ -144,117 +149,181 @@ def measure(label, solve, warmup, batch_costs, return_cost=False,
         np.testing.assert_allclose(
             totals, expected, rtol=1e-6, atol=1e-8,
             err_msg=f'{label}: per-problem costs differ')
-    print(f'  CPU {label:<22}:  {cost_text}time={elapsed:.8f}s')
-    return totals
+    return elapsed, totals.sum() if return_cost else None
 
 
-def benchmark_solvers(batch_costs, n_threads, problems=None, return_cost=False):
-    """Measure solver calls after the initial untimed calls. Compare costs outside the timed region."""
-    _, n, m = batch_costs.shape
+def print_ranking(timings, return_cost=False):
+    """Print one table sorted by time, using SciPy as the baseline."""
+    baseline_time = next(elapsed for label, elapsed, _ in timings if label == 'scipy-loop')
+    header = ('Solver', 'Check', 'Time (ms)', 'vs SciPy')
+    if return_cost:
+        header += ('Cost (last round)',)
+    rows = []
+    for rank, (label, elapsed, total) in enumerate(sorted(timings, key=lambda row: row[1]), 1):
+        if label == 'scipy-loop':
+            check, relative = '⭐ BASE', '⭐ baseline'
+        elif elapsed <= 0 or baseline_time <= 0:
+            check, relative = '✅ PASS', 'n/a'
+        elif elapsed == baseline_time:
+            check, relative = '✅ PASS', '🤝 same'
+        elif elapsed > baseline_time:
+            check, relative = '✅ PASS', f'🐌 {elapsed / baseline_time:.2f}x slower'
+        else:
+            marker = {1: '🥇', 2: '🥈', 3: '🥉'}.get(rank, '🏆')
+            check, relative = '✅ PASS', f'{marker} {baseline_time / elapsed:.2f}x faster'
+        row = (label, check, f'{elapsed * 1e3:.6f}', relative)
+        if return_cost:
+            row += (f'{total:.8f}',)
+        rows.append(row)
+
+    def display_width(text):
+        return sum(2 if east_asian_width(char) in ('W', 'F') else 1 for char in text)
+
+    widths = [max(display_width(cell) for cell in column) for column in zip(header, *rows)]
+
+    def format_row(row):
+        cells = []
+        for index, (cell, width) in enumerate(zip(row, widths)):
+            padding = ' ' * (width - display_width(cell))
+            cells.append(padding + cell if index in (2, 4) else cell + padding)
+        return '  '.join(cells).rstrip()
+
+    separator = '-' * (sum(widths) + 2 * (len(widths) - 1))
+    print(format_row(header))
+    print(separator)
+    for row in rows:
+        print(format_row(row))
+    print(separator)
+
+
+def benchmark_solvers(batch_shape, n_threads, density=None, return_cost=False,
+                      *, seed=2026, repeats=2):
+    """Compare median solve times on a fresh shared batch each round."""
+    batch_size, n, m = batch_shape
     extend_cost = n != m
-    # Sparse cases retain a feasible diagonal when taking these square views.
-    warmup_costs = batch_costs[:2, :min(n, 128), :min(m, 128)]
-    measure_case = partial(measure, batch_costs=batch_costs, return_cost=return_cost)
-    expected = None
-    for label, solver, assignment_format in (
+    if repeats > 1:
+        print(f'* Median of {repeats} shuffled rounds;')
+        print(f'input seeds={seed}..{seed + repeats - 1}; warmup each round.\n')
+    batch_solvers = [
         ('lapx-batch-jvx', lap.lapjvx_batch, 'indices'),
         ('lapx-batch-jvs', lap.lapjvs_batch, 'indices'),
         ('lapx-batch-jvxa', lap.lapjvxa_batch, 'pairs'),
         ('lapx-batch-jvsa', lap.lapjvsa_batch, 'pairs'),
         ('lapx-batch-jvsa64', partial(lap.lapjvsa_batch, prefer_float32=False), 'pairs'),
-    ):
-        totals = measure_case(
-            label,
-            lambda: solver(batch_costs, return_cost=return_cost,
-                           extend_cost=extend_cost, n_threads=n_threads),
-            lambda: solver(warmup_costs, return_cost=return_cost,
-                           extend_cost=extend_cost, n_threads=n_threads),
-            assignment_format=assignment_format, expected=expected)
-        if expected is None:
-            expected = totals
+    ]
+    loop_backends = ['lapjvx', 'lapjvs']
+    for backend in ('lapjvr', 'lapjvh'):
+        solver = getattr(lap, f'{backend}_batch', None)
+        if solver is not None:
+            batch_solvers.append((f'lapx-batch-{backend[3:]}',
+                                  partial(solver, precision='native', output='pairs'), 'pairs'))
+        else:
+            print(f'  Skipping {backend}_batch: unavailable in the installed lapx.')
+        if hasattr(lap, backend):
+            loop_backends.append(backend)
+        else:
+            print(f'  Skipping {backend} loop: unavailable in the installed lapx.')
 
-    for backend in ('lapjvx', 'lapjvs'):
-        measure_case(
-            f'lapx-loop-{backend[3:]}',
-            lambda: do_lapx_loop(batch_costs, extend_cost=extend_cost, backend=backend,
-                                return_cost=return_cost),
-            lambda: do_lapx_loop(warmup_costs, extend_cost=extend_cost, backend=backend,
-                                return_cost=return_cost),
-            assignment_format='pairs', expected=expected)
+    cases = [(label, partial(solver, return_cost=return_cost,
+                             extend_cost=extend_cost, n_threads=n_threads), assignment_format)
+             for label, solver, assignment_format in batch_solvers]
+    for backend in loop_backends:
+        cases.append((f'lapx-loop-{backend[3:]}',
+                      partial(do_lapx_loop, extend_cost=extend_cost,
+                              backend=backend, return_cost=return_cost), 'pairs'))
+    cases.append(('scipy-loop', partial(do_scipy_loop, return_cost=return_cost), 'pairs'))
+    if density is not None:
+        cases.extend([
+            ('lapx-loop-mod', partial(do_lapmod_loop, return_cost=return_cost), 'mapping'),
+            ('lapx-batch-mod-1t', partial(lap.lapmod_batch, return_cost=return_cost,
+                                         n_threads=1), 'mapping'),
+        ])
+        if n_threads in (None, 0) or n_threads > 1:
+            cases.append(('lapx-batch-mod', partial(lap.lapmod_batch,
+                          return_cost=return_cost, n_threads=n_threads), 'mapping'))
 
-    measure_case('scipy-loop',
-                 lambda: do_scipy_loop(batch_costs, return_cost=return_cost),
-                 lambda: do_scipy_loop(warmup_costs, return_cost=return_cost),
-                 assignment_format='pairs', expected=expected)
-
-    if problems is not None:
-        warmup_problems = sparse_problems_from_dense(warmup_costs)
-        measure_case('lapx-loop-mod',
-                     lambda: do_lapmod_loop(problems, return_cost=return_cost),
-                     lambda: do_lapmod_loop(warmup_problems, return_cost=return_cost),
-                     assignment_format='mapping', expected=expected)
-        measure_case('lapx-batch-mod-1t',
-                     lambda: lap.lapmod_batch(problems, return_cost=return_cost, n_threads=1),
-                     lambda: lap.lapmod_batch(warmup_problems, return_cost=return_cost, n_threads=1),
-                     assignment_format='mapping', expected=expected)
-        if n_threads > 1:
-            measure_case('lapx-batch-mod',
-                         lambda: lap.lapmod_batch(problems, return_cost=return_cost, n_threads=n_threads),
-                         lambda: lap.lapmod_batch(warmup_problems, return_cost=return_cost, n_threads=n_threads),
-                         assignment_format='mapping', expected=expected)
-
-
-def benchmark_dense_cases(cases, n_threads, return_cost=False):
-    for i, (batch_size, n, m) in enumerate(cases):
-        print(f'\n# Dense {batch_size} x ({n}x{m}) | n_threads = {n_threads}'
-              f' | return_cost = {return_cost}\n')
-        batch_costs = np.random.default_rng(2026 + i).random((batch_size, n, m))
-        benchmark_solvers(batch_costs, n_threads, return_cost=return_cost)
-        del batch_costs
-
-
-def benchmark_sparse_cases(cases, n_threads, return_cost=False):
-    for i, (batch_size, n, density) in enumerate(cases):
-        batch_costs = make_sparse_costs(batch_size, n, density, seed=2026 + i)
-        start = time.perf_counter()
-        problems = sparse_problems_from_dense(batch_costs)
-        conversion_time = time.perf_counter() - start
-        entries = sum(problem[1].size for problem in problems)
-        actual_density = entries / (batch_size * n * n)
-        print(f'\n# Sparse {batch_size} x ({n}x{n}) | density = {actual_density:.2%}'
-              f' | n_threads = {n_threads} | return_cost = {return_cost}\n')
-        print('  Same problems: dense solvers use inf for missing edges; lapmod uses CSR.')
-        print(f'  Dense-to-CSR preparation  :  {conversion_time:.8f}s (excluded from solve times)\n')
-        benchmark_solvers(batch_costs, n_threads, problems=problems, return_cost=return_cost)
+    order_rng = np.random.default_rng([seed, batch_size, n, m, 1])
+    samples = [[] for _ in cases]
+    totals = [None] * len(cases)
+    for round_index in range(repeats):
+        input_seed = [seed + round_index, batch_size, n, m]
+        if density is None:
+            batch_costs = np.random.default_rng(input_seed).random(batch_shape)
+            problems = None
+        else:
+            batch_costs = make_sparse_costs(batch_size, n, density, seed=input_seed)
+            problems = sparse_problems_from_dense(batch_costs)
+        for label, solve, assignment_format in cases:
+            result = solve(problems if assignment_format == 'mapping' else batch_costs)
+            if label == 'scipy-loop':
+                assignments = result[1] if return_cost else result
+                expected = checked_assignment_costs(batch_costs, assignments, 'pairs')
+                del assignments
+            del result
+        for index in order_rng.permutation(len(cases)):
+            label, solve, assignment_format = cases[index]
+            elapsed, total = measure(label, solve, batch_costs, return_cost=return_cost,
+                                     assignment_format=assignment_format, expected=expected,
+                                     problems=problems)
+            samples[index].append(elapsed)
+            totals[index] = total
         del batch_costs, problems
+    timings = [(label, float(np.median(times)), total)
+               for (label, _, _), times, total in zip(cases, samples, totals)]
+    print_ranking(timings, return_cost=return_cost)
+
+
+def benchmark_dense_cases(cases, n_threads, return_cost=False, *, seed=2026, repeats=2):
+    for batch_size, n, m in cases:
+        case_repeats = 1 if max(n, m) >= 3000 else repeats
+        print(f'\n### Dense {batch_size} x ({n}x{m}) | n_threads={n_threads}'
+              f' | return_cost={return_cost}\n')
+        benchmark_solvers((batch_size, n, m), n_threads, return_cost=return_cost,
+                          seed=seed, repeats=case_repeats)
+
+
+def benchmark_sparse_cases(cases, n_threads, return_cost=False, *, seed=2026, repeats=2):
+    for batch_size, n, density in cases:
+        case_repeats = 1 if n >= 3000 else repeats
+        print(f'\n### Sparse {batch_size} x ({n}x{n}) | target density={density:.2%}'
+              f' | n_threads={n_threads} | return_cost={return_cost}\n')
+        benchmark_solvers((batch_size, n, n), n_threads, density=density, return_cost=return_cost,
+                          seed=seed, repeats=case_repeats)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--quick', action='store_true',
-                        help='Use small batches to check the benchmark quickly.')
+                        help='Skip the 4000x4000 dense case.')
     parser.add_argument('--sparse-only', action='store_true',
                         help='Run only the sparse square comparisons.')
     parser.add_argument('--cost', action='store_true',
                         help='Include total-cost calculation and print costs (default: assignments only).')
     parser.add_argument('--threads', type=int, default=0,
-                        help='Worker threads; 0 uses the CPU count (default: 0).')
+                        help="Worker threads; 0 uses each solver's automatic policy (default: 0).")
+    parser.add_argument('--seed', type=int, default=2026,
+                        help='Base seed; each round uses seed + round index (default: 2026).')
+    parser.add_argument('--repeats', type=int, default=2,
+                        help='Timed rounds (default: 2); dimensions >=3000 run once.')
     args = parser.parse_args()
-    n_threads = max(1, args.threads or os.cpu_count() or 1)
+    if args.repeats < 1 or args.seed < 0:
+        parser.error('--repeats must be positive and --seed must be non-negative')
+    n_threads = args.threads
+    print('\n\nNote: R/H native float64, JVS default float32, jvsa64 float64.\n')
 
     dense_cases = [(10, 4000, 4000), (20, 3000, 2000), (50, 2000, 2000),
                    (100, 1000, 2000), (500, 1000, 1000)]
     sparse_cases = [(100, 1000, .01), (50, 2000, .05)]
     if args.quick:
-        dense_cases = [(4, 32, 32), (4, 24, 32)]
-        sparse_cases = [(4, 32, .1)]
+        dense_cases = [case for case in dense_cases if case[1:] != (4000, 4000)]
     if not args.sparse_only:
-        benchmark_dense_cases(dense_cases, n_threads, return_cost=args.cost)
+        benchmark_dense_cases(dense_cases, n_threads, return_cost=args.cost,
+                              seed=args.seed, repeats=args.repeats)
     if hasattr(lap, 'lapmod_batch'):
-        benchmark_sparse_cases(sparse_cases, n_threads, return_cost=args.cost)
+        benchmark_sparse_cases(sparse_cases, n_threads, return_cost=args.cost,
+                               seed=args.seed, repeats=args.repeats)
     else:
         print('\n# Sparse batch comparison skipped: the installed lapx has no lapmod_batch.')
-        print('  Use a build containing lapmod_batch to include the sparse benchmarks.')
 
 
 if __name__ == '__main__':

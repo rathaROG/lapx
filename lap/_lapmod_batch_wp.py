@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 
 from ._batch_utils import _normalize_threads
-from ._lapmod_wp import FP_DYNAMIC, lapmod as _lapmod_single
+from ._lapmod_wp import FP_DYNAMIC, lapmod as _lapmod_single  # type: ignore
 
 
 _SparseProblem = Tuple[

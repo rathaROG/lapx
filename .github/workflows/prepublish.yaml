@@ -2,6 +2,13 @@ name: Test PyPI Build
 
 on: [workflow_dispatch]
 
+# Linux Rust setup and wheel checks are configured in the cibuildwheel TOML files.
+# musllinux ARMv7 wheels retain only the pre-existing solvers.
+env:
+  CIBW_BEFORE_ALL_WINDOWS: rustup toolchain install stable --profile minimal && rustup default stable && rustup target add x86_64-pc-windows-msvc aarch64-pc-windows-msvc
+  CIBW_BEFORE_ALL_MACOS: rustup toolchain install stable --profile minimal && rustup default stable && rustup target add x86_64-apple-darwin aarch64-apple-darwin
+  CIBW_ENVIRONMENT_MACOS: 'MACOSX_DEPLOYMENT_TARGET=10.12'
+
 jobs:
 
   # # # # # # # # # # # # # # # # # # # # #
@@ -20,7 +27,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.2.1
+          python -m pip install cibuildwheel==4.3.1
       - name: Locate MSVC runtime DLLs for wheel repair
         shell: pwsh
         run: |
@@ -120,7 +127,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.2.1
+          python -m pip install cibuildwheel==4.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -198,7 +205,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.2.1
+          python -m pip install cibuildwheel==4.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -254,7 +261,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.2.1
+          python -m pip install cibuildwheel==4.3.1
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -332,7 +339,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.2.1
+          python -m pip install cibuildwheel==4.3.1
       - name: Build wheels
         run: python -m cibuildwheel --config-file .github/cibuildwheel-linux-arm.toml --output-dir wheelhouse
         env:

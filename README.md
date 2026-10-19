@@ -1,6 +1,7 @@
 <details><summary>🆕 What's new</summary><hr>
 
-> <sup>- 2026/09/07: [v0.10.0rc1](https://github.com/rathaROG/lapx/releases/tag/v0.10.0rc1) added Python 3.15 support and `lapmod_batch`. It improved type hints, stability, and performance. </sup><br>
+> <sup>- 2026/10/19: [v0.11.0rc1](https://github.com/rathaROG/lapx/releases/tag/v0.11.0rc1) added the fastest solvers: **`lapjvr`**, **`lapjvh`**, **`lapjvr_batch`**, and **`lapjvh_batch`**. </sup><br>
+> <sup>- 2026/09/07: [v0.10.0rc1](https://github.com/rathaROG/lapx/releases/tag/v0.10.0rc1) added Python 3.15 support and **`lapmod_batch`**. It improved type hints, stability, and performance. </sup><br>
 > <sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) improved stability and performance across all solvers. </sup><br>
 > <sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch`**, **`lapjvxa_batch`**, **`lapjvs_batch`**, **`lapjvsa_batch`** and **`lapjvsa`**. </sup><br>
 > <sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs`**. </sup><br>
@@ -52,16 +53,18 @@ pip install lapx
 ```
 
 The available wheels cover most platforms and architectures. See the [package files](https://pypi.org/project/lapx/#files) for details.
+musllinux ARMv7 wheels include all pre-existing solvers but omit `lapjvr`, `lapjvh`,
+`lapjvr_batch`, and `lapjvh_batch` because native Rust build tools are unavailable.
 
 <details><summary>🛠️ Other installation options</summary>
 
-### Install from GitHub (requires a C++ compiler):
+### Install from GitHub (requires C++ and current Rust toolchains):
 
 ```
 pip install git+https://github.com/rathaROG/lapx.git
 ```
 
-### Build and install (requires a C++ compiler):
+### Build and install (requires C++ and current Rust toolchains):
 
 ```
 git clone https://github.com/rathaROG/lapx.git
@@ -71,6 +74,17 @@ pip install wheel build
 python -m build --wheel
 cd dist
 ```
+
+</details>
+
+<details><summary>🆕 <code>lapjvr</code> and <code>lapjvh</code> families</summary><br>
+
+> Source builds require a current Rust toolchain, Cargo, and the usual C++
+> compiler. Installing a built wheel does not require Rust. Set `LAPX_BUILD_RUST=0`
+> only when building the existing solver set without either new family.
+> `LAPX_RUST_CPP` is obsolete and has no effect on family selection.
+> 
+> See the [R/H API and build guide](src/_lapjvr/README.md) and the [historical comparisons with JVX, JVS, and SciPy](https://github.com/rathaROG/lapx-benchmarks/blob/main/PORTS_RESULTS.md).
 
 </details>
 
@@ -98,11 +112,10 @@ cd dist
 
 [`lapx`](https://github.com/rathaROG/lapx) started as a compatible replacement to preserve the distribution of the original [`lap`](https://github.com/gatagat/lap).
 The package name is `lapx`. The import name remains `lap` for compatibility with existing code.
-Use `import lap` to import `lapx`.
+Use `import lap` to import `lapx`. 
 
 <details><summary>Show additional notes</summary><br>
 
-> ***Notes:***
 > - Do not install both `lap` and `lapx` at the same time. Both packages provide the import name `lap`.
 >   The package that you install last replaces the other package's files.
 > - If you only need `lapjv` and `lapmod`, the original `lap` is sufficient.
@@ -114,12 +127,12 @@ Use `import lap` to import `lapx`.
 
 ### ℹ️ Cost values
 
-The caller must check cost values for `lapjv`, `lapjvx`, `lapjvxa`, `lapjvs`, `lapjvsa`, and their batch variants.
+The caller must check cost values for `lapjv`, `lapjvx`, `lapjvxa`, `lapjvs`, `lapjvsa`, `lapjvr`, `lapjvh`, and their batch variants.
 These solvers omit this check to reduce overhead for repeated calls.
 Before you call these solvers, prepare costs without NaN (not a number) or negative infinity.
 Results with these values are undefined. Positive infinity (`np.inf`) can represent a forbidden assignment.
 
-`lapjvc` treats NaN and either infinity as forbidden assignments.
+`lapjvc` treats `NaN` and either infinity as forbidden assignments.
 `lapmod` checks its sparse arrays. Stored costs must be finite, non-negative, and less than `lap.LARGE`.
 
 With `return_cost=True`, the solvers sum total costs in float64 from the original costs, even when they solve in float32.
@@ -315,6 +328,32 @@ print("Assignments identical?", (np.all(x1 == x2) and np.all(y1 == y2)))
 
 </details>
 
+#### 8. Rust and hybrid functions `lapjvr` and `lapjvh`
+
+Both return aligned `int64` row and column indices, sorted by row. Each
+`rows[i], cols[i]` is a matched pair; unmatched entries are omitted.
+Use `output="pairs"` for a `(K, 2)` array, like the `*a` solver layout.
+
+```python
+cost = np.array([[3., 1.], [1., 4.]], dtype=np.float32)
+rows, cols = lap.lapjvr(cost, return_cost=False)
+pairs = lap.lapjvh(cost, output="pairs", return_cost=False)
+# Existing total-cost behavior remains available (and is the default):
+total, rows, cols = lap.lapjvr(cost)
+```
+
+`precision="native"` preserves float32/float64 input storage. Both families use
+float64 potentials and distances for required square problems. They support
+`precision="float32"` and `"float64"` explicitly. Rectangles require
+`extend_cost=True` unless `cost_limit` is finite. Rectangular and finite-limit
+matching share the same Rust implementation and do not pad the cost matrix.
+
+The hybrid changes only required-square completion. It can be faster on
+repeated-row inputs, but neither family is fastest for every workload.
+See the [full contract and examples](src/_lapjvr/README.md).
+
+---
+
 ### 🅱️ Batch Solvers 🗂️
 
 All batch solvers use the same `n_threads` rules:
@@ -323,6 +362,7 @@ All batch solvers use the same `n_threads` rules:
   If the CPU count is unavailable, the solver uses one worker.
 - `1` or a negative value runs sequentially.
 - Positive values select the worker count. The number of workers cannot exceed the batch size.
+- Explicit positive values are not capped by the detected CPU count.
 - Empty and single-item batches do not create a thread pool.
 
 #### 1. The new function ``lapjvx_batch``
@@ -439,6 +479,28 @@ for the full signature and return types.
 
 </details>
 
+#### 6. `lapjvr_batch` and `lapjvh_batch`
+
+Pass a numeric array of shape `(B, N, M)`. Results are lists in input order,
+with the same output and precision options as the single-matrix calls.
+
+```python
+batch_costs = np.stack([cost, cost])
+rows_list, cols_list = lap.lapjvr_batch(batch_costs, return_cost=False, n_threads=2)
+pairs_list = lap.lapjvh_batch(batch_costs, output="pairs", return_cost=False, n_threads=2)
+```
+
+With `return_cost=True`, the return value is `(totals, rows_list, cols_list)` or
+`(totals, pairs_list)`. Totals are a float64 array of length `B`.
+`n_threads=0` or `None` uses the CPU count, capped by `B`; small workloads may run
+serially. There is no fixed eight-worker ceiling. One or negative values run
+serially. Positive values request reusable native workers, capped by `B`.
+Both families share these pools. Inputs and their aliases must stay unchanged
+until the call returns. Use process spawning instead of forking after native
+worker pools have been initialized.
+
+---
+
 ## 🏆 Benchmark and Test
 
 [![Benchmark (Single)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_single.yaml)
@@ -448,7 +510,7 @@ for the full signature and return types.
 [![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
 [![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
 
-See the [benchmark guide](https://github.com/rathaROG/lapx/blob/main/benchmark.md) for commands and results.
+See the [benchmark guide](https://github.com/rathaROG/lapx/blob/main/benchmark.md) for commands, repeat controls, timing methods, and historical results.
 
 See the [test guide](https://github.com/rathaROG/lapx/tree/main/tests) to run the full test suite.
 

@@ -1,9 +1,13 @@
 include *.md *.in LICENSE NOTICE
 recursive-include src *
 recursive-include lap *
+prune src/_lapjvr/target
+exclude src/_lapjvr/_lapjvr.cpp src/_lapjvr/_lapjvr.html
+exclude src/_lapjvr/_lapjv_rh.cpp src/_lapjvr/_lapjv_rh.html
 global-exclude */__pycache__
 global-exclude *.pyc
 prune .github
 prune .vscode
 prune benchmarks
 prune tests
+include tests/check_rh_wheel.py

@@ -554,3 +554,31 @@ def check_lapmod_batch(
     lap.lapmod_batch([(2, cc, ii, cc)])  # type: ignore
     _, _ = lap.lapmod_batch(problems)  # type: ignore
     _, _, _ = lap.lapmod_batch(problems, return_cost=False)  # type: ignore
+
+
+def check_rust_hybrid(cost: np.ndarray, batch: np.ndarray, flag: bool) -> None:
+    # The same callable signatures apply to both explicitly named families.
+    for solve in (lap.lapjvr, lap.lapjvh):
+        assert_type(solve(cost), Tuple[float, np.ndarray, np.ndarray])
+        assert_type(solve(cost, return_cost=False), Tuple[np.ndarray, np.ndarray])
+        assert_type(solve(cost, False, np.inf, False), Tuple[np.ndarray, np.ndarray])
+        assert_type(solve(cost, output="pairs"), Tuple[float, np.ndarray])
+        assert_type(solve(cost, return_cost=False, output="pairs"), np.ndarray)
+        assert_type(solve(cost, False, np.inf, False, output="pairs"), np.ndarray)
+        assert_type(solve(cost, return_cost=flag, output="pairs"), Union[Tuple[float, np.ndarray], np.ndarray])
+        solve(cost, output="mapping")  # type: ignore
+        solve(cost, precision="float16")  # type: ignore
+        solve(cost, return_cost="yes")  # type: ignore
+        solve(cost, n_threads=2)  # type: ignore
+        _, _ = solve(cost)  # type: ignore
+    for solve_batch in (lap.lapjvr_batch, lap.lapjvh_batch):
+        assert_type(solve_batch(batch), Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]])
+        assert_type(solve_batch(batch, return_cost=False), Tuple[List[np.ndarray], List[np.ndarray]])
+        assert_type(solve_batch(batch, False, np.inf, False, 2), Tuple[List[np.ndarray], List[np.ndarray]])
+        assert_type(solve_batch(batch, output="pairs"), Tuple[np.ndarray, List[np.ndarray]])
+        assert_type(solve_batch(batch, return_cost=False, output="pairs"), List[np.ndarray])
+        assert_type(solve_batch(batch, False, np.inf, False, 2, output="pairs"), List[np.ndarray])
+        assert_type(solve_batch(batch, return_cost=flag, output="pairs"), Union[Tuple[np.ndarray, List[np.ndarray]], List[np.ndarray]])
+        solve_batch(batch, output="mapping")  # type: ignore
+        solve_batch(batch, n_threads="two")  # type: ignore
+        _, _ = solve_batch(batch)  # type: ignore

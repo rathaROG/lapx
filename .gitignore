@@ -29,6 +29,11 @@ __pycache__/
 /src/_lapjv/_lapjvx.cpp
 /src/_lapjv/_lapjv.html
 /src/_lapjv/_lapjvx.html
+/src/_lapjvr/_lapjvr.cpp
+/src/_lapjvr/_lapjvr.html
+/src/_lapjvr/_lapjv_rh.cpp
+/src/_lapjvr/_lapjv_rh.html
+/src/_lapjvr/target/
 
 # Virtual environments
 .venv/

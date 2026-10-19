@@ -63,6 +63,8 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 | Cost-range and reported-bug regressions | `test_large_cost_consistency.py`, `test_arr_loop.py`, `test_*issue_*.py` |
 | Build-option checks without a native compiler | `test_setup.py` |
 | Shared test data and conversions | `conftest.py`, `test_utils.py`, `cost_eps.csv.gz` |
+| Rust/hybrid contract, original-value objectives, and numerical regressions | `test_lapjvr.py` (runs once per family) |
+| R/H coexistence and concurrent worker reuse | `test_lapjv_rh.py` |
 | Static return-type checks | `typing/return_cost.py` |
 
 Add new cases to the relevant existing file.
@@ -89,6 +91,40 @@ Use `pytest -q --durations=10` to find slow tests.
 Keep solver speed benchmarks in `benchmarks/`. Do not add timing assertions to the test suite.
 
 Both GitHub test workflows run the full pytest suite.
+
+## Rust and hybrid families
+
+Build the current checkout with a current Rust toolchain and C++ compiler.
+Standard builds include both families; `LAPX_BUILD_RUST=0` omits both.
+The numerical suite runs against the public `lapjvr` and `lapjvh` exports,
+covering both layouts, totals on/off, precision, native rectangles, finite
+limits, forbidden edges, workspace reuse, threads, offsets, and conflicts.
+The coexistence suite alternates families within one process and calls them
+concurrently. It also checks signatures, exports, errors, and recovery.
+
+```bash
+python -m pytest -q tests/test_lapjvr.py tests/test_lapjv_rh.py
+cargo test --locked --all-features --manifest-path src/_lapjvr/Cargo.toml
+cargo clippy --locked --all-targets --all-features --manifest-path src/_lapjvr/Cargo.toml -- -D warnings
+```
+
+`tests/check_rh_wheel.py` is a standalone installed-wheel smoke check requiring
+only NumPy. Wheel CI uses it to fail if either family is missing. For musllinux
+ARMv7, CI builds with `LAPX_BUILD_RUST=0` and passes `--legacy-only` to check all
+pre-existing solvers and require the R/H extension and exports to be absent.
+The smoke check also requires the R/H stub and typing imports to match the
+wheel's solver set. The source archive always retains the full typing sources.
+It also includes this standalone smoke check so cibuildwheel can test wheels
+built from the archive. Other test-suite files remain outside the archive.
+
+`test_setup.py` covers legacy-only editable installs (including source edits,
+exports, typing files, and stale binaries) and source-archive contents without
+requiring a native compiler. Legacy-only editable installs use setuptools'
+strict link layout; reinstall after changing package exports or adding modules.
+Run the smoke check outside the checkout package path so it tests the installed package. The
+R/H CI workflow builds from the source archive and tests that wheel, using
+current stable Rust. It also checks a compiled legacy-only editable install.
+Cross-platform CI results must be obtained before claiming platform qualification.
 
 ## Static type checks
 

@@ -2,14 +2,16 @@
 
 """Benchmark lapx assignment methods for object tracking.
 
-This module compares LAPX solvers (lapjv, lapjvx, lapjvc) with SciPy's
-:func:`scipy.optimize.linear_sum_assignment` (LSA). The object tracking cases
-require partial assignments and cost thresholds.
+This module compares LAPX solvers (lapjv, lapjvx, lapjvc, lapjvs, lapjvr, lapjvh)
+with SciPy's :func:`scipy.optimize.linear_sum_assignment` (LSA). The object
+tracking cases require partial assignments and cost thresholds.
 
 The wrappers convert solver outputs to a common format: matched pairs and
 lists of unmatched indices. The benchmark measures the full wrapper call.
 This includes the solve, the removal of matches above the cost threshold,
 and the calculation of unmatched indices.
+All solvers use return_cost=False. R/H request direct pairs with
+precision='native' on the generated float64 inputs.
 
 The benchmark uses square and rectangular cost matrices. It shows differences
 that can result from threshold rules and solver internals.
@@ -27,6 +29,7 @@ Notes
   Expect differences in performance and unmatched sets compared with threshold checks after the solve.
 """
 
+import argparse
 import sys
 from io import TextIOWrapper
 if isinstance(sys.stdout, TextIOWrapper):
@@ -190,6 +193,22 @@ def lapx_jvs(cost_matrix, thresh):
     return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches)
 
 
+def lapx_jvr(cost_matrix, thresh):
+    """Run LAPJVR, then remove pairs above the cost threshold."""
+    matches = lap.lapjvr(cost_matrix, extend_cost=True, return_cost=False,
+                         precision='native', output='pairs')
+    mask = cost_matrix[matches[:, 0], matches[:, 1]] <= thresh
+    return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches[mask])
+
+
+def lapx_jvh(cost_matrix, thresh):
+    """Run LAPJVH, then remove pairs above the cost threshold."""
+    matches = lap.lapjvh(cost_matrix, extend_cost=True, return_cost=False,
+                         precision='native', output='pairs')
+    mask = cost_matrix[matches[:, 0], matches[:, 1]] <= thresh
+    return _decorate_return(cost_matrix.shape[0], cost_matrix.shape[1], matches[mask])
+
+
 def lapx_jvc(cost_matrix, thresh):
     """Run :func:`lap.lapjvc` (LAPX JVC). Then remove assignments above the cost threshold.
 
@@ -232,6 +251,8 @@ def compare_results_tabular(
     candidates,
     table_rows,
     all_results,
+    *,
+    checks=None,
 ):
     """Add one row for all methods to the summary table.
 
@@ -246,7 +267,7 @@ def compare_results_tabular(
         m_ok = set(map(tuple, b_m)) == set(map(tuple, c_m))
         un_a_ok = set(b_un_a) == set(c_un_a)
         un_b_ok = set(b_un_b) == set(c_un_b)
-        if m_ok and un_a_ok and un_b_ok:
+        if m_ok and un_a_ok and un_b_ok and (checks is None or checks[c_name]):
             remark = "✓"
         else:
             remark = "✗"
@@ -256,7 +277,7 @@ def compare_results_tabular(
     all_methods = [baseline] + candidates
     times = [x[3] for x in all_methods]
     idx_sorted = sorted(range(len(times)), key=lambda i: times[i])
-    positions = ["1st", "2nd", "3rd", "4th", "5th", "6th"]
+    positions = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"]
     position_by_idx = {i: positions[j] for j, i in enumerate(idx_sorted)}
 
     # Build row: test size, baseline (time+rank+remark), candidates (time+rank+remark)
@@ -289,7 +310,7 @@ def print_overall_ranking(header, all_results, position_records):
     sorted_idx = sorted(range(method_count), key=lambda i: total_times[i])
 
     # Map rank index to emoji
-    pos_map = {0: "🥇", 1: "🥈", 2: "🥉", 3: "🚩", 4: "🏳️", 5: "🥴"}
+    pos_map = {0: "🥇", 1: "🥈", 2: "🥉", 3: "🚩", 4: "🏳️", 5: "🥴", 6: "🗿", 7: "🙅‍♂️"}
     # Compose emoji summary per method
     emoji_summaries = []
     for idx in range(method_count):
@@ -321,105 +342,90 @@ def print_overall_ranking(header, all_results, position_records):
     print(" 🎉 ------------------------------------------------------------------------- 🎉 \n")
 
 
-def benchmark_tabular(sizes, thresh=1e6, debug=False):
-    """For each size, compare the solvers on one random cost matrix.
-
-    Collect the results for a final summary table.
-    """
+def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
+    """Collect median timings by size, then print the table and overall ranking."""
     table_rows = []
-    header = [
-        "Size",
-        "BASELINE SciPy",
-        "LAPX LAPJV-IFT",
-        "LAPX LAPJV",
-        "LAPX LAPJVX",
-        "LAPX LAPJVC",
-        "LAPX LAPJVS",
+    solvers = [
+        ('BASELINE SciPy', scipy_lsa),
+        ('LAPX LAPJV-IFT', lapx_jv_ift),
+        ('LAPX LAPJV', lapx_jv),
+        ('LAPX LAPJVX', lapx_jvx),
+        ('LAPX LAPJVC', lapx_jvc),
+        ('LAPX LAPJVS', lapx_jvs),
     ]
-    # For summary: accumulate times and remarks per method
-    all_results = [
-        {"times": [], "remarks": []},  # BASELINE SciPy
-        {"times": [], "remarks": []},  # LAPX LAPJV-IFT
-        {"times": [], "remarks": []},  # LAPX LAPJV
-        {"times": [], "remarks": []},  # LAPX LAPJVX
-        {"times": [], "remarks": []},  # LAPX LAPJVC
-        {"times": [], "remarks": []},  # LAPX LAPJVS
-    ]
-    # For overall medal/flag counts per method
-    position_records = [[] for _ in range(len(header) - 1)]
+    for backend, solve in (('lapjvr', lapx_jvr), ('lapjvh', lapx_jvh)):
+        if hasattr(lap, backend):
+            solvers.append((f'LAPX {backend.upper()}', solve))
+        else:
+            print(f'# Skipping {backend}: unavailable in the installed lapx.')
+    header = ['Size'] + [name for name, _ in solvers]
+    all_results = [{"times": [], "remarks": []} for _ in solvers]
+    position_records = [[] for _ in solvers]
 
     for n, m in sizes:
-        a = np.random.rand(n, m)
-        a_warm = np.random.rand(100, 100)
+        case_repeats = 1 if max(n, m) >= 5000 else repeats
+        calls = 25 if max(n, m) <= 64 else 1
+        order_rng = np.random.default_rng([seed, n, m, 1])
+        samples = [[] for _ in solvers]
+        outputs = [None] * len(solvers)
+        checks = {name: True for name, _ in solvers}
+        for round_index in range(case_repeats):
+            a = np.random.default_rng([seed + round_index, n, m]).random((n, m))
+            for name, solve in solvers:
+                solve(a, thresh)  # Warm each solver on this round's shared input.
+            for index in order_rng.permutation(len(solvers)):
+                solve = solvers[index][1]
+                start = timeit.default_timer()
+                for _ in range(calls):
+                    output = solve(a, thresh)
+                samples[index].append((timeit.default_timer() - start) / calls)
+                outputs[index] = output
+            b_m, b_un_a, b_un_b = outputs[0]
+            for index, (name, _) in enumerate(solvers):
+                c_m, c_un_a, c_un_b = outputs[index]
+                checks[name] &= (set(map(tuple, b_m)) == set(map(tuple, c_m))
+                                 and set(b_un_a) == set(c_un_a)
+                                 and set(b_un_b) == set(c_un_b))
+            del a
+        results = [(*output, float(np.median(times)), name)
+                   for output, times, (name, _) in zip(outputs, samples, solvers)]
+        baseline, candidates = results[0], results[1:]
+        compare_results_tabular((n, m), baseline, candidates, table_rows, all_results,
+                                checks=checks)
 
-        # SciPy baseline
-        scipy_lsa(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_s, u_a_s, u_b_s = scipy_lsa(a, thresh)
-        t_s = timeit.default_timer() - start
-        baseline = (m_s, u_a_s, u_b_s, t_s, "BASELINE SciPy")
-
-        # lapjvc
-        lapx_jvc(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_jvc, u_a_jvc, u_b_jvc = lapx_jvc(a, thresh)
-        t_jvc = timeit.default_timer() - start
-
-        # lapjv (post-filter)
-        lapx_jv(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_jv, u_a_jv, u_b_jv = lapx_jv(a, thresh)
-        t_jv = timeit.default_timer() - start
-
-        # lapjv in-function (cost_limit)
-        lapx_jv_ift(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_jv_ift, u_a_jv_ift, u_b_jv_ift = lapx_jv_ift(a, thresh)
-        t_jv_ift = timeit.default_timer() - start
-
-        # lapjvx
-        lapx_jvx(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_jvx, u_a_jvx, u_b_jvx = lapx_jvx(a, thresh)
-        t_jvx = timeit.default_timer() - start
-
-        # lapjvs
-        lapx_jvs(a_warm, thresh)  # warm-up
-        start = timeit.default_timer()
-        m_jvs, u_a_jvs, u_b_jvs = lapx_jvs(a, thresh)
-        t_jvs = timeit.default_timer() - start
-
-        candidates = [
-            (m_jv_ift, u_a_jv_ift, u_b_jv_ift, t_jv_ift, "LAPX LAPJV-IFT"),
-            (m_jv, u_a_jv, u_b_jv, t_jv, "LAPX LAPJV"),
-            (m_jvx, u_a_jvx, u_b_jvx, t_jvx, "LAPX LAPJVX"),
-            (m_jvc, u_a_jvc, u_b_jvc, t_jvc, "LAPX LAPJVC"),
-            (m_jvs, u_a_jvs, u_b_jvs, t_jvs, "LAPX LAPJVS"),
-        ]
-
-        compare_results_tabular((n, m), baseline, candidates, table_rows, all_results)
-
-        # Record position index for each method
-        all_methods = [baseline] + candidates
-        times = [x[3] for x in all_methods]
-        idx_sorted = sorted(range(len(times)), key=lambda i: times[i])
+        # Record position index for each method.
+        idx_sorted = sorted(range(len(results)), key=lambda i: results[i][3])
         for place, method_idx in enumerate(idx_sorted):
             position_records[method_idx].append(place)
 
-    # Print big table
-    colwidths = [max(len(str(cell)) for cell in col) for col in zip(header, *table_rows)]
-    fmt_row = " | ".join(f"{{:<{w}}}" for w in colwidths)
-    print("\n" + "-" * (sum(colwidths) + 3 * len(colwidths)))
-    print(fmt_row.format(*header))
-    print("-" * (sum(colwidths) + 3 * len(colwidths)))
-    for row in table_rows:
-        print(fmt_row.format(*row))
-    print("-" * (sum(colwidths) + 3 * len(colwidths)) + "\n")
+    # Print four solvers per table, keeping ranks across all solvers.
+    for start in range(1, len(header), 4):
+        group_header = [header[0]] + header[start:start + 4]
+        group_rows = [[row[0]] + row[start:start + 4] for row in table_rows]
+        colwidths = [max(len(cell) for cell in col) for col in zip(group_header, *group_rows)]
+        fmt_row = " | ".join(f"{{:<{w}}}" for w in colwidths)
+        separator = "-" * (sum(colwidths) + 3 * (len(colwidths) - 1))
+        print(("\n" if start == 1 else "") + separator)
+        print(fmt_row.format(*group_header))
+        print(separator)
+        for row in group_rows:
+            print(fmt_row.format(*row))
+        print(separator + "\n")
     print("Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).")
     print_overall_ranking(header, all_results, position_records)
 
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--quick', action='store_true',
+                        help='Run through 2000x2500 at thresholds 0.05 and 0.5.')
+    parser.add_argument('--seed', type=int, default=2026,
+                        help='Base seed; each round uses seed + round index (default: 2026).')
+    parser.add_argument('--repeats', type=int, default=3,
+                        help='Timed rounds (default: 3); dimensions >=5000 run once.')
+    args = parser.parse_args()
+    if args.repeats < 1 or args.seed < 0:
+        parser.error('--repeats must be positive and --seed must be non-negative')
 
     sizes = [
         (10, 10),
@@ -434,9 +440,16 @@ if __name__ == "__main__":
     ]
 
     thresh = [0.05, 0.1, 0.5, 1.0, 1e9]
+    if args.quick:
+        sizes = sizes[:8]
+        thresh = [0.05, 0.5]
 
     for t in thresh:
         print("\n" + "#" * 65)
         print(f"# Benchmark with threshold (cost_limit) = {t}")
         print("#" * 65)
-        benchmark_tabular(sizes, thresh=t)
+        benchmark_tabular(sizes, thresh=t, seed=args.seed, repeats=args.repeats)
+
+
+if __name__ == "__main__":
+    main()
