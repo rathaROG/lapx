@@ -90,7 +90,8 @@ The test for result order coordinates workers with events. It does not use timin
 Use `pytest -q --durations=10` to find slow tests.
 Keep solver speed benchmarks in `benchmarks/`. Do not add timing assertions to the test suite.
 
-Both GitHub test workflows run the full pytest suite.
+Both GitHub test workflows run the full pytest suite on Python 3.9–3.15.
+Python 3.7 and 3.8 remain available for source builds but are outside CI coverage.
 
 ## Rust and hybrid families
 

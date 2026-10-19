@@ -52,11 +52,21 @@ The project used only papers ¹˒² and A. Volgenant's public domain Pascal impl
 pip install lapx
 ```
 
-The available wheels cover most platforms and architectures. See the [package files](https://pypi.org/project/lapx/#files) for details.
+Published wheels cover Python 3.9–3.15 on most platforms and architectures. See the [package files](https://pypi.org/project/lapx/#files) for details.
 musllinux ARMv7 wheels include all pre-existing solvers but omit `lapjvr`, `lapjvh`,
 `lapjvr_batch`, and `lapjvh_batch` because native Rust build tools are unavailable.
 
 <details><summary>🛠️ Other installation options</summary>
+
+### Python 3.7 and 3.8 (source builds only):
+
+Python 3.7 and 3.8 no longer receive prebuilt wheels or automated testing.
+Source installation remains available with compatible build dependencies and
+the required C++ and current Rust toolchains:
+
+```
+python -m pip install --no-binary=lapx lapx
+```
 
 ### Install from GitHub (requires C++ and current Rust toolchains):
 
