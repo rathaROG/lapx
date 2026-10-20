@@ -38,9 +38,9 @@ import importlib
 if TYPE_CHECKING:
     # Single-matrix solvers
     from ._lapmod_wp import lapmod
-    from ._lapjv_wp import lapjv
-    from ._lapjvx_wp import lapjvx, lapjvxa
-    from ._lapjvc_wp import lapjvc
+    from ._lapjv import lapjv  # type: ignore
+    from ._lapjvx import lapjvx, lapjvxa  # type: ignore
+    from ._lapjvc import lapjvc  # type: ignore
     from ._lapjvs_wp import lapjvs, lapjvsa
     from ._lapjv_rh import lapjvr, lapjvh  # type: ignore
     # Batch solvers
@@ -59,10 +59,10 @@ if TYPE_CHECKING:
 _exports = {
     # Single-matrix solvers
     'lapmod': ("lap._lapmod_wp", "lapmod"),
-    'lapjv': ("lap._lapjv_wp", "lapjv"),
-    'lapjvx': ("lap._lapjvx_wp", "lapjvx"),
-    'lapjvxa': ("lap._lapjvx_wp", "lapjvxa"),
-    'lapjvc': ("lap._lapjvc_wp", "lapjvc"),
+    'lapjv': ("lap._lapjv", "lapjv"),
+    'lapjvx': ("lap._lapjvx", "lapjvx"),
+    'lapjvxa': ("lap._lapjvx", "lapjvxa"),
+    'lapjvc': ("lap._lapjvc", "lapjvc"),
     'lapjvs': ("lap._lapjvs_wp", "lapjvs"),
     'lapjvsa': ("lap._lapjvs_wp", "lapjvsa"),
     'lapjvr': ("lap._lapjv_rh", "lapjvr"),

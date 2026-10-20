@@ -29,10 +29,12 @@ def _make_cost(dtype):
     return cost
 
 
-def _assert_total_cost_not_blocked(total_cost):
+def _assert_total_cost_not_blocked(total_cost, cost):
     # For the intended solution, total cost is ~0.6657 (well under 10)
     assert np.isfinite(total_cost), f"Expected finite total_cost, got {total_cost}"
     assert total_cost < 10.0, f"Total cost too large, likely used blocked edges: {total_cost}"
+    np.testing.assert_allclose(total_cost, cost.diagonal().sum(dtype=np.float64),
+                               rtol=1e-12, atol=1e-12)
 
 
 def _assert_row0_assigned_to_col0(col_for_row0, cost):
@@ -45,6 +47,10 @@ def _assert_row0_assigned_to_col0(col_for_row0, cost):
 def _assert_row0_col0_from_pairs(assignments, cost):
     a = np.asarray(assignments)
     assert a.ndim == 2 and a.shape[1] == 2, f"Expected (K,2) assignments, got shape {a.shape}"
+    assert a.dtype.kind in 'iu'
+    expected = np.arange(cost.shape[0])
+    np.testing.assert_array_equal(a[np.argsort(a[:, 0])],
+                                  np.column_stack((expected, expected)))
     rows0 = a[a[:, 0] == 0]
     assert len(rows0) == 1, f"Expected exactly one assignment for row 0, got {rows0}"
     _assert_row0_assigned_to_col0(rows0[0, 1], cost)
@@ -53,6 +59,8 @@ def _assert_row0_col0_from_pairs(assignments, cost):
 def _assert_row0_col0_from_x(x, cost):
     x = np.asarray(x)
     assert x.ndim == 1, f"Expected 1D x, got shape {x.shape}"
+    assert x.dtype.kind in 'iu'
+    np.testing.assert_array_equal(x, np.arange(cost.shape[0]))
     _assert_row0_assigned_to_col0(x[0], cost)
 
 
@@ -61,7 +69,7 @@ def test_lapjv_extend_cost_true(dtype):
     cost = _make_cost(dtype)
     total_cost, x, y = lap.lapjv(cost, extend_cost=True, return_cost=True)
     _assert_row0_col0_from_x(x, cost)
-    _assert_total_cost_not_blocked(total_cost)
+    _assert_total_cost_not_blocked(total_cost, cost)
 
 
 @pytest.mark.parametrize("dtype", DTYPES)
@@ -74,8 +82,9 @@ def test_lapjvx_extend_cost_true(dtype):
     idx = np.where(rows == 0)[0]
     assert len(idx) == 1, f"Expected row 0 to appear exactly once in rows, got indices {idx}"
     _assert_row0_assigned_to_col0(cols[idx[0]], cost)
+    _assert_row0_col0_from_pairs(np.column_stack((rows, cols)), cost)
 
-    _assert_total_cost_not_blocked(total_cost)
+    _assert_total_cost_not_blocked(total_cost, cost)
 
 
 @pytest.mark.parametrize("dtype", DTYPES)
@@ -83,7 +92,7 @@ def test_lapjvxa_extend_cost_true(dtype):
     cost = _make_cost(dtype)
     total_cost, assignments = lap.lapjvxa(cost, extend_cost=True, return_cost=True)
     _assert_row0_col0_from_pairs(assignments, cost)
-    _assert_total_cost_not_blocked(total_cost)
+    _assert_total_cost_not_blocked(total_cost, cost)
 
 
 @pytest.mark.parametrize("dtype", DTYPES)
@@ -96,8 +105,9 @@ def test_lapjvs_extend_cost_true_jvx_like(dtype):
     idx = np.where(rows == 0)[0]
     assert len(idx) == 1, f"Expected row 0 to appear exactly once in rows, got indices {idx}"
     _assert_row0_assigned_to_col0(cols[idx[0]], cost)
+    _assert_row0_col0_from_pairs(np.column_stack((rows, cols)), cost)
 
-    _assert_total_cost_not_blocked(total_cost)
+    _assert_total_cost_not_blocked(total_cost, cost)
 
 
 @pytest.mark.parametrize("dtype", DTYPES)
@@ -105,4 +115,4 @@ def test_lapjvsa_extend_cost_true(dtype):
     cost = _make_cost(dtype)
     total_cost, assignments = lap.lapjvsa(cost, extend_cost=True, return_cost=True)
     _assert_row0_col0_from_pairs(assignments, cost)
-    _assert_total_cost_not_blocked(total_cost)
+    _assert_total_cost_not_blocked(total_cost, cost)

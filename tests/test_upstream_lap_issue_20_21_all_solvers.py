@@ -98,7 +98,6 @@ def test_extend_cost_all_negative_costs(solver):
 
 
 # ---------- Inf regression (gatagat/lap #20-like) ----------
-# If you find some solvers reject inf, you can convert this test to xfail/raises for those.
 
 @pytest.mark.parametrize("solver", SOLVERS)
 def test_extend_cost_with_inf_costs(solver):

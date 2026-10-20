@@ -8,7 +8,7 @@
 
 The [single-matrix](benchmarks/benchmark_single.py), [batch](benchmarks/benchmark_batch.py),
 and [tracking](benchmarks/benchmark_tracking.py) scripts compare assignment workflows with SciPy on your machine.
-The recorded results below come from earlier versions of the scripts.
+The recorded results below include the test environment and per-case settings.
 
 ## 💡 Run the benchmarks
 
@@ -117,8 +117,8 @@ They build the checkout and check R/H availability before benchmarking.
 
 ### Historical results (lapx 0.11.0rc1)
 
-These logs use lapx 0.11.0rc1 and older benchmark scripts. They retain the earlier output format,
-do not include R/H, and were not measured with the current repeat method.
+R/H single and batch results use float64 costs and `return_cost=False`.
+See each case for matrix sizes, thread counts, and timing settings.
 
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
 
@@ -541,8 +541,6 @@ python benchmark_tracking.py --quick --repeats 3 --seed 2026
 
 <details><summary>📊 Historical tracking results (lapx 0.11.0rc1):</summary><br>
 
-These logs predate the current repeat method and R/H rows.
-
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
 
 ```
@@ -790,7 +788,7 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 </details>
 
 In these historical runs, `lapjv` and `lapjvx` match the SciPy baseline outputs.
-Both are faster than SciPy in most cases. `lapjvs` has the lowest total time in each tracking summary.
+Both are faster than SciPy in most cases. R/H have the lowest total time in each tracking summary.
 `LAPX LAPJV-IFT` has a higher total time and produces different assignments in some cases.
 
 Use the [tracking script](https://github.com/rathaROG/lapx/blob/main/benchmarks/benchmark_tracking.py) to compare the methods on your inputs.

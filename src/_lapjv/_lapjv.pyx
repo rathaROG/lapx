@@ -2,7 +2,7 @@
 
 # Updated by rathaROG
 # cython: language_level=3
-# cython: embedsignature=True
+# cython: embedsignature=True, binding=True
 
 import numpy as np
 cimport numpy as cnp
@@ -47,56 +47,59 @@ def lapjv(cnp.ndarray cost not None, char extend_cost=False,
           double cost_limit=np.inf, char return_cost=True):
     """Solve the linear assignment problem with the Jonker-Volgenant (JV) algorithm.
 
-    For performance, the solver transposes inputs when N_rows > N_cols.
-    The native kernel always has rows <= cols.
-    The returned results use the original (row, col) orientation.
+    The function returns mapping arrays (x, y):
+    - x[i] gives the assigned column for row i, or -1 if the row has no assignment.
+    - y[j] gives the assigned row for column j, or -1 if the column has no assignment.
 
     Parameters
     ----------
-    cost : (N, M) ndarray
-        The cost matrix. Entry cost[i, j] gives the cost to assign row i to column j.
-        The solver accepts any floating data type.
-        It uses a contiguous float64 working buffer only when necessary.
-    extend_cost : bool, optional (default: False)
+    cost : np.ndarray, shape (N, M)
+        A 2D cost matrix. Entry cost[i, j] gives the cost to assign row i to column j.
+        The solver accepts any floating data type. It uses one contiguous float64
+        buffer when necessary.
+    extend_cost : bool, default False
         Permit rectangular inputs through zero-padding to a square matrix.
         See the matrix extension rules below.
-    cost_limit : float, optional (default: np.inf)
-        If finite, the solver extends the matrix to shape (N+M, N+M).
+    cost_limit : float, default np.inf
+        If finite, the solver extends the matrix to size (N+M).
         The added edges have cost_limit/2 costs, with a zero block at the bottom right.
-        This models a reject cost for each edge.
-        It permits rectangular inputs even when extend_cost=False.
-    return_cost : bool, optional (default: True)
-        This option controls whether the function returns the total assignment cost first.
+        This models a reject cost for each edge. It permits rectangular inputs
+        even if extend_cost=False. The value must be finite or positive infinity.
+    return_cost : bool, default True
+        If True, return the total assignment cost first.
+        The solver calculates this total from the original input array, before
+        any matrix extension or padding.
 
     Returns
     -------
-    opt : float
-        The total assignment cost, only if return_cost=True.
-        The solver calculates it from the original input array with shape (N, M),
-        before any padding or matrix extension.
-    x : (N,) ndarray of int32
-        x[i] gives the assigned column for row i, or -1 if the row has no assignment.
-    y : (M,) ndarray of int32
-        y[j] gives the assigned row for column j, or -1 if the column has no assignment.
+    If return_cost is True:
+        total_cost : float
+            The solver sums the costs of matched pairs in float64 from the original input.
+        x : np.ndarray[int32] with shape (N,)
+            This array maps rows to columns. Rows without assignments have value -1.
+        y : np.ndarray[int32] with shape (M,)
+            This array maps columns to rows. Columns without assignments have value -1.
+    Else:
+        x : np.ndarray[int32] with shape (N,)
+        y : np.ndarray[int32] with shape (M,)
 
     Matrix extension rules
     ----------------------
     - If cost_limit < inf, extend the matrix to size (N+M) to model reject costs for each edge.
-      This permits rectangular inputs regardless of extend_cost.
+      This permits rectangular inputs.
     - Otherwise, if N != M or extend_cost=True, add zeros to make a square of size max(N, M).
-      This permits rectangular inputs when extend_cost=True.
     - Otherwise, solve the original square matrix without extension.
 
     Notes
     -----
-    - The solver reuses the input if it is float64, is C-contiguous, and needs no transpose.
-      Otherwise, it creates exactly one contiguous float64 working array or its transpose.
+    - The solver adjusts the matrix orientation so the native kernel has rows <= cols.
+      The outputs use the original orientation.
     - For a zero-sized dimension, the solver returns 0.0 if return_cost=True.
-      All mapping entries have value -1, with the appropriate array lengths.
+      All mapping entries have value -1.
+    - The solver reuses contiguous float64 input when no transpose or padding is needed.
     - The solver does not check for NaN (not a number) or negative infinity.
-      Check or remove these values before you call the solver.
-      Results with these values are undefined.
-      Positive infinity can represent a forbidden assignment.
+      Check or remove these values before you call the solver. Results with these
+      values are undefined. Positive infinity can represent a forbidden assignment.
     """
     if cost.ndim != 2:
         raise ValueError('2-dimensional array expected')

@@ -57,6 +57,11 @@ def test_batch_tie_case_threading_determinism(solver, as_pairs):
         results.append(out)
 
     base = results[0]
+    np.testing.assert_array_equal(base[0], np.zeros(B))
+    for b in range(B):
+        rows, cols = base[1][b].T if as_pairs else (base[1][b], base[2][b])
+        np.testing.assert_array_equal(np.sort(rows), np.arange(M))
+        np.testing.assert_array_equal(np.sort(cols), np.arange(N))
     for r in results[1:]:
         # costs equal
         assert np.allclose(r[0], base[0])

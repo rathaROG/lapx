@@ -3,13 +3,16 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import importlib
+from importlib.util import find_spec
 import inspect
 
 import lap
 import numpy as np
 import pytest
 
-pytest.importorskip('lap._lapjv_rh')
+if find_spec('lap._lapjv_rh') is None:
+    pytest.skip('R/H is omitted from this legacy-only installation', allow_module_level=True)
+importlib.import_module('lap._lapjv_rh')
 
 
 def test_public_exports_and_identical_signatures():
@@ -35,7 +38,6 @@ def test_alternating_and_concurrent_families(dtype, output, return_cost):
     square[:, :70] = square[:, :1]
     cases = [(square, np.inf), (rng.random((5, 33, 27)).astype(dtype), np.inf),
              (rng.random((4, 31, 31)).astype(dtype), .15)]
-    options = dict(extend_cost=True, return_cost=return_cost, output=output)
 
     def same(actual, expected):
         if isinstance(expected, (tuple, list)):
@@ -48,12 +50,14 @@ def test_alternating_and_concurrent_families(dtype, output, return_cost):
     expected = []
     for costs, limit in cases:
         costs.setflags(write=False)
-        expected.append(lap.lapjvr_batch(costs, cost_limit=limit, n_threads=1, **options))
+        expected.append(lap.lapjvr_batch(costs, extend_cost=True, cost_limit=limit,
+                                         return_cost=return_cost, n_threads=1, output=output))
 
     def run(task):
         family, case, threads = task
         costs, limit = cases[case]
-        actual = family(costs, cost_limit=limit, n_threads=threads, **options)
+        actual = family(costs, extend_cost=True, cost_limit=limit,
+                        return_cost=return_cost, n_threads=threads, output=output)
         same(actual, expected[case])
 
     tasks = [(family, case, threads) for threads in (1, 0, 2, 3)

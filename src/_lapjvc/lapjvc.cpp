@@ -5,69 +5,85 @@
 namespace py = pybind11;
 
 void register_lapjvc(py::module_& m) {
+    // Use the public call signature instead of exposing dtype-dispatch overloads.
+    // CPython reads this prefix as the builtin function's __text_signature__.
+    py::options options;
+    options.disable_function_signatures();
     m.def(
         "lapjvc",
         &solve_dense_wrap<int32_t, py::array::c_style>,
-        py::arg("costs").noconvert(),
+        py::arg("cost").noconvert(),
         py::arg("return_cost") = true,
-        R"pbdoc(
-Solve the linear assignment problem with the classic dense Jonker-Volgenant algorithm (O(n³)).
+        R"pbdoc(lapjvc(cost, return_cost=True)
+--
 
-This function calculates an optimal assignment for a cost matrix.
-It uses the shortest augmenting path algorithm from Jonker and Volgenant (1987).
-This is the dense version, also called the classic JV algorithm.
-It differs from the modern LAPJV version optimized for sparse matrices.
+Solve the linear assignment problem with the classic dense Jonker-Volgenant algorithm.
 
-Features:
-- The solver accepts square and rectangular cost matrices. It pads with large costs when necessary.
-- The solver treats NaN entries as forbidden assignments.
-- The solver supports int32, int64, float32, and float64.
+This function calculates an optimal assignment for a 2D
+cost matrix. It returns aligned row and column index arrays, as in lapjvx.
+The order matches SciPy's linear_sum_assignment.
 
-Args:
-    costs (numpy.ndarray): A 2D cost matrix with shape (M, N).
-                          It must permit conversion to float64, float32, int32, or int64.
-    return_cost (bool): If True (default), return (total_cost, row_indices, col_indices).
-                       If False, return (row_indices, col_indices).
+Parameters
+----------
+cost : np.ndarray, shape (M, N)
+    A 2D cost matrix with data type int32, int64, float32, or float64.
+    The dense solver pads rectangular inputs when necessary.
+    It treats NaN and positive or negative infinity as forbidden assignments.
+return_cost : bool, default True
+    If True, return (total_cost, row_indices, col_indices).
+    If False, return (row_indices, col_indices).
 
-Returns:
-    tuple: (total_cost, row_indices, col_indices), or (row_indices, col_indices) if return_cost=False.
+Returns
+-------
+If return_cost is True:
+    total_cost : float
+        The solver sums the costs at the assigned (row, col) pairs in float64.
+    row_indices : np.ndarray with shape (K,), dtype int32
+        This array contains the assigned row indices.
+    col_indices : np.ndarray with shape (K,), dtype int32
+        This array contains the assigned column indices.
+Else:
+    row_indices, col_indices
 
-Example:
-    >>> import numpy as np
-    >>> import lap
-    >>> costs = np.array([[6, 9, 1], [10, 3, 2], [8, 7, 4.]], dtype=np.float32)
-    >>> total_cost, rids, cids = lap.lapjvc(costs)
-    >>> print(list(zip(rids, cids)))
-    [(0, 2), (1, 1), (2, 0)]
+Notes
+-----
+- This function uses the classic dense JV algorithm.
+  For very large, sparse, or otherwise structured problems, consider lapjv or lapjvx variants optimized for those cases.
+- Use np.nan or np.inf to represent forbidden assignments in floating inputs.
 
-Notes:
-    - The classic O(n³) dense Jonker-Volgenant algorithm is best suited to square cost matrices.
-    - For large, sparse, or rectangular problems, consider lapjv() or lapjvx() for better performance.
-    - Use np.nan to represent forbidden assignments in floating inputs.
+Examples
+--------
+>>> import numpy as np
+>>> import lap
+>>> cost = np.array([[6, 9, 1], [10, 3, 2], [8, 7, 4.]], dtype=np.float32)
+>>> total, rows, cols = lap.lapjvc(cost)
+>>> list(zip(rows.tolist(), cols.tolist()))
+[(0, 2), (1, 1), (2, 0)]
 
-References:
-    - Jonker, R., & Volgenant, A. (1987). "A shortest augmenting path algorithm for dense and sparse linear assignment problems." Computing, 38(4), 325–340.
-    - This code adapts and includes Christoph Heindl's py-lapsolver (MIT License).
-      That project uses Jaehyun Park's MinCostMatching.cc as its basis.
-
+References
+----------
+Jonker, R., and Volgenant, A. (1987). A shortest augmenting path algorithm
+for dense and sparse linear assignment problems. Computing 38, 325-340.
+This implementation adapts Christoph Heindl's py-lapsolver (MIT License),
+which is based on Jaehyun Park's MinCostMatching.cc.
 )pbdoc"
     );
     m.def(
         "lapjvc",
         &solve_dense_wrap<int64_t, py::array::c_style>,
-        py::arg("costs").noconvert(),
+        py::arg("cost").noconvert(),
         py::arg("return_cost") = true
     );
     m.def(
         "lapjvc",
         &solve_dense_wrap<float, py::array::c_style>,
-        py::arg("costs").noconvert(),
+        py::arg("cost").noconvert(),
         py::arg("return_cost") = true
     );
     m.def(
         "lapjvc",
         &solve_dense_wrap<double, py::array::c_style>,
-        py::arg("costs"),
+        py::arg("cost"),
         py::arg("return_cost") = true
     );
 }

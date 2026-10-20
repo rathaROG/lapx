@@ -184,8 +184,9 @@ class BuildPy(build_py):
         from pathlib import Path
         super().build_package_data()
         if not self.dry_run:
-            # Remove artifacts from the former module name on incremental builds.
-            patterns = ['_lapjvr.pyi', '_lapjvr*.pyd', '_lapjvr*.so']
+            # Remove obsolete modules from incremental builds.
+            patterns = ['_lapjvr.pyi', '_lapjvr*.pyd', '_lapjvr*.so',
+                        '_lapjv_wp.py', '_lapjvx_wp.py', '_lapjvc_wp.py']
             if not has_rust_extension(self.distribution):
                 patterns += ['_lapjv_rh.pyi', '_lapjv_rh*.pyd', '_lapjv_rh*.so']
             for pattern in patterns:

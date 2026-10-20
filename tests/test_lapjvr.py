@@ -3,6 +3,7 @@
 
 import itertools
 from concurrent.futures import ThreadPoolExecutor
+from importlib.util import find_spec
 
 import numpy as np
 import pytest
@@ -13,14 +14,18 @@ def native(request):
     import lap
     from types import SimpleNamespace
 
-    pytest.importorskip("lap._lapjv_rh")
+    if find_spec('lap._lapjv_rh') is None:
+        pytest.skip('R/H is omitted from this legacy-only installation')
     # Exercise the public lazy exports, including their packaging and wiring.
     return SimpleNamespace(lapjvr=getattr(lap, request.param),
                            lapjvr_batch=getattr(lap, request.param + "_batch"))
 
 
-def as_pairs(result, output):
-    return result if output == 'pairs' else np.column_stack(result)
+def as_pairs(result, output) -> np.ndarray:
+    if output == 'pairs':
+        assert isinstance(result, np.ndarray)
+        return result
+    return np.column_stack(result)
 
 
 def selected_total(cost, pairs):
@@ -335,8 +340,12 @@ def test_tall_tile_boundaries_preserve_objective_and_original_indices(native, sh
 
 @pytest.mark.parametrize('output', ['indices', 'pairs'])
 def test_return_modes_precision_and_empty_batch(native, output):
-    a = np.array([[1., 1. + 1e-8], [1. + 1e-8, 1.]])
-    assert native.lapjvr(a, output=output)[0] == 2.
+    # Each precision has a unique optimum; this does not freeze an arbitrary
+    # tie-breaking choice for costs that all round to the same float32 value.
+    eps = float(np.finfo(np.float32).eps)
+    a = np.array([[1. + 5 * eps / 8, 1.],
+                  [1. + 11 * eps / 8, 1. + 5 * eps / 8]], dtype=np.float64)
+    assert native.lapjvr(a, output=output)[0] == a.diagonal().sum()
     low = native.lapjvr(a, precision='float32', output=output)
     low_pairs = low[1] if output == 'pairs' else np.column_stack(low[1:])
     assert low[0] == a[tuple(low_pairs.T)].sum(dtype=np.float64)
@@ -563,11 +572,16 @@ def test_implicit_limit_is_optimized_before_pair_selection(native, dtype):
     total, pairs = native.lapjvr(a, cost_limit=.15, output='pairs')
     np.testing.assert_array_equal(pairs, [[0, 0]])
     assert total == float(a[0, 0])
-    # Every edge equals the rejection threshold: any cardinality is optimal,
-    # and this kernel deliberately favors the unmatched option on ties.
-    assert native.lapjvr(np.full((3, 4), 2., dtype=dtype), cost_limit=2., output='pairs')[1].shape == (0, 2)
+    # Every edge equals the rejection threshold: any cardinality is optimal.
+    tied = np.full((3, 4), 2., dtype=dtype)
+    pairs = native.lapjvr(tied, cost_limit=2., output='pairs')[1]
+    assert objective(tied, pairs, 2.) == reference(tied, 2.)
     tiny = np.nextafter(dtype(0), dtype(1))
-    assert native.lapjvr(np.array([[tiny]], dtype=dtype), cost_limit=float(tiny), output='pairs')[1].shape == (0, 2)
+    tied = np.array([[tiny]], dtype=dtype)
+    pairs = native.lapjvr(tied, cost_limit=float(tiny), output='pairs')[1]
+    # For one edge equal to the limit, matching and rejection both cost tiny.
+    # The augmented reference cannot represent tiny / 2 for float64 subnormals.
+    assert objective(tied, pairs, float(tiny)) == float(tiny)
     assert native.lapjvr(np.array([[-tiny]], dtype=dtype), cost_limit=float(tiny))[0] == -float(tiny)
 
 

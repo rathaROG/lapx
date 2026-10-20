@@ -367,7 +367,7 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
         calls = 25 if max(n, m) <= 64 else 1
         order_rng = np.random.default_rng([seed, n, m, 1])
         samples = [[] for _ in solvers]
-        outputs = [None] * len(solvers)
+        outputs = {}
         checks = {name: True for name, _ in solvers}
         for round_index in range(case_repeats):
             a = np.random.default_rng([seed + round_index, n, m]).random((n, m))
@@ -375,10 +375,12 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
                 solve(a, thresh)  # Warm each solver on this round's shared input.
             for index in order_rng.permutation(len(solvers)):
                 solve = solvers[index][1]
+                output = None
                 start = timeit.default_timer()
                 for _ in range(calls):
                     output = solve(a, thresh)
                 samples[index].append((timeit.default_timer() - start) / calls)
+                assert output is not None
                 outputs[index] = output
             b_m, b_un_a, b_un_b = outputs[0]
             for index, (name, _) in enumerate(solvers):
@@ -387,8 +389,8 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
                                  and set(b_un_a) == set(c_un_a)
                                  and set(b_un_b) == set(c_un_b))
             del a
-        results = [(*output, float(np.median(times)), name)
-                   for output, times, (name, _) in zip(outputs, samples, solvers)]
+        results = [(*outputs[index], float(np.median(times)), name)
+                   for index, (times, (name, _)) in enumerate(zip(samples, solvers))]
         baseline, candidates = results[0], results[1:]
         compare_results_tabular((n, m), baseline, candidates, table_rows, all_results,
                                 checks=checks)

@@ -2,6 +2,7 @@
 """Standalone installed-wheel check; only NumPy is required."""
 import argparse
 import ast
+from importlib import import_module
 from importlib.util import find_spec
 from pathlib import Path
 
@@ -11,6 +12,13 @@ import numpy as np
 
 def check_typing_exports(expect_rh):
     init = Path(lap.__file__)
+    for module, names in (('_lapjv', ('lapjv',)),
+                          ('_lapjvx', ('lapjvx', 'lapjvxa')),
+                          ('_lapjvc', ('lapjvc',))):
+        assert init.with_name(module + '.pyi').is_file(), 'Missing native solver stub: ' + module
+        assert not init.with_name(module + '_wp.py').exists(), 'Wheel contains a former forwarding wrapper'
+        for name in names:
+            assert getattr(lap, name) is getattr(import_module('lap.' + module), name), name
     assert init.with_name('_lapjv_rh.pyi').is_file() == expect_rh, 'Unexpected R/H stub presence'
     assert not init.with_name('_lapjvr.pyi').exists(), 'Wheel contains the former R/H stub'
     assert find_spec('lap._lapjvr') is None, 'Wheel contains the former R/H extension'

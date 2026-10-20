@@ -179,53 +179,58 @@ cdef object _solve(object costs, bint batch, bint extend_cost, double limit,
 
 def lapjvr(cost, extend_cost=False, double cost_limit=np.inf,
            return_cost=True, *, precision="native", output="indices"):
-    """Solve a cost matrix with the Rust Jonker-Volgenant solver.
+    """Solve the linear assignment problem with the Jonker-Volgenant algorithm.
 
-    Return aligned row and column indices or assignment pairs. When
-    return_cost=True, prepend the total cost of the selected matches.
+    The function returns aligned (rows, cols) index arrays. Use output='pairs'
+    for assignment pairs with shape (K, 2). If return_cost is True, return the
+    total assignment cost first.
 
     Parameters
     ----------
     cost : array_like, shape (N, M)
-        Real numeric assignment costs. With precision='native', float32 and
-        float64 inputs retain their cost precision. Other real numeric dtypes
-        are normalized to float64.
-        Positive infinity forbids an edge. Exclude NaN and negative infinity
-        before calling; the solver does not check for these invalid values.
+        A 2D cost matrix with real numeric values. The solver accepts array-like
+        inputs and may copy them for layout or precision conversion.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        Permit a rectangular matrix when cost_limit is infinite. Rectangular
+        Permit rectangular inputs when cost_limit is infinite. Rectangular
         problems use a native path without padding to a square matrix. A finite
         cost_limit permits rectangular inputs regardless of this option.
     cost_limit : float, default np.inf
-        A finite limit permits unmatched rows and columns, each charged half
-        the limit during optimization. The returned total excludes these
-        penalties. Negative finite limits are allowed. With np.inf, require
-        min(N, M) matches. NaN and negative infinity are invalid limits.
+        The value must be finite or positive infinity. A finite limit permits
+        unmatched rows and columns, each charged cost_limit / 2 during
+        optimization. The returned total excludes these penalties. Negative finite
+        limits are allowed. With np.inf, each problem requires min(N, M) matches.
     return_cost : bool, default True
-        Prepend the total assignment cost if True. The total is accumulated in
-        float64 from the selected input costs before any float32 downcast.
-        False returns only indices or pairs and skips the total-cost sum.
+        If True, return the total assignment cost first.
+        The solver sums this total in float64 from the selected original input
+        costs, before any float32 conversion. If False, return only indices or
+        pairs and skip the total-cost sum.
     precision : {'native', 'float32', 'float64'}, keyword-only, default 'native'
         Select the working cost precision. 'native' preserves float32/float64
         inputs and uses float64 for other real numeric inputs. Explicit
         'float32' or 'float64' converts the working costs. Finite costs and
         limits must fit the selected float32 range when float32 is used.
     output : {'indices', 'pairs'}, keyword-only, default 'indices'
-        'indices' returns aligned row and column arrays. 'pairs' returns a
-        two-column array whose rows contain (row_index, column_index).
+        'indices' returns aligned row and column index arrays. 'pairs' returns
+        an array with shape (K, 2), where each row contains
+        (row_index, column_index).
 
     Returns
     -------
     total_cost : float, optional
-        Present first only when return_cost=True. Sum of selected original
-        costs, excluding unmatched penalties, even for finite cost_limit.
+        Returned first only if return_cost is True. The total sums selected
+        original input costs and excludes unmatched penalties.
     rows, cols : np.ndarray, shape (K,), dtype int64
-        Returned when output='indices'. rows[i] is matched to cols[i]. Rows are
-        sorted in increasing order; indices refer to the original matrix.
+        Returned if output='indices'. Each rows[i] is matched to cols[i].
+        The row indices are sorted in increasing order, and both arrays refer to
+        the original cost matrix.
     pairs : np.ndarray, shape (K, 2), dtype int64
-        Returned instead of rows and cols when output='pairs'. K is at most
-        min(N, M); finite limits can choose fewer matches. An empty dimension
-        returns empty indices or pairs of shape (0, 2), with total 0.0.
+        Returned instead of rows and cols if output='pairs'. Each row contains
+        (row_index, column_index), with pairs sorted by row index.
+        K is at most min(N, M); finite limits can choose fewer matches. An empty
+        matrix dimension returns arrays with K=0 and total cost 0.0.
 
     Raises
     ------
@@ -246,15 +251,16 @@ def lapjvr(cost, extend_cost=False, double cost_limit=np.inf,
     LAPJVR uses Rust for required square completion. Rectangular and
     finite-limit problems use native Rust paths without square padding.
 
-    Required square problems use float64 search state even with float32 costs.
-    Rectangular and finite-limit paths use the selected working precision.
+    Required square problems use float64 potentials and distances even with
+    float32 costs. Rectangular and finite-limit paths use the selected working
+    precision.
     A finite limit optimizes rejection jointly with matching; it is not
     equivalent to filtering a required solution after solving. Equal-cost
     optima can produce different assignments across solvers or precisions.
 
-    Suitable contiguous arrays are borrowed and the native solve releases the
-    GIL. Other inputs may be copied for layout or precision conversion. Do not
-    mutate or resize the input or any alias until the call returns.
+    Suitable contiguous arrays are borrowed, and the native solve releases
+    the GIL. Other inputs may be copied for layout or precision conversion.
+    Do not mutate or resize the input or any alias until the call returns.
 
     See Also
     --------
@@ -278,62 +284,72 @@ def lapjvr(cost, extend_cost=False, double cost_limit=np.inf,
 def lapjvr_batch(costs, extend_cost=False, double cost_limit=np.inf,
                  return_cost=True, n_threads=0, *, precision="native",
                  output="indices"):
-    """Solve a batch with the Rust Jonker-Volgenant solver.
+    """Solve a batch of cost matrices with lapjvr.
 
-    Solve each (N, M) matrix in a (B, N, M) batch and preserve input order.
-    Return lists of aligned indices or pair arrays, with optional totals.
+    It runs lapjvr on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
+    Use output='pairs' for a list of arrays of assignment pairs.
 
     Parameters
     ----------
     costs : array_like, shape (B, N, M)
-        Real numeric assignment costs. With precision='native', float32 and
-        float64 inputs retain their cost precision. Other real numeric dtypes
-        are normalized to float64.
-        Positive infinity forbids an edge. Exclude NaN and negative infinity
-        before calling; the solver does not check for these invalid values.
+        A batch of cost matrices with real numeric values.
+        Each costs[b] contains one assignment problem. The solver accepts
+        array-like inputs and may copy them for layout or precision conversion.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        Permit rectangular problems when cost_limit is infinite. Rectangles
-        use native paths without square padding. A finite cost_limit permits
-        rectangular problems regardless of this option.
+        Permit rectangular inputs when cost_limit is infinite. Rectangular
+        problems use a native path without padding to a square matrix. A finite
+        cost_limit permits rectangular inputs regardless of this option.
     cost_limit : float, default np.inf
-        A finite limit permits unmatched rows and columns, each charged half
-        the limit during optimization. Returned totals exclude these penalties.
-        Negative finite limits are allowed. With np.inf, each problem requires
-        min(N, M) matches. NaN and negative infinity are invalid limits.
+        The value must be finite or positive infinity. A finite limit permits
+        unmatched rows and columns, each charged cost_limit / 2 during
+        optimization. The returned totals exclude these penalties. Negative finite
+        limits are allowed. With np.inf, each problem requires min(N, M) matches.
     return_cost : bool, default True
-        Prepend the totals array if True. Totals are accumulated in float64
-        from selected input costs before any float32 downcast. False returns
-        only index lists or pair lists and skips the total-cost sums.
+        If True, return the array of total costs first.
+        The solver sums each total in float64 from the selected original input
+        costs, before any float32 conversion. If False, return only index lists
+        or pair lists and skip the total-cost sums.
     n_threads : int or None, default 0
-        0 or None selects os.cpu_count(), using one if unavailable, capped by B.
-        Automatic mode may run small workloads serially. One or negative
-        values select serial execution. Positive values request reusable
-        native workers, capped by B; there is no fixed worker-count ceiling.
-        Empty and singleton batches do not require a worker pool.
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        One worker or at most one problem runs serially. Automatic mode may also
+        run small workloads serially. Otherwise, the solver reuses native worker
+        pools. Explicit positive values are not capped by the CPU count.
     precision : {'native', 'float32', 'float64'}, keyword-only, default 'native'
         Select the working cost precision. 'native' preserves float32/float64
         inputs and uses float64 for other real numeric inputs. Explicit
         'float32' or 'float64' converts the working costs. Finite costs and
         limits must fit the selected float32 range when float32 is used.
     output : {'indices', 'pairs'}, keyword-only, default 'indices'
-        'indices' returns two lists of aligned index arrays. 'pairs' returns
-        one list of two-column assignment arrays.
+        'indices' returns two lists of aligned row and column index arrays.
+        'pairs' returns one list of arrays with shape (K_b, 2), where each row
+        contains (row_index, column_index).
 
     Returns
     -------
     totals : np.ndarray, shape (B,), dtype float64, optional
-        Present first only when return_cost=True. Each total sums selected
-        original costs and excludes unmatched penalties.
+        Returned first only if return_cost is True. Each entry gives the total
+        cost for one original cost matrix, excluding unmatched penalties.
     rows_list, cols_list : list of np.ndarray
-        Returned when output='indices'. Each list has length B. Entry b has
-        shape (K_b,) and dtype int64, with rows sorted in increasing order.
-        rows_list[b][i] is matched to cols_list[b][i] in the original matrix.
+        Returned if output='indices'. Each list has length B. Entry b has
+        shape (K_b,) and dtype int64, with row indices sorted in increasing order.
+        rows_list[b][i] is matched to cols_list[b][i] in the original cost matrix.
     pairs_list : list of np.ndarray
-        Returned instead of the two index lists when output='pairs'. Entry b
-        has shape (K_b, 2) and dtype int64, containing (row_index, column_index).
+        Returned instead of the two index lists if output='pairs'. The list has
+        length B. Entry b has shape (K_b, 2) and dtype int64. Each row contains
+        (row_index, column_index), with pairs sorted by row index.
         K_b is at most min(N, M); finite limits can choose fewer matches.
-        B=0 returns empty lists and, when requested, empty totals. An empty
-        matrix dimension returns empty assignments and zero totals for each b.
+        An empty batch returns empty lists and, when requested, an empty totals
+        array. An empty matrix dimension returns empty assignments and zero
+        totals for each problem.
 
     Raises
     ------
@@ -356,15 +372,16 @@ def lapjvr_batch(costs, extend_cost=False, double cost_limit=np.inf,
     LAPJVR uses Rust for required square completion. Rectangular and
     finite-limit problems use native Rust paths without square padding.
 
-    Required square problems use float64 search state even with float32 costs.
-    Rectangular and finite-limit paths use the selected working precision.
+    Required square problems use float64 potentials and distances even with
+    float32 costs. Rectangular and finite-limit paths use the selected working
+    precision.
     Finite limits optimize rejection jointly with matching; they are not
     equivalent to filtering required solutions after solving. Equal-cost
     optima can produce different assignments across solvers or precisions.
 
-    The native solve releases the GIL. Suitable contiguous arrays are borrowed;
-    other inputs may be copied for layout or precision conversion. Do not
-    mutate or resize the input or any alias until the call returns.
+    Suitable contiguous arrays are borrowed, and the native solve releases
+    the GIL. Other inputs may be copied for layout or precision conversion.
+    Do not mutate or resize the input or any alias until the call returns.
 
     Both families share reusable native worker pools and workspaces. Calls may
     run concurrently, and each call keeps its own completion strategy. Avoid
@@ -397,53 +414,58 @@ def lapjvr_batch(costs, extend_cost=False, double cost_limit=np.inf,
 
 def lapjvh(cost, extend_cost=False, double cost_limit=np.inf,
            return_cost=True, *, precision="native", output="indices"):
-    """Solve a cost matrix with Rust initialization and C++ completion.
+    """Solve the linear assignment problem with the Jonker-Volgenant algorithm.
 
-    Return aligned row and column indices or assignment pairs. When
-    return_cost=True, prepend the total cost of the selected matches.
+    The function returns aligned (rows, cols) index arrays. Use output='pairs'
+    for assignment pairs with shape (K, 2). If return_cost is True, return the
+    total assignment cost first.
 
     Parameters
     ----------
     cost : array_like, shape (N, M)
-        Real numeric assignment costs. With precision='native', float32 and
-        float64 inputs retain their cost precision. Other real numeric dtypes
-        are normalized to float64.
-        Positive infinity forbids an edge. Exclude NaN and negative infinity
-        before calling; the solver does not check for these invalid values.
+        A 2D cost matrix with real numeric values. The solver accepts array-like
+        inputs and may copy them for layout or precision conversion.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        Permit a rectangular matrix when cost_limit is infinite. Rectangular
+        Permit rectangular inputs when cost_limit is infinite. Rectangular
         problems use a native path without padding to a square matrix. A finite
         cost_limit permits rectangular inputs regardless of this option.
     cost_limit : float, default np.inf
-        A finite limit permits unmatched rows and columns, each charged half
-        the limit during optimization. The returned total excludes these
-        penalties. Negative finite limits are allowed. With np.inf, require
-        min(N, M) matches. NaN and negative infinity are invalid limits.
+        The value must be finite or positive infinity. A finite limit permits
+        unmatched rows and columns, each charged cost_limit / 2 during
+        optimization. The returned total excludes these penalties. Negative finite
+        limits are allowed. With np.inf, each problem requires min(N, M) matches.
     return_cost : bool, default True
-        Prepend the total assignment cost if True. The total is accumulated in
-        float64 from the selected input costs before any float32 downcast.
-        False returns only indices or pairs and skips the total-cost sum.
+        If True, return the total assignment cost first.
+        The solver sums this total in float64 from the selected original input
+        costs, before any float32 conversion. If False, return only indices or
+        pairs and skip the total-cost sum.
     precision : {'native', 'float32', 'float64'}, keyword-only, default 'native'
         Select the working cost precision. 'native' preserves float32/float64
         inputs and uses float64 for other real numeric inputs. Explicit
         'float32' or 'float64' converts the working costs. Finite costs and
         limits must fit the selected float32 range when float32 is used.
     output : {'indices', 'pairs'}, keyword-only, default 'indices'
-        'indices' returns aligned row and column arrays. 'pairs' returns a
-        two-column array whose rows contain (row_index, column_index).
+        'indices' returns aligned row and column index arrays. 'pairs' returns
+        an array with shape (K, 2), where each row contains
+        (row_index, column_index).
 
     Returns
     -------
     total_cost : float, optional
-        Present first only when return_cost=True. Sum of selected original
-        costs, excluding unmatched penalties, even for finite cost_limit.
+        Returned first only if return_cost is True. The total sums selected
+        original input costs and excludes unmatched penalties.
     rows, cols : np.ndarray, shape (K,), dtype int64
-        Returned when output='indices'. rows[i] is matched to cols[i]. Rows are
-        sorted in increasing order; indices refer to the original matrix.
+        Returned if output='indices'. Each rows[i] is matched to cols[i].
+        The row indices are sorted in increasing order, and both arrays refer to
+        the original cost matrix.
     pairs : np.ndarray, shape (K, 2), dtype int64
-        Returned instead of rows and cols when output='pairs'. K is at most
-        min(N, M); finite limits can choose fewer matches. An empty dimension
-        returns empty indices or pairs of shape (0, 2), with total 0.0.
+        Returned instead of rows and cols if output='pairs'. Each row contains
+        (row_index, column_index), with pairs sorted by row index.
+        K is at most min(N, M); finite limits can choose fewer matches. An empty
+        matrix dimension returns arrays with K=0 and total cost 0.0.
 
     Raises
     ------
@@ -465,15 +487,16 @@ def lapjvh(cost, extend_cost=False, double cost_limit=np.inf,
     required square problems. Rectangular and finite-limit problems use
     the same native Rust paths as LAPJVR, without square padding.
 
-    Required square problems use float64 search state even with float32 costs.
-    Rectangular and finite-limit paths use the selected working precision.
+    Required square problems use float64 potentials and distances even with
+    float32 costs. Rectangular and finite-limit paths use the selected working
+    precision.
     A finite limit optimizes rejection jointly with matching; it is not
     equivalent to filtering a required solution after solving. Equal-cost
     optima can produce different assignments across solvers or precisions.
 
-    Suitable contiguous arrays are borrowed and the native solve releases the
-    GIL. Other inputs may be copied for layout or precision conversion. Do not
-    mutate or resize the input or any alias until the call returns.
+    Suitable contiguous arrays are borrowed, and the native solve releases
+    the GIL. Other inputs may be copied for layout or precision conversion.
+    Do not mutate or resize the input or any alias until the call returns.
 
     See Also
     --------
@@ -497,62 +520,72 @@ def lapjvh(cost, extend_cost=False, double cost_limit=np.inf,
 def lapjvh_batch(costs, extend_cost=False, double cost_limit=np.inf,
                  return_cost=True, n_threads=0, *, precision="native",
                  output="indices"):
-    """Solve a batch with Rust initialization and C++ completion.
+    """Solve a batch of cost matrices with lapjvh.
 
-    Solve each (N, M) matrix in a (B, N, M) batch and preserve input order.
-    Return lists of aligned indices or pair arrays, with optional totals.
+    It runs lapjvh on each (N, M) slice of the (B, N, M) batch.
+    It keeps the input order and supports execution with multiple threads.
+    Use output='pairs' for a list of arrays of assignment pairs.
 
     Parameters
     ----------
     costs : array_like, shape (B, N, M)
-        Real numeric assignment costs. With precision='native', float32 and
-        float64 inputs retain their cost precision. Other real numeric dtypes
-        are normalized to float64.
-        Positive infinity forbids an edge. Exclude NaN and negative infinity
-        before calling; the solver does not check for these invalid values.
+        A batch of cost matrices with real numeric values.
+        Each costs[b] contains one assignment problem. The solver accepts
+        array-like inputs and may copy them for layout or precision conversion.
+        The solver does not check for NaN (not a number) or negative infinity.
+        Check or remove these values before you call the solver. Results with these
+        values are undefined. Positive infinity can represent a forbidden assignment.
     extend_cost : bool, default False
-        Permit rectangular problems when cost_limit is infinite. Rectangles
-        use native paths without square padding. A finite cost_limit permits
-        rectangular problems regardless of this option.
+        Permit rectangular inputs when cost_limit is infinite. Rectangular
+        problems use a native path without padding to a square matrix. A finite
+        cost_limit permits rectangular inputs regardless of this option.
     cost_limit : float, default np.inf
-        A finite limit permits unmatched rows and columns, each charged half
-        the limit during optimization. Returned totals exclude these penalties.
-        Negative finite limits are allowed. With np.inf, each problem requires
-        min(N, M) matches. NaN and negative infinity are invalid limits.
+        The value must be finite or positive infinity. A finite limit permits
+        unmatched rows and columns, each charged cost_limit / 2 during
+        optimization. The returned totals exclude these penalties. Negative finite
+        limits are allowed. With np.inf, each problem requires min(N, M) matches.
     return_cost : bool, default True
-        Prepend the totals array if True. Totals are accumulated in float64
-        from selected input costs before any float32 downcast. False returns
-        only index lists or pair lists and skips the total-cost sums.
+        If True, return the array of total costs first.
+        The solver sums each total in float64 from the selected original input
+        costs, before any float32 conversion. If False, return only index lists
+        or pair lists and skip the total-cost sums.
     n_threads : int or None, default 0
-        0 or None selects os.cpu_count(), using one if unavailable, capped by B.
-        Automatic mode may run small workloads serially. One or negative
-        values select serial execution. Positive values request reusable
-        native workers, capped by B; there is no fixed worker-count ceiling.
-        Empty and singleton batches do not require a worker pool.
+        This option sets the number of worker threads:
+
+        - 0 or None: Use os.cpu_count(). If the CPU count is unavailable, use 1.
+        - Negative values: Use one worker.
+        - Positive values: Use at most this many workers, limited to the batch size.
+
+        One worker or at most one problem runs serially. Automatic mode may also
+        run small workloads serially. Otherwise, the solver reuses native worker
+        pools. Explicit positive values are not capped by the CPU count.
     precision : {'native', 'float32', 'float64'}, keyword-only, default 'native'
         Select the working cost precision. 'native' preserves float32/float64
         inputs and uses float64 for other real numeric inputs. Explicit
         'float32' or 'float64' converts the working costs. Finite costs and
         limits must fit the selected float32 range when float32 is used.
     output : {'indices', 'pairs'}, keyword-only, default 'indices'
-        'indices' returns two lists of aligned index arrays. 'pairs' returns
-        one list of two-column assignment arrays.
+        'indices' returns two lists of aligned row and column index arrays.
+        'pairs' returns one list of arrays with shape (K_b, 2), where each row
+        contains (row_index, column_index).
 
     Returns
     -------
     totals : np.ndarray, shape (B,), dtype float64, optional
-        Present first only when return_cost=True. Each total sums selected
-        original costs and excludes unmatched penalties.
+        Returned first only if return_cost is True. Each entry gives the total
+        cost for one original cost matrix, excluding unmatched penalties.
     rows_list, cols_list : list of np.ndarray
-        Returned when output='indices'. Each list has length B. Entry b has
-        shape (K_b,) and dtype int64, with rows sorted in increasing order.
-        rows_list[b][i] is matched to cols_list[b][i] in the original matrix.
+        Returned if output='indices'. Each list has length B. Entry b has
+        shape (K_b,) and dtype int64, with row indices sorted in increasing order.
+        rows_list[b][i] is matched to cols_list[b][i] in the original cost matrix.
     pairs_list : list of np.ndarray
-        Returned instead of the two index lists when output='pairs'. Entry b
-        has shape (K_b, 2) and dtype int64, containing (row_index, column_index).
+        Returned instead of the two index lists if output='pairs'. The list has
+        length B. Entry b has shape (K_b, 2) and dtype int64. Each row contains
+        (row_index, column_index), with pairs sorted by row index.
         K_b is at most min(N, M); finite limits can choose fewer matches.
-        B=0 returns empty lists and, when requested, empty totals. An empty
-        matrix dimension returns empty assignments and zero totals for each b.
+        An empty batch returns empty lists and, when requested, an empty totals
+        array. An empty matrix dimension returns empty assignments and zero
+        totals for each problem.
 
     Raises
     ------
@@ -576,15 +609,16 @@ def lapjvh_batch(costs, extend_cost=False, double cost_limit=np.inf,
     required square problems. Rectangular and finite-limit problems use
     the same native Rust paths as LAPJVR, without square padding.
 
-    Required square problems use float64 search state even with float32 costs.
-    Rectangular and finite-limit paths use the selected working precision.
+    Required square problems use float64 potentials and distances even with
+    float32 costs. Rectangular and finite-limit paths use the selected working
+    precision.
     Finite limits optimize rejection jointly with matching; they are not
     equivalent to filtering required solutions after solving. Equal-cost
     optima can produce different assignments across solvers or precisions.
 
-    The native solve releases the GIL. Suitable contiguous arrays are borrowed;
-    other inputs may be copied for layout or precision conversion. Do not
-    mutate or resize the input or any alias until the call returns.
+    Suitable contiguous arrays are borrowed, and the native solve releases
+    the GIL. Other inputs may be copied for layout or precision conversion.
+    Do not mutate or resize the input or any alias until the call returns.
 
     Both families share reusable native worker pools and workspaces. Calls may
     run concurrently, and each call keeps its own completion strategy. Avoid

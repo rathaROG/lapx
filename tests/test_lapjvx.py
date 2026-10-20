@@ -8,7 +8,7 @@ def total_from_pairs(C, rows, cols):
     rr = np.asarray(rows, dtype=int)
     cc = np.asarray(cols, dtype=int)
     vals = C[rr, cc].astype(np.float64)
-    vals = vals[np.isfinite(vals)]
+    assert np.isfinite(vals).all(), 'Solver selected a forbidden cost'
     return float(vals.sum()) if vals.size else 0.0
 
 
@@ -127,16 +127,14 @@ def test_crosscheck_lapjv_total_matches_on_square():
     assert np.isclose(tot_vx, total_from_pairs(C, rvx, cvx), rtol=1e-8, atol=1e-8)
 
 
-scipy_available = True
-try:
-    from scipy.optimize import linear_sum_assignment
-except Exception:
-    scipy_available = False
-
-
-@pytest.mark.skipif(not scipy_available, reason="SciPy not available for cross-check")
 @pytest.mark.parametrize("M,N", [(20, 20), (24, 37), (60, 30)])
 def test_crosscheck_scipy_totals(M, N):
+    try:
+        from scipy.optimize import linear_sum_assignment
+    except ModuleNotFoundError as error:
+        if error.name in ('scipy', 'scipy.optimize'):
+            pytest.skip('SciPy is not installed for this independent cross-check')
+        raise
     rng = np.random.default_rng(5)
     C = rng.normal(0.0, 10.0, size=(M, N)).astype(np.float64)
 

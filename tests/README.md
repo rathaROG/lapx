@@ -27,16 +27,18 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
   ```
 
 - To run one test function, use the file name and function name.
-  This example runs [test_single_matrix_solvers_smoke](https://github.com/rathaROG/lapx/blob/v0.9.1/tests/test_smoke.py#L137) in [test_smoke.py](https://github.com/rathaROG/lapx/blob/main/tests/test_smoke.py):
+  This example runs `test_single_matrix_solvers_smoke` in [test_smoke.py](https://github.com/rathaROG/lapx/blob/main/tests/test_smoke.py):
   ```bash
   python -m pytest -v test_smoke.py::test_single_matrix_solvers_smoke
   ```
 
 **Notes**:
 
-- To test a local build, run `python -m pytest -c tests/pytest.ini -q tests` from the repository root.
-  This command uses the local `lap/` package. It uses the same timeout and marker settings as continuous integration (CI).
-  Tests that run from `tests/` can import the installed package instead. That package must contain the features under test.
+- To test an installed wheel or editable build, run pytest from `tests/` so the
+  repository's source package does not shadow the installed package.
+  Running `python -m pytest -c tests/pytest.ini -q tests` from the repository root
+  instead tests the source package and requires its native extensions to be built in place.
+  Both commands use the same timeout and marker settings as continuous integration (CI).
 - The repository includes test data such as [cost_eps.csv.gz](https://github.com/rathaROG/lapx/blob/main/tests/cost_eps.csv.gz).
   Tests use these files without additional setup.
 - `test_large_cost_consistency.py` checks costs in the billions. Its cases cover:
@@ -54,7 +56,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 
 | Area | Files |
 | --- | --- |
-| Basic API sanity checks | `test_smoke.py` |
+| Dense assignment validity and exhaustive small-problem optima | `test_smoke.py` |
 | Individual solver behavior | `test_lapjv.py`, `test_lapjvx.py`, `test_lapjvxa_sa.py`, `test_lapmod.py` |
 | Shared dense and batch behavior | `test_single_solvers*.py`, `test_batch_solvers*.py` |
 | Thread-count normalization and pool usage across all batch solvers | `test_batch_threads.py` |
@@ -80,6 +82,19 @@ Keep CI checks deterministic and small.
 `test_input_contracts.py` checks invalid dimensions, exceptions from workers, and recovery after errors.
 It uses broadcast views to check sparse size limits.
 Empty-input tests fail if they encounter unexpected exceptions.
+
+The dense smoke tests require full matching cardinality, integer indices,
+in-bounds unique assignments, consistent inverse mappings, and correct totals.
+They compare each single and batch solver with exhaustive enumeration on small
+square and rectangular matrices. They fail if a required export cannot load.
+Only the R/H families may be absent in an intentionally legacy-only build.
+
+Numerical tests also use SciPy and fixed regression optima as independent references.
+Batch-versus-single and thread-reuse comparisons check API consistency; they do
+not establish optimality on their own. Precision-specific tests compare the
+represented problem at that precision. Equal-cost solutions may use different
+pairs; exact assignment comparisons are reserved for unique optima or explicit
+ordering and determinism checks.
 
 The sparse path-search cases in `test_lapmod.py` check the Python solver and each native path version.
 They compare results with every possible assignment on matrices no larger than 4x4 (24 permutations).
@@ -129,6 +144,10 @@ Cross-platform CI results must be obtained before claiming platform qualificatio
 
 ## Static type checks
 
+`lapjv`, `lapjvx`, `lapjvxa`, and `lapjvc` export their native functions directly.
+Their `.pyi` files and native source docstrings carry matching public documentation.
+Update both when changing these APIs.
+
 This optional developer tool checks return-type annotations separately from the runtime tests.
 It requires two additional packages: `pyright` and `typing_extensions`.
 The `test_requirements.txt` file does not install these packages.
@@ -148,6 +167,6 @@ From the repository root, use `pyright tests/typing/return_cost.py` instead.
 The check covers all public solvers with default, keyword, positional, and dynamic `return_cost` values.
 Cases that expect errors check that the type checker still rejects invalid arguments and incorrect tuple unpacking.
 
-Neither `pytest` nor the current GitHub test workflows run this check automatically.
+Pytest does not run this check. The R/H integration workflow runs it separately.
 You do not need these additional packages to use `lapx` or run its pytest suite.
 The static check does not execute the solvers or affect their runtime performance.

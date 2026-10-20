@@ -115,7 +115,7 @@ def get_sparse_1kx1k_int():
 
 def get_dense_4kx4k_int():
     cost = get_dense_int(4000, 100, hard=False, seed=1299821)
-    opt = 1000.
+    opt = 4000.
     return cost, opt
 
 

@@ -17,6 +17,7 @@ from typing_extensions import assert_type
 def check_lapjv(
     cost: np.ndarray, flag: bool,
 ) -> None:
+    assert_type(lap.lapjv(cost=cost, return_cost=False), Tuple[np.ndarray, np.ndarray])
     assert_type(
         lap.lapjv(cost),
         Tuple[float, np.ndarray, np.ndarray],
@@ -57,6 +58,7 @@ def check_lapjv(
 def check_lapjvc(
     cost: np.ndarray, flag: bool,
 ) -> None:
+    assert_type(lap.lapjvc(cost=cost, return_cost=False), Tuple[np.ndarray, np.ndarray])
     assert_type(
         lap.lapjvc(cost),
         Tuple[float, np.ndarray, np.ndarray],
@@ -97,6 +99,7 @@ def check_lapjvc(
 def check_lapjvx(
     cost: np.ndarray, flag: bool,
 ) -> None:
+    assert_type(lap.lapjvx(cost=cost, return_cost=False), Tuple[np.ndarray, np.ndarray])
     assert_type(
         lap.lapjvx(cost),
         Tuple[float, np.ndarray, np.ndarray],
@@ -137,6 +140,7 @@ def check_lapjvx(
 def check_lapjvxa(
     cost: np.ndarray, flag: bool,
 ) -> None:
+    assert_type(lap.lapjvxa(cost=cost, return_cost=False), np.ndarray)
     assert_type(
         lap.lapjvxa(cost),
         Tuple[float, np.ndarray],

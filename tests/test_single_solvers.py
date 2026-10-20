@@ -8,7 +8,7 @@ def _pairs_total(C, rows, cols):
     rr = np.asarray(rows, dtype=int)
     cc = np.asarray(cols, dtype=int)
     vals = C[rr, cc].astype(np.float64)
-    vals = vals[np.isfinite(vals)]
+    assert np.isfinite(vals).all(), 'Solver selected a forbidden cost'
     return float(vals.sum()) if vals.size else 0.0
 
 

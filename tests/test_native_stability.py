@@ -1,12 +1,82 @@
 """Check for regressions in native solvers through the public wrappers."""
 
 from concurrent.futures import ThreadPoolExecutor
+import ast
+import importlib
+import inspect
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 import lap
 from lap import _lapjvs
+
+
+@pytest.mark.parametrize('name,module', [
+    ('lapjv', '_lapjv'), ('lapjvx', '_lapjvx'),
+    ('lapjvxa', '_lapjvx'), ('lapjvc', '_lapjvc'),
+])
+def test_dense_native_exports_keep_public_signature_and_docs(name, module):
+    function = getattr(lap, name)
+    assert function is getattr(importlib.import_module('lap.' + module), name)
+    assert function.__name__ == name
+    assert name in lap.__all__ and name in dir(lap)
+    parameters = inspect.signature(function).parameters
+    expected = [('cost', inspect.Parameter.empty)]
+    if name != 'lapjvc':
+        expected += [('extend_cost', False), ('cost_limit', np.inf)]
+    expected += [('return_cost', True)]
+    assert list(parameters) == [key for key, _ in expected]
+    for key, default in expected:
+        assert parameters[key].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+        assert parameters[key].default == default
+
+    stub = Path(lap.__file__).with_name(module + '.pyi')
+    declarations = ast.parse(stub.read_text(encoding='utf-8'))
+    declaration = next(index for index, node in enumerate(declarations.body)
+                       if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
+                       and node.target.id == name)
+    docstring = declarations.body[declaration + 1]
+    assert isinstance(docstring, ast.Expr) and isinstance(docstring.value, ast.Constant)
+    assert isinstance(docstring.value.value, str), f'{name} is missing its stub docstring'
+    stub_doc = inspect.cleandoc(docstring.value.value)
+    native_doc = inspect.getdoc(function)
+    assert native_doc is not None, f'{name} is missing its native docstring'
+    # Cython embeds the signature before the actual docstring.
+    if native_doc.startswith(name + '('):
+        native_doc = native_doc.split('\n\n', 1)[1]
+    assert inspect.cleandoc(native_doc) == stub_doc
+    assert 'Parameters\n----------' in native_doc
+    assert 'Returns\n-------' in native_doc
+    assert 'Notes\n-----' in native_doc
+
+
+@pytest.mark.parametrize('name', ['lapjv', 'lapjvx', 'lapjvxa', 'lapjvc'])
+@pytest.mark.parametrize('dtype', [np.int32, np.int64, np.float32, np.float64])
+def test_dense_native_exports_preserve_keyword_and_positional_calls(name, dtype):
+    function = getattr(lap, name)
+    cost = np.array([[9, 1, 8], [1, 9, 8], [8, 8, 2]], dtype=dtype)
+    cost.setflags(write=False)
+    expected = function(cost)
+    assert expected[0] == 4.0
+    for return_cost in (False, True):
+        positional = ((cost, return_cost) if name == 'lapjvc' else
+                      (cost, False, np.inf, return_cost))
+        actual = function(cost=cost, return_cost=return_cost)
+        wanted = expected if return_cost else (expected[1] if name == 'lapjvxa' else expected[1:])
+        if name == 'lapjvxa' and not return_cost:
+            np.testing.assert_array_equal(actual, wanted)
+            np.testing.assert_array_equal(function(*positional), wanted)
+        else:
+            for result in (actual, function(*positional)):
+                assert isinstance(result, tuple) and len(result) == len(wanted)
+                for value, reference in zip(result, wanted):
+                    np.testing.assert_array_equal(value, reference)
+        with pytest.raises(TypeError):
+            function(costs=cost, return_cost=return_cost)
+        with pytest.raises(TypeError):
+            function(cost, cost=cost, return_cost=return_cost)
 
 
 @pytest.mark.parametrize('solver', [lap.lapjv, lap.lapjvx, lap.lapjvxa])
