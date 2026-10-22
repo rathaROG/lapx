@@ -175,7 +175,7 @@ def test(n, m, debug=False, *, seed=2026, repeats=3):
         if hasattr(lap, name):
             solvers.append((name, solve))
         else:
-            print(f'# Skipping {name}: the installed lapx does not include this family.')
+            print(f'# Skipping {name}: the installed LAPX does not include this family.')
 
     solvers.insert(0, ('scipy', do_scipy))
     order_rng = np.random.default_rng([seed, n, m, 1])

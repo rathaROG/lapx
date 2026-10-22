@@ -115,7 +115,7 @@ workflows use `--quick --repeats 3`. The [batch](.github/workflows/benchmark_bat
 `--quick --repeats 2 --seed 2026`.
 They build the checkout and check R/H availability before benchmarking.
 
-### Historical results (lapx 0.11.0rc1)
+### Historical results (LAPX 0.11.0rc1)
 
 R/H single and batch results use float64 costs and `return_cost=False`.
 See each case for matrix sizes, thread counts, and timing settings.
@@ -539,7 +539,7 @@ The full run uses thresholds **0.05, 0.1, 0.5, 1.0, and 1e9**.
 python benchmark_tracking.py --quick --repeats 3 --seed 2026
 ```
 
-<details><summary>📊 Historical tracking results (lapx 0.11.0rc1):</summary><br>
+<details><summary>📊 Historical tracking results (LAPX 0.11.0rc1):</summary><br>
 
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
 

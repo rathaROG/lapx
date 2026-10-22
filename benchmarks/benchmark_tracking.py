@@ -1,6 +1,6 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 
-"""Benchmark lapx assignment methods for object tracking.
+"""Benchmark LAPX assignment methods for object tracking.
 
 This module compares LAPX solvers (lapjv, lapjvx, lapjvc, lapjvs, lapjvr, lapjvh)
 with SciPy's :func:`scipy.optimize.linear_sum_assignment` (LSA). The object
@@ -357,7 +357,7 @@ def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
         if hasattr(lap, backend):
             solvers.append((f'LAPX {backend.upper()}', solve))
         else:
-            print(f'# Skipping {backend}: unavailable in the installed lapx.')
+            print(f'# Skipping {backend}: unavailable in the installed LAPX.')
     header = ['Size'] + [name for name, _ in solvers]
     all_results = [{"times": [], "remarks": []} for _ in solvers]
     position_records = [[] for _ in solvers]

@@ -218,11 +218,11 @@ def benchmark_solvers(batch_shape, n_threads, density=None, return_cost=False,
             batch_solvers.append((f'lapx-batch-{backend[3:]}',
                                   partial(solver, precision='native', output='pairs'), 'pairs'))
         else:
-            print(f'  Skipping {backend}_batch: unavailable in the installed lapx.')
+            print(f'  Skipping {backend}_batch: unavailable in the installed LAPX.')
         if hasattr(lap, backend):
             loop_backends.append(backend)
         else:
-            print(f'  Skipping {backend} loop: unavailable in the installed lapx.')
+            print(f'  Skipping {backend} loop: unavailable in the installed LAPX.')
 
     cases = [(label, partial(solver, return_cost=return_cost,
                              extend_cost=extend_cost, n_threads=n_threads), assignment_format)
@@ -323,7 +323,7 @@ def main():
         benchmark_sparse_cases(sparse_cases, n_threads, return_cost=args.cost,
                                seed=args.seed, repeats=args.repeats)
     else:
-        print('\n# Sparse batch comparison skipped: the installed lapx has no lapmod_batch.')
+        print('\n# Sparse batch comparison skipped: the installed LAPX has no lapmod_batch.')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Ratha SIV | MIT License
-// Rectangular JV: row reductions adapted from lapx's scalar lapjvs strategy,
+// Rectangular JV: row reductions adapted from LAPX's scalar lapjvs strategy,
 // followed by a shortest augmenting path with rectangular dual constraints.
 
 use super::{required_row_minima, resize, Cost, Error, FREE};

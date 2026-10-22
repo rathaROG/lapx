@@ -5,7 +5,7 @@
 - Issue #21 concerns extension of a rectangular matrix with only negative values in lapjv.
   https://github.com/gatagat/lap/issues/21
 
-These tests check the lapx solvers lapjv, lapjvx, lapjvxa, lapjvs, and lapjvsa.
+These tests check the LAPX solvers lapjv, lapjvx, lapjvxa, lapjvs, and lapjvsa.
 They prevent regressions in padding and extension of rectangular matrices.
 """
 
