@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
-"""Package coexistence, family identity, and mixed-family worker reuse."""
+"""Package coexistence, family identity, mixed-family worker reuse, and batch result paths."""
 
 from concurrent.futures import ThreadPoolExecutor
 import importlib
@@ -73,3 +73,69 @@ def test_alternating_and_concurrent_families(dtype, output, return_cost):
         with pytest.raises(ValueError, match='batch index 2'):
             family(bad, n_threads=2)
     run(tasks[0])
+
+
+def split(result, output, return_cost):
+    """Return (totals or None, per-problem arrays) for single or batch results."""
+    total = result[0] if return_cost else None
+    arrays = result[1:] if return_cost else result
+    if output == 'pairs':
+        arrays = (arrays[0],) if return_cost else (arrays,)
+    return total, arrays
+
+
+def assert_matches_single_solves(name, costs, batch, output, return_cost, **options):
+    totals, arrays = split(batch, output, return_cost)
+    for index, cost in enumerate(costs):
+        single = getattr(lap, name)(cost, output=output, return_cost=return_cost, **options)
+        total, expected = split(single, output, return_cost)
+        for column, wanted in zip(arrays, expected):
+            assert column[index].dtype == np.int64
+            np.testing.assert_array_equal(column[index], wanted)
+        if return_cost:
+            assert totals[index] == total
+
+
+@pytest.mark.parametrize('name', ['lapjvr', 'lapjvh'])
+@pytest.mark.parametrize('shape', [(2000, 5, 5), (300, 12, 8)])
+@pytest.mark.parametrize('limit', [np.inf, .5])
+@pytest.mark.parametrize('output', ['indices', 'pairs'])
+def test_large_parallel_batches_match_single_solves(name, shape, limit, output):
+    costs = np.random.default_rng(shape[0]).random(shape)
+    options = dict(extend_cost=True, cost_limit=limit)
+    batch = getattr(lap, name + '_batch')(costs, n_threads=4, output=output, **options)
+    assert_matches_single_solves(name, costs, batch, output, True, **options)
+
+
+@pytest.mark.parametrize('name', ['lapjvr', 'lapjvh'])
+def test_failure_among_many_problems_reports_lowest_index(name):
+    costs = np.random.default_rng(70).random((2000, 5, 5))
+    bad = costs.copy()
+    for index in (300, 70, 1999):
+        bad[index, 2, :] = np.inf
+    family = getattr(lap, name + '_batch')
+    with pytest.raises(ValueError, match='batch index 70$'):
+        family(bad, n_threads=4)
+    assert_matches_single_solves(name, costs, family(costs, n_threads=4), 'indices', True)
+
+
+@pytest.mark.parametrize('name', ['lapjvr', 'lapjvh'])
+@pytest.mark.parametrize('size', [7, 8, 31, 32, 33])
+@pytest.mark.parametrize('limit', [np.inf, 1e9, .05])
+@pytest.mark.parametrize('output', ['indices', 'pairs'])
+@pytest.mark.parametrize('return_cost', [False, True])
+def test_result_unpacking_boundaries(name, size, limit, output, return_cost):
+    # Infinite and very large finite limits match every row; a tight limit leaves
+    # rows unmatched, so each batch size meets both result-construction paths.
+    costs = np.random.default_rng(size).random((size, 6, 9))
+    options = dict(extend_cost=True, cost_limit=limit)
+    batch = getattr(lap, name + '_batch')(costs, n_threads=2, output=output,
+                                          return_cost=return_cost, **options)
+    assert_matches_single_solves(name, costs, batch, output, return_cost, **options)
+    _, arrays = split(batch, output, return_cost)
+    counts = [len(item) for item in arrays[0]]
+    assert len(counts) == size and (min(counts) < 6) == (limit == .05)
+    first, second = arrays[0][0], arrays[0][1]
+    before = second.copy()
+    first[...] = -1
+    np.testing.assert_array_equal(second, before)

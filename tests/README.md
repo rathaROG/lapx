@@ -66,7 +66,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 | Build-option checks without a native compiler | `test_setup.py` |
 | Shared test data and conversions | `conftest.py`, `test_utils.py`, `cost_eps.csv.gz` |
 | Rust/hybrid contract, original-value objectives, and numerical regressions | `test_lapjvr.py` (runs once per family) |
-| R/H coexistence and concurrent worker reuse | `test_lapjv_rh.py` |
+| R/H coexistence, concurrent worker reuse, and batch result paths (large parallel batches, lowest failing index, result construction at batch sizes 7-33) | `test_lapjv_rh.py` |
 | Static return-type checks | `typing/return_cost.py` |
 
 Add new cases to the relevant existing file.
