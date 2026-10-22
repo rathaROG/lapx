@@ -5,6 +5,11 @@ problems with infinite `cost_limit`, completion uses Rust (`lapjvr`) or C++
 (`lapjvh`). Rectangular and finite-limit problems use the same Rust paths
 without square padding. Both families provide single and batch functions.
 
+If you don't need the other LAPX solvers, you can use the dedicated
+[laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or
+[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead; each provides
+the same options through `lapjv` and `lapjv_batch`.
+
 ## Build and install
 
 Prebuilt wheels require no Rust compiler. To build from source, install stable

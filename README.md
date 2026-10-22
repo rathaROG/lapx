@@ -346,6 +346,11 @@ problems are solved without square padding. See the
 [API guide](https://github.com/rathaROG/lapx/blob/main/src/_lapjvr/README.md)
 for full signatures, return types, and precision rules.
 
+If you don't need the other LAPX solvers, you can use the dedicated
+[laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or
+[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead; each provides
+the same options through `lapjv` and `lapjv_batch`.
+
 ---
 
 ### 🅱️ Batch Solvers 🗂️
