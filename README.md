@@ -350,6 +350,9 @@ If you don't need the other LAPX solvers, you can use the dedicated
 [laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or
 [lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead; each provides
 the same options through `lapjv` and `lapjv_batch`.
+The [paper](https://github.com/rathaROG/lap-paper/blob/main/output/pdf/native_rectangular_assignment.pdf)
+([repository](https://github.com/rathaROG/lap-paper)) describes this solver and
+compares it with the other LAPX solvers and SciPy.
 
 ---
 
