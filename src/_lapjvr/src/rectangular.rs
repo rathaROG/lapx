@@ -271,10 +271,13 @@ impl<T: Cost> Rectangular<T> {
             profile_count!(self, augmentations, 1);
             // Tighten this free row's dual, including rows that have never
             // been assigned and can contain negative costs.
+            // Keep root's reduced costs in d; the first relaxation below
+            // reuses them instead of reading the row again.
             let row = &costs[root * cols..(root + 1) * cols];
             let mut min = if OPTIONAL { penalty } else { T::INF };
             for j in 0..cols {
                 let value = row[j] - v[j];
+                d[j] = value;
                 if value < min {
                     min = value;
                 }
@@ -285,8 +288,6 @@ impl<T: Cost> Rectangular<T> {
             }
             u[root] = min;
             x[root] = FREE;
-            d.fill(T::INF);
-            pred.fill(FREE);
             let mut low = 0;
             let mut current = root;
             let mut distance = T::default();
@@ -305,17 +306,32 @@ impl<T: Cost> Rectangular<T> {
                 let mut best = T::INF;
                 let mut best_pos = FREE;
                 profile_count!(self, relaxation_columns, cols - low);
-                for (offset, &j) in columns[low..].iter().enumerate() {
-                    let candidate = distance + (row[j] - v[j] - row_potential);
-                    if candidate < d[j] {
+                if low == 0 {
+                    // Root relaxation in identity order: same values as relaxing
+                    // from d = inf. Infinite columns get pred = root, but cannot
+                    // be selected while their distance remains infinite.
+                    for j in 0..cols {
+                        let candidate = distance + (d[j] - row_potential);
                         d[j] = candidate;
                         pred[j] = current;
+                        if candidate < best || (candidate == best && y[j] == FREE) {
+                            best = candidate;
+                            best_pos = j;
+                        }
                     }
-                    // On equal distances prefer a free column to terminate the
-                    // search promptly. This choice is independent of workers.
-                    if d[j] < best || (d[j] == best && y[j] == FREE) {
-                        best = d[j];
-                        best_pos = low + offset;
+                } else {
+                    for (offset, &j) in columns[low..].iter().enumerate() {
+                        let candidate = distance + (row[j] - v[j] - row_potential);
+                        if candidate < d[j] {
+                            d[j] = candidate;
+                            pred[j] = current;
+                        }
+                        // On equal distances prefer a free column to terminate the
+                        // search promptly. This choice is independent of workers.
+                        if d[j] < best || (d[j] == best && y[j] == FREE) {
+                            best = d[j];
+                            best_pos = low + offset;
+                        }
                     }
                 }
                 if OPTIONAL && dummy_distance.finite() && dummy_distance <= best {
@@ -354,6 +370,7 @@ impl<T: Cost> Rectangular<T> {
                 }
             }
             let mut j = sink;
+            let mut reached_root = false;
             for _ in 0..rows {
                 let i = if OPTIONAL && j == FREE {
                     dummy_row
@@ -369,12 +386,17 @@ impl<T: Cost> Rectangular<T> {
                 }
                 x[i] = j;
                 if i == root {
+                    reached_root = true;
                     break;
                 }
                 if old == FREE {
                     return Err(Error::Internal);
                 }
                 j = old;
+            }
+            // An augmenting path visits each row at most once.
+            if !reached_root {
+                return Err(Error::Internal);
             }
         }
         profile_finish!(self, augment_ns, phase_timer);
@@ -384,6 +406,9 @@ impl<T: Cost> Rectangular<T> {
             }
             if j >= cols || !costs[i * cols + j].finite() {
                 return Err(Error::Infeasible);
+            }
+            if y[j] != i {
+                return Err(Error::Internal);
             }
         }
         Ok(())

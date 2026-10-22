@@ -162,11 +162,25 @@ cdef object _solve(object costs, bint batch, bint extend_cost, double limit,
             raise RuntimeError("LAPJVH requires a build with C++ completion support")
         raise RuntimeError("Rust solver failed internally" + suffix)
     if batch:
+        # A successful required solve matches k pairs in every problem. With a
+        # finite limit, check only where the reduction costs less than slicing.
+        # Tiny batches slice faster than they build the intermediate views.
+        if b >= 8 and (not isfinite(limit) or (b >= 32 and counts.min() == k)):
+            # Row iteration builds the same views in C instead of slicing
+            # each problem from Python.
+            if pairs:
+                arrays = list(result.reshape((b, k, 2)))
+                return (totals, arrays) if return_cost else arrays
+            rows = list(result[:, :k])
+            cols = list(result[:, k:])
+            return (totals, rows, cols) if return_cost else (rows, cols)
+        # Convert the counts once; indexing a NumPy array per item boxes a scalar.
+        sizes = counts.tolist()
         if pairs:
-            arrays = [result[i].reshape((k, 2))[:int(counts[i])] for i in range(b)]
+            arrays = [result[i].reshape((k, 2))[:sizes[i]] for i in range(b)]
             return (totals, arrays) if return_cost else arrays
-        rows = [result[i, :int(counts[i])] for i in range(b)]
-        cols = [result[i, k:k + int(counts[i])] for i in range(b)]
+        rows = [result[i, :sizes[i]] for i in range(b)]
+        cols = [result[i, k:k + sizes[i]] for i in range(b)]
         return (totals, rows, cols) if return_cost else (rows, cols)
     count = single_count
     if pairs:

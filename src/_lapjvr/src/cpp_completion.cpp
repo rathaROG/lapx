@@ -83,7 +83,8 @@ static int augment(const Cost* __restrict costs, std::size_t n, std::size_t coun
             v[j] = v[j] + d[j] - minimum;
         }
         auto j = end;
-        for (std::size_t steps = 0; steps < n; ++steps) {
+        std::size_t steps = 0;
+        for (; steps < n; ++steps) {
             const auto i = pred[j];
             if (i >= n) return 2;
             y[j] = i;
@@ -93,6 +94,8 @@ static int augment(const Cost* __restrict costs, std::size_t n, std::size_t coun
             if (previous >= n) return 2;
             j = previous;
         }
+        // An augmenting path visits each row at most once.
+        if (steps == n) return 2;
     }
     return 0;
 }

@@ -30,7 +30,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.3.1
+          python -m pip install cibuildwheel==4.3.3
       - name: Locate MSVC runtime DLLs for wheel repair
         shell: pwsh
         run: |
@@ -78,7 +78,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.3.1
+          python -m pip install cibuildwheel==4.3.3
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -104,7 +104,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.3.1
+          python -m pip install cibuildwheel==4.3.3
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -134,7 +134,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.3.1
+          python -m pip install cibuildwheel==4.3.3
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
@@ -160,7 +160,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install cibuildwheel==4.3.1
+          python -m pip install cibuildwheel==4.3.3
       - name: Build wheels
         run: python -m cibuildwheel --config-file .github/cibuildwheel-linux-arm.toml --output-dir wheelhouse
         env:

@@ -255,6 +255,9 @@ impl Workspace {
             if j >= n || !costs[i * n + j].finite() {
                 return Err(Error::Infeasible);
             }
+            if self.y[j] != i {
+                return Err(Error::Internal);
+            }
         }
         Ok(&self.x[..n])
     }
@@ -344,18 +347,24 @@ impl Workspace {
                 v[j] = v[j] + d[j] - min;
             }
             let mut j = end;
+            let mut reached_root = false;
             for _ in 0..n {
                 let i = pred[j];
                 y[j] = i;
                 let previous = x[i];
                 x[i] = j;
                 if i == free_row {
+                    reached_root = true;
                     break;
                 }
                 if previous == FREE {
                     return Err(Error::Internal);
                 }
                 j = previous;
+            }
+            // An augmenting path visits each row at most once.
+            if !reached_root {
+                return Err(Error::Internal);
             }
         }
         Ok(())

@@ -399,10 +399,13 @@ def main_setup():
 
     # C++ standard on different platforms
     if sys.platform == "win32":
-        # extra_compile_args = ["/std:c++17"]
-        extra_compile_args = ["/std:c++latest"]
+        # MSVC 14.44: /std:c++17 is neutral or faster for most solvers, but
+        # lapjvs/lapjvsa are up to ~8% faster with /std:c++latest.
+        extra_compile_args = ["/std:c++17"]
+        jvs_compile_args = ["/std:c++latest"]
     else:
         extra_compile_args = ["-std=c++17"]
+        jvs_compile_args = extra_compile_args
 
     # Extension for lapjv/lapmod
     ext_jv = Extension(
@@ -437,7 +440,7 @@ def main_setup():
         sources=[lapjvscpp],
         include_dirs=[include_numpy(), SRC_DIR_JVS, PACKAGE_PATH],
         language='c++',
-        extra_compile_args=extra_compile_args,
+        extra_compile_args=jvs_compile_args,
     )
 
     # Safe, high-performance Cython directives
