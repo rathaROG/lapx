@@ -92,7 +92,7 @@ Run examples outside the checkout so Python loads the installed package.
 > Source builds include both families by default. Set `LAPX_BUILD_RUST=0`
 > to build only the other solvers without a Rust toolchain.
 >
-> See the [R/H API and build guide](https://github.com/rathaROG/lapx/blob/main/src/_lapjvr/README.md) and the [historical comparisons with JVX, JVS, and SciPy](https://github.com/rathaROG/lapx-benchmarks/blob/main/PORTS_RESULTS.md).
+> See the [R/H API and build guide](https://github.com/rathaROG/lapx/blob/main/src/_lapjvr/README.md) and the [paper and reproducibility materials](https://github.com/rathaROG/lap-paper).
 
 </details>
 

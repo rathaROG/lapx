@@ -58,10 +58,6 @@ Portions of the software are derived from three other projects as follows:
     `src/_lapjvr/THIRD_PARTY_NOTICES`. The LAPJVH C++ completion is an
     adaptation of the same JVS-derived strategy under the MIT License.
 
-    Benchmark-only experiments, measured sources, results, and their license
-    notices are maintained separately at https://github.com/rathaROG/lapx-benchmarks.
-    They are excluded from LAPX package distributions.
-
 ---
 
 For a full list of contributors of the project:
