@@ -10,11 +10,16 @@ type PoolCache = Mutex<Vec<(usize, Arc<rayon::ThreadPool>)>>;
 static POOLS: OnceLock<PoolCache> = OnceLock::new();
 
 fn pool(threads: usize, batch: usize) -> Result<Arc<rayon::ThreadPool>, Error> {
+    pool_from_cache(POOLS.get_or_init(|| Mutex::new(Vec::new())), threads, batch)
+}
+
+fn pool_from_cache(
+    pools: &PoolCache,
+    threads: usize,
+    batch: usize,
+) -> Result<Arc<rayon::ThreadPool>, Error> {
     let threads = threads.max(1).min(batch.max(1));
-    let mut cache = POOLS
-        .get_or_init(|| Mutex::new(Vec::new()))
-        .lock()
-        .map_err(|_| Error::Internal)?;
+    let mut cache = pools.lock().map_err(|_| Error::Internal)?;
     if let Some((_, pool)) = cache.iter().find(|(n, _)| *n == threads) {
         return Ok(pool.clone());
     }
@@ -425,12 +430,42 @@ mod tests {
     use super::*;
 
     #[test]
+    fn worker_pool_cache_reuses_entries_and_keeps_evicted_pools_usable() {
+        // Other native tests may evict shared pools between calls. Check
+        // identity with a private cache using the same production code.
+        let cache = Mutex::new(Vec::new());
+        let first = pool_from_cache(&cache, 2, 32).unwrap();
+        assert!(Arc::ptr_eq(
+            &first,
+            &pool_from_cache(&cache, 2, 100).unwrap()
+        ));
+
+        let second = pool_from_cache(&cache, 3, 32).unwrap();
+        let third = pool_from_cache(&cache, 4, 32).unwrap();
+        assert_eq!(cache.lock().unwrap().len(), 2);
+        assert!(Arc::ptr_eq(
+            &second,
+            &pool_from_cache(&cache, 3, 100).unwrap()
+        ));
+        assert!(Arc::ptr_eq(
+            &third,
+            &pool_from_cache(&cache, 4, 100).unwrap()
+        ));
+
+        // Eviction releases only the cache's reference. A held pool still
+        // runs, and requesting its count again creates a different pool.
+        assert_eq!(first.install(rayon::current_num_threads), 2);
+        let replacement = pool_from_cache(&cache, 2, 32).unwrap();
+        assert!(!Arc::ptr_eq(&first, &replacement));
+        assert_eq!(replacement.install(rayon::current_num_threads), 2);
+        assert_eq!(cache.lock().unwrap().len(), 2);
+    }
+
+    #[test]
     fn worker_pools_honor_counts_above_eight_and_cap_at_batch_size() {
         let first = pool(16, 32).unwrap();
         assert_eq!(first.current_num_threads(), 16);
         assert_eq!(first.install(rayon::current_num_threads), 16);
-        assert!(Arc::ptr_eq(&first, &pool(16, 100).unwrap()));
-
         for (requested, batch, expected) in [(24, 12, 12), (256, 3, 3), (128, 1, 1)] {
             let selected = pool(requested, batch).unwrap();
             assert_eq!(selected.current_num_threads(), expected);
