@@ -1,6 +1,6 @@
 # CI-only configuration for the Python 3.9-3.15 Linux ARM job.
 [tool.cibuildwheel]
-test-command = "python {project}/tests/check_rh_wheel.py"
+test-command = "python {project}/.github/tests/check_rh_wheel.py"
 
 [tool.cibuildwheel.linux]
 before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable"
@@ -21,4 +21,4 @@ select = "*-musllinux_armv7l"
 # Rust has no native host tools here; retain every pre-existing solver.
 before-all = ""
 environment.LAPX_BUILD_RUST = "0"
-test-command = "python {project}/tests/check_rh_wheel.py --legacy-only"
+test-command = "python {project}/.github/tests/check_rh_wheel.py --legacy-only"

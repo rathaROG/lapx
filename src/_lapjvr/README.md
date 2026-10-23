@@ -154,6 +154,7 @@ cargo clippy --locked --all-targets --all-features --manifest-path src/_lapjvr/C
 ```
 
 Python builds enable Cargo's `cpp-completion` feature for the shared extension.
-See the [test guide](../../tests/README.md) for installed-wheel and typing checks,
-and [INTEGRATION.md](INTEGRATION.md) for the dated integration results.
+See the [solver test guide](../../tests/README.md) for numerical and typing checks,
+the [build and packaging guide](../../.github/tests/README.md) for installed-wheel
+checks, and [INTEGRATION.md](INTEGRATION.md) for the dated integration results.
 License notices are in [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).

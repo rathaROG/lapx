@@ -115,17 +115,17 @@ workflows use `--quick --repeats 3`. The [batch](.github/workflows/benchmark_bat
 `--quick --repeats 2 --seed 2026`.
 They build the checkout and check R/H availability before benchmarking.
 
-### Historical results (LAPX 0.11.0rc1)
+### Historical results (LAPX 0.11.0)
 
 R/H single and batch results use float64 costs and `return_cost=False`.
 See each case for matrix sizes, thread counts, and timing settings.
 
-Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
+Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.14.9.
 
 ```
-lapx==0.11.0rc1 (2026/10/20)
-scipy==1.17.1
-numpy==2.4.6
+lapx==0.11.0
+scipy==1.18.1
+numpy==2.5.4
 ```
 
 <details><summary>📄 Historical single results:</summary><br>
@@ -134,7 +134,7 @@ numpy==2.4.6
 Microsoft Windows [Version 10.0.26300.9711]
 (c) Microsoft Corporation. All rights reserved.
 
-D:\DEV\projects\lapx_all\new4\lapx\benchmarks>python benchmark_single.py
+D:\DEV\projects\lapx_all\new7\lapx\benchmarks>python benchmark_single.py
 
 
 Note: R/H native float64, JVS default float32.
@@ -147,15 +147,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvh   ✅ PASS   0.000464  🥇 3.68x faster
-lapjvr   ✅ PASS   0.000488  🥈 3.50x faster
-scipy    ⭐ BASE   0.001708  ⭐ baseline
-lapjvc   ✅ PASS   0.003748  🐌 2.19x slower
-lapjvxa  ✅ PASS   0.004932  🐌 2.89x slower
-lapjvx   ✅ PASS   0.005388  🐌 3.15x slower
-lapjv    ✅ PASS   0.005888  🐌 3.45x slower
-lapjvs   ✅ PASS   0.007336  🐌 4.30x slower
-lapjvsa  ✅ PASS   0.008112  🐌 4.75x slower
+lapjvh   ✅ PASS   0.000488  🥇 3.52x faster
+lapjvr   ✅ PASS   0.000500  🥈 3.43x faster
+scipy    ⭐ BASE   0.001716  ⭐ baseline
+lapjvc   ✅ PASS   0.003896  🐌 2.27x slower
+lapjvxa  ✅ PASS   0.005112  🐌 2.98x slower
+lapjvs   ✅ PASS   0.005696  🐌 3.32x slower
+lapjvx   ✅ PASS   0.006024  🐌 3.51x slower
+lapjv    ✅ PASS   0.006200  🐌 3.61x slower
+lapjvsa  ✅ PASS   0.006964  🐌 4.06x slower
 --------------------------------------------
 
 ### Matrix 5 x 5 | float64 | return_cost=False
@@ -165,15 +165,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.000496  🥇 3.36x faster
-lapjvh   ✅ PASS   0.000512  🥈 3.26x faster
-lapjvsa  ✅ PASS   0.001220  🥉 1.37x faster
-scipy    ⭐ BASE   0.001668  ⭐ baseline
-lapjvxa  ✅ PASS   0.002968  🐌 1.78x slower
-lapjvx   ✅ PASS   0.003548  🐌 2.13x slower
-lapjvc   ✅ PASS   0.003724  🐌 2.23x slower
-lapjvs   ✅ PASS   0.003812  🐌 2.29x slower
-lapjv    ✅ PASS   0.003928  🐌 2.35x slower
+lapjvr   ✅ PASS   0.000536  🥇 3.31x faster
+lapjvh   ✅ PASS   0.000548  🥈 3.24x faster
+lapjvsa  ✅ PASS   0.001364  🥉 1.30x faster
+scipy    ⭐ BASE   0.001776  ⭐ baseline
+lapjvxa  ✅ PASS   0.003120  🐌 1.76x slower
+lapjvx   ✅ PASS   0.003824  🐌 2.15x slower
+lapjvc   ✅ PASS   0.003988  🐌 2.25x slower
+lapjvs   ✅ PASS   0.004096  🐌 2.31x slower
+lapjv    ✅ PASS   0.004212  🐌 2.37x slower
 --------------------------------------------
 
 ### Matrix 5 x 6 | float64 | return_cost=False
@@ -183,15 +183,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.000448  🥇 3.80x faster
-lapjvh   ✅ PASS   0.000496  🥈 3.44x faster
-scipy    ⭐ BASE   0.001704  ⭐ baseline
-lapjvc   ✅ PASS   0.003952  🐌 2.32x slower
-lapjvxa  ✅ PASS   0.005152  🐌 3.02x slower
-lapjvx   ✅ PASS   0.005368  🐌 3.15x slower
-lapjvs   ✅ PASS   0.005760  🐌 3.38x slower
-lapjv    ✅ PASS   0.005992  🐌 3.52x slower
-lapjvsa  ✅ PASS   0.007168  🐌 4.21x slower
+lapjvh   ✅ PASS   0.000528  🥇 3.36x faster
+lapjvr   ✅ PASS   0.000532  🥈 3.33x faster
+scipy    ⭐ BASE   0.001772  ⭐ baseline
+lapjvc   ✅ PASS   0.004008  🐌 2.26x slower
+lapjvxa  ✅ PASS   0.005200  🐌 2.93x slower
+lapjvs   ✅ PASS   0.005764  🐌 3.25x slower
+lapjvx   ✅ PASS   0.005880  🐌 3.32x slower
+lapjv    ✅ PASS   0.006248  🐌 3.53x slower
+lapjvsa  ✅ PASS   0.007280  🐌 4.11x slower
 --------------------------------------------
 
 ### Matrix 45 x 50 | float64 | return_cost=False
@@ -201,15 +201,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.002592  🥇 6.49x faster
-lapjvh   ✅ PASS   0.002800  🥈 6.01x faster
-lapjvxa  ✅ PASS   0.009688  🥉 1.74x faster
-lapjvs   ✅ PASS   0.010780  🏆 1.56x faster
-lapjvx   ✅ PASS   0.011500  🏆 1.46x faster
-lapjv    ✅ PASS   0.011592  🏆 1.45x faster
-lapjvsa  ✅ PASS   0.013276  🏆 1.27x faster
-scipy    ⭐ BASE   0.016820  ⭐ baseline
-lapjvc   ✅ PASS   0.039256  🐌 2.33x slower
+lapjvr   ✅ PASS   0.002760  🥇 5.54x faster
+lapjvh   ✅ PASS   0.003576  🥈 4.28x faster
+lapjvxa  ✅ PASS   0.011260  🥉 1.36x faster
+lapjvs   ✅ PASS   0.011776  🏆 1.30x faster
+lapjvx   ✅ PASS   0.012048  🏆 1.27x faster
+lapjv    ✅ PASS   0.012324  🏆 1.24x faster
+lapjvsa  ✅ PASS   0.013368  🏆 1.14x faster
+scipy    ⭐ BASE   0.015292  ⭐ baseline
+lapjvc   ✅ PASS   0.038472  🐌 2.52x slower
 --------------------------------------------
 
 ### Matrix 50 x 50 | float64 | return_cost=False
@@ -219,15 +219,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvh   ✅ PASS   0.005480  🥇 4.43x faster
-lapjvr   ✅ PASS   0.005548  🥈 4.37x faster
-lapjvsa  ✅ PASS   0.009436  🥉 2.57x faster
-lapjvxa  ✅ PASS   0.009992  🏆 2.43x faster
-lapjv    ✅ PASS   0.011048  🏆 2.20x faster
-lapjvx   ✅ PASS   0.011120  🏆 2.18x faster
-lapjvs   ✅ PASS   0.012420  🏆 1.95x faster
-scipy    ⭐ BASE   0.024264  ⭐ baseline
-lapjvc   ✅ PASS   0.024796  🐌 1.02x slower
+lapjvh   ✅ PASS   0.005412  🥇 4.00x faster
+lapjvr   ✅ PASS   0.005716  🥈 3.79x faster
+lapjvsa  ✅ PASS   0.009676  🥉 2.24x faster
+lapjvx   ✅ PASS   0.010284  🏆 2.10x faster
+lapjvxa  ✅ PASS   0.010480  🏆 2.07x faster
+lapjv    ✅ PASS   0.010852  🏆 1.99x faster
+lapjvs   ✅ PASS   0.013816  🏆 1.57x faster
+scipy    ⭐ BASE   0.021644  ⭐ baseline
+lapjvc   ✅ PASS   0.030884  🐌 1.43x slower
 --------------------------------------------
 
 ### Matrix 50 x 55 | float64 | return_cost=False
@@ -237,15 +237,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.003096  🥇 6.65x faster
-lapjvh   ✅ PASS   0.003232  🥈 6.37x faster
-lapjvxa  ✅ PASS   0.011824  🥉 1.74x faster
-lapjvx   ✅ PASS   0.012104  🏆 1.70x faster
-lapjvs   ✅ PASS   0.015420  🏆 1.33x faster
-lapjvsa  ✅ PASS   0.015680  🏆 1.31x faster
-lapjv    ✅ PASS   0.015996  🏆 1.29x faster
-scipy    ⭐ BASE   0.020584  ⭐ baseline
-lapjvc   ✅ PASS   0.051984  🐌 2.53x slower
+lapjvr   ✅ PASS   0.003044  🥇 6.44x faster
+lapjvh   ✅ PASS   0.003352  🥈 5.85x faster
+lapjvs   ✅ PASS   0.011796  🥉 1.66x faster
+lapjvx   ✅ PASS   0.012740  🏆 1.54x faster
+lapjvxa  ✅ PASS   0.013424  🏆 1.46x faster
+lapjv    ✅ PASS   0.014484  🏆 1.35x faster
+lapjvsa  ✅ PASS   0.015524  🏆 1.26x faster
+scipy    ⭐ BASE   0.019600  ⭐ baseline
+lapjvc   ✅ PASS   0.052436  🐌 2.68x slower
 --------------------------------------------
 
 ### Matrix 450 x 500 | float64 | return_cost=False
@@ -255,15 +255,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.336300  🥇 6.89x faster
-lapjvh   ✅ PASS   0.338700  🥈 6.84x faster
-lapjvs   ✅ PASS   0.520100  🥉 4.46x faster
-lapjvsa  ✅ PASS   0.543000  🏆 4.27x faster
-lapjvx   ✅ PASS   0.820800  🏆 2.82x faster
-lapjvxa  ✅ PASS   0.824700  🏆 2.81x faster
-lapjv    ✅ PASS   0.849100  🏆 2.73x faster
-scipy    ⭐ BASE   2.317800  ⭐ baseline
-lapjvc   ✅ PASS  11.112200  🐌 4.79x slower
+lapjvh   ✅ PASS   0.324700  🥇 6.69x faster
+lapjvr   ✅ PASS   0.329300  🥈 6.60x faster
+lapjvs   ✅ PASS   0.545600  🥉 3.98x faster
+lapjvsa  ✅ PASS   0.573300  🏆 3.79x faster
+lapjvxa  ✅ PASS   0.783300  🏆 2.77x faster
+lapjvx   ✅ PASS   0.788800  🏆 2.75x faster
+lapjv    ✅ PASS   0.811600  🏆 2.68x faster
+scipy    ⭐ BASE   2.172800  ⭐ baseline
+lapjvc   ✅ PASS  10.694800  🐌 4.92x slower
 --------------------------------------------
 
 ### Matrix 500 x 500 | float64 | return_cost=False
@@ -273,15 +273,15 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.856900  🥇 5.51x faster
-lapjvh   ✅ PASS   0.860400  🥈 5.49x faster
-lapjvsa  ✅ PASS   2.077400  🥉 2.27x faster
-lapjvxa  ✅ PASS   2.085900  🏆 2.26x faster
-lapjvx   ✅ PASS   2.094600  🏆 2.25x faster
-lapjv    ✅ PASS   2.100200  🏆 2.25x faster
-lapjvs   ✅ PASS   2.147800  🏆 2.20x faster
-scipy    ⭐ BASE   4.721500  ⭐ baseline
-lapjvc   ✅ PASS   5.115700  🐌 1.08x slower
+lapjvr   ✅ PASS   0.894300  🥇 5.75x faster
+lapjvh   ✅ PASS   0.989000  🥈 5.20x faster
+lapjvxa  ✅ PASS   2.081700  🥉 2.47x faster
+lapjvx   ✅ PASS   2.108700  🏆 2.44x faster
+lapjv    ✅ PASS   2.147700  🏆 2.40x faster
+lapjvsa  ✅ PASS   2.157800  🏆 2.38x faster
+lapjvs   ✅ PASS   2.162500  🏆 2.38x faster
+lapjvc   ✅ PASS   4.752600  🏆 1.08x faster
+scipy    ⭐ BASE   5.144600  ⭐ baseline
 --------------------------------------------
 
 ### Matrix 500 x 550 | float64 | return_cost=False
@@ -291,60 +291,60 @@ input seeds=2026..2028; warmup each round.
 
 Solver   Check    Time (ms)  vs SciPy
 --------------------------------------------
-lapjvr   ✅ PASS   0.386200  🥇 7.00x faster
-lapjvh   ✅ PASS   0.390000  🥈 6.93x faster
-lapjvs   ✅ PASS   0.760500  🥉 3.55x faster
-lapjvsa  ✅ PASS   0.788500  🏆 3.43x faster
-lapjvxa  ✅ PASS   0.936300  🏆 2.89x faster
-lapjvx   ✅ PASS   0.945200  🏆 2.86x faster
-lapjv    ✅ PASS   0.948100  🏆 2.85x faster
-scipy    ⭐ BASE   2.701600  ⭐ baseline
-lapjvc   ✅ PASS  14.136200  🐌 5.23x slower
+lapjvh   ✅ PASS   0.385900  🥇 6.92x faster
+lapjvr   ✅ PASS   0.389000  🥈 6.86x faster
+lapjvs   ✅ PASS   0.805000  🥉 3.31x faster
+lapjvsa  ✅ PASS   0.809500  🏆 3.30x faster
+lapjv    ✅ PASS   0.959300  🏆 2.78x faster
+lapjvxa  ✅ PASS   0.978900  🏆 2.73x faster
+lapjvx   ✅ PASS   1.077800  🏆 2.48x faster
+scipy    ⭐ BASE   2.668500  ⭐ baseline
+lapjvc   ✅ PASS  14.085000  🐌 5.28x slower
 --------------------------------------------
 
 ### Matrix 2500 x 5000 | float64 | return_cost=False
 
 Solver   Check       Time (ms)  vs SciPy
 -------------------------------------------------
-lapjvr   ✅ PASS      6.866500  🥇 7.64x faster
-lapjvh   ✅ PASS      7.093300  🥈 7.40x faster
-scipy    ⭐ BASE     52.483000  ⭐ baseline
-lapjvsa  ✅ PASS     52.949600  🐌 1.01x slower
-lapjvs   ✅ PASS     58.164000  🐌 1.11x slower
-lapjv    ✅ PASS     72.735500  🐌 1.39x slower
-lapjvxa  ✅ PASS     88.067800  🐌 1.68x slower
-lapjvx   ✅ PASS     88.309100  🐌 1.68x slower
-lapjvc   ✅ PASS  12187.386500  🐌 232.22x slower
+lapjvr   ✅ PASS      6.983100  🥇 7.52x faster
+lapjvh   ✅ PASS      7.138900  🥈 7.36x faster
+scipy    ⭐ BASE     52.539300  ⭐ baseline
+lapjvs   ✅ PASS     60.962500  🐌 1.16x slower
+lapjvsa  ✅ PASS     61.274900  🐌 1.17x slower
+lapjvx   ✅ PASS     85.649500  🐌 1.63x slower
+lapjv    ✅ PASS     87.046500  🐌 1.66x slower
+lapjvxa  ✅ PASS     91.306800  🐌 1.74x slower
+lapjvc   ✅ PASS  12517.109400  🐌 238.24x slower
 -------------------------------------------------
 
 ### Matrix 5000 x 5000 | float64 | return_cost=False
 
 Solver   Check      Time (ms)  vs SciPy
 ----------------------------------------------
-lapjvh   ✅ PASS   251.584600  🥇 4.46x faster
-lapjvr   ✅ PASS   274.450000  🥈 4.09x faster
-lapjvsa  ✅ PASS   366.985100  🥉 3.06x faster
-lapjvs   ✅ PASS   374.470100  🏆 3.00x faster
-lapjvx   ✅ PASS   616.771500  🏆 1.82x faster
-lapjvxa  ✅ PASS   621.376400  🏆 1.81x faster
-lapjv    ✅ PASS   625.615700  🏆 1.79x faster
-scipy    ⭐ BASE  1122.227200  ⭐ baseline
-lapjvc   ✅ PASS  1294.830600  🐌 1.15x slower
+lapjvh   ✅ PASS   235.464900  🥇 4.35x faster
+lapjvr   ✅ PASS   239.323500  🥈 4.28x faster
+lapjvsa  ✅ PASS   359.248200  🥉 2.85x faster
+lapjvs   ✅ PASS   364.733500  🏆 2.81x faster
+lapjvx   ✅ PASS   543.909700  🏆 1.88x faster
+lapjvxa  ✅ PASS   565.998200  🏆 1.81x faster
+lapjv    ✅ PASS   598.592800  🏆 1.71x faster
+scipy    ⭐ BASE  1023.112300  ⭐ baseline
+lapjvc   ✅ PASS  1249.847500  🐌 1.22x slower
 ----------------------------------------------
 
 ### Matrix 5000 x 7500 | float64 | return_cost=False
 
 Solver   Check       Time (ms)  vs SciPy
 -------------------------------------------------
-lapjvr   ✅ PASS     19.430500  🥇 10.43x faster
-lapjvh   ✅ PASS     27.205000  🥈 7.45x faster
-lapjvsa  ✅ PASS    105.869500  🥉 1.91x faster
-lapjvs   ✅ PASS    112.006600  🏆 1.81x faster
-lapjvx   ✅ PASS    147.127000  🏆 1.38x faster
-lapjv    ✅ PASS    150.552200  🏆 1.35x faster
-lapjvxa  ✅ PASS    158.551800  🏆 1.28x faster
-scipy    ⭐ BASE    202.640900  ⭐ baseline
-lapjvc   ✅ PASS  55465.559500  🐌 273.71x slower
+lapjvr   ✅ PASS     23.695700  🥇 8.05x faster
+lapjvh   ✅ PASS     29.466100  🥈 6.47x faster
+lapjvsa  ✅ PASS    112.201000  🥉 1.70x faster
+lapjvs   ✅ PASS    121.401900  🏆 1.57x faster
+lapjvx   ✅ PASS    167.805400  🏆 1.14x faster
+lapjv    ✅ PASS    168.619800  🏆 1.13x faster
+lapjvxa  ✅ PASS    171.351900  🏆 1.11x faster
+scipy    ⭐ BASE    190.639600  ⭐ baseline
+lapjvc   ✅ PASS  54863.495300  🐌 287.79x slower
 -------------------------------------------------
 ```
 
@@ -356,7 +356,7 @@ lapjvc   ✅ PASS  55465.559500  🐌 273.71x slower
 Microsoft Windows [Version 10.0.26300.9711]
 (c) Microsoft Corporation. All rights reserved.
 
-D:\DEV\projects\lapx_all\new4\lapx\benchmarks>python benchmark_batch.py
+D:\DEV\projects\lapx_all\new7\lapx\benchmarks>python benchmark_batch.py
 
 
 Note: R/H native float64, JVS default float32, jvsa64 float64.
@@ -366,37 +366,37 @@ Note: R/H native float64, JVS default float32, jvsa64 float64.
 
 Solver             Check      Time (ms)  vs SciPy
 ---------------------------------------------------------
-lapx-batch-jvh     ✅ PASS   305.307200  🥇 21.81x faster
-lapx-batch-jvr     ✅ PASS   335.637800  🥈 19.84x faster
-lapx-batch-jvsa    ✅ PASS   405.485200  🥉 16.42x faster
-lapx-batch-jvs     ✅ PASS   424.436800  🏆 15.69x faster
-lapx-batch-jvsa64  ✅ PASS  1052.290300  🏆 6.33x faster
-lapx-batch-jvxa    ✅ PASS  1127.172700  🏆 5.91x faster
-lapx-batch-jvx     ✅ PASS  1156.924600  🏆 5.76x faster
-lapx-loop-jvh      ✅ PASS  1479.487900  🏆 4.50x faster
-lapx-loop-jvr      ✅ PASS  1574.337200  🏆 4.23x faster
-lapx-loop-jvs      ✅ PASS  2615.703100  🏆 2.55x faster
-lapx-loop-jvx      ✅ PASS  5226.083500  🏆 1.27x faster
-scipy-loop         ⭐ BASE  6659.042500  ⭐ baseline
+lapx-batch-jvh     ✅ PASS   304.373900  🥇 21.05x faster
+lapx-batch-jvr     ✅ PASS   306.779700  🥈 20.88x faster
+lapx-batch-jvsa    ✅ PASS   412.044300  🥉 15.55x faster
+lapx-batch-jvs     ✅ PASS   418.882600  🏆 15.29x faster
+lapx-batch-jvx     ✅ PASS  1057.962900  🏆 6.06x faster
+lapx-batch-jvxa    ✅ PASS  1067.470000  🏆 6.00x faster
+lapx-batch-jvsa64  ✅ PASS  1135.725900  🏆 5.64x faster
+lapx-loop-jvh      ✅ PASS  1583.873000  🏆 4.04x faster
+lapx-loop-jvr      ✅ PASS  1592.022500  🏆 4.02x faster
+lapx-loop-jvs      ✅ PASS  2630.187800  🏆 2.44x faster
+lapx-loop-jvx      ✅ PASS  5215.012000  🏆 1.23x faster
+scipy-loop         ⭐ BASE  6406.714800  ⭐ baseline
 ---------------------------------------------------------
 
 ### Dense 20 x (3000x2000) | n_threads=0 | return_cost=False
 
-Solver             Check      Time (ms)  vs SciPy
----------------------------------------------------------
-lapx-batch-jvh     ✅ PASS    70.880100  🥇 14.15x faster
-lapx-batch-jvr     ✅ PASS    78.406900  🥈 12.79x faster
-lapx-batch-jvs     ✅ PASS    94.997800  🥉 10.56x faster
-lapx-batch-jvsa    ✅ PASS    99.014600  🏆 10.13x faster
-lapx-batch-jvsa64  ✅ PASS   124.270600  🏆 8.07x faster
-lapx-batch-jvxa    ✅ PASS   127.176400  🏆 7.89x faster
-lapx-batch-jvx     ✅ PASS   146.063700  🏆 6.87x faster
-lapx-loop-jvr      ✅ PASS   291.174600  🏆 3.44x faster
-lapx-loop-jvh      ✅ PASS   303.220800  🏆 3.31x faster
-lapx-loop-jvs      ✅ PASS   791.096100  🏆 1.27x faster
-lapx-loop-jvx      ✅ PASS   973.291000  🏆 1.03x faster
-scipy-loop         ⭐ BASE  1002.891400  ⭐ baseline
----------------------------------------------------------
+Solver             Check     Time (ms)  vs SciPy
+--------------------------------------------------------
+lapx-batch-jvh     ✅ PASS   81.211000  🥇 12.09x faster
+lapx-batch-jvsa    ✅ PASS   84.556500  🥈 11.61x faster
+lapx-batch-jvr     ✅ PASS   85.890000  🥉 11.43x faster
+lapx-batch-jvs     ✅ PASS   91.441600  🏆 10.73x faster
+lapx-batch-jvxa    ✅ PASS  137.755600  🏆 7.13x faster
+lapx-batch-jvsa64  ✅ PASS  138.859300  🏆 7.07x faster
+lapx-batch-jvx     ✅ PASS  140.613500  🏆 6.98x faster
+lapx-loop-jvh      ✅ PASS  304.508100  🏆 3.22x faster
+lapx-loop-jvr      ✅ PASS  318.334400  🏆 3.08x faster
+lapx-loop-jvs      ✅ PASS  816.990100  🏆 1.20x faster
+lapx-loop-jvx      ✅ PASS  981.166300  🏆 1.00x faster
+scipy-loop         ⭐ BASE  981.617400  ⭐ baseline
+--------------------------------------------------------
 
 ### Dense 50 x (2000x2000) | n_threads=0 | return_cost=False
 
@@ -405,18 +405,18 @@ input seeds=2026..2027; warmup each round.
 
 Solver             Check      Time (ms)  vs SciPy
 ---------------------------------------------------------
-lapx-batch-jvh     ✅ PASS   222.424700  🥇 26.60x faster
-lapx-batch-jvr     ✅ PASS   230.883300  🥈 25.63x faster
-lapx-batch-jvsa    ✅ PASS   298.122500  🥉 19.85x faster
-lapx-batch-jvs     ✅ PASS   304.841050  🏆 19.41x faster
-lapx-batch-jvsa64  ✅ PASS   434.623850  🏆 13.61x faster
-lapx-batch-jvxa    ✅ PASS   450.615250  🏆 13.13x faster
-lapx-batch-jvx     ✅ PASS   451.959650  🏆 13.09x faster
-lapx-loop-jvh      ✅ PASS  1141.322250  🏆 5.18x faster
-lapx-loop-jvr      ✅ PASS  1164.852250  🏆 5.08x faster
-lapx-loop-jvs      ✅ PASS  2920.143950  🏆 2.03x faster
-lapx-loop-jvx      ✅ PASS  3729.783450  🏆 1.59x faster
-scipy-loop         ⭐ BASE  5917.139250  ⭐ baseline
+lapx-batch-jvh     ✅ PASS   216.664050  🥇 26.64x faster
+lapx-batch-jvr     ✅ PASS   223.283500  🥈 25.85x faster
+lapx-batch-jvsa    ✅ PASS   310.737850  🥉 18.57x faster
+lapx-batch-jvs     ✅ PASS   317.789550  🏆 18.16x faster
+lapx-batch-jvx     ✅ PASS   450.444450  🏆 12.81x faster
+lapx-batch-jvsa64  ✅ PASS   463.391400  🏆 12.45x faster
+lapx-batch-jvxa    ✅ PASS   466.151250  🏆 12.38x faster
+lapx-loop-jvr      ✅ PASS  1187.665500  🏆 4.86x faster
+lapx-loop-jvh      ✅ PASS  1196.546400  🏆 4.82x faster
+lapx-loop-jvs      ✅ PASS  2951.465500  🏆 1.96x faster
+lapx-loop-jvx      ✅ PASS  3769.312100  🏆 1.53x faster
+scipy-loop         ⭐ BASE  5771.276800  ⭐ baseline
 ---------------------------------------------------------
 
 ### Dense 100 x (1000x2000) | n_threads=0 | return_cost=False
@@ -426,18 +426,18 @@ input seeds=2026..2027; warmup each round.
 
 Solver             Check      Time (ms)  vs SciPy
 ---------------------------------------------------------
-lapx-batch-jvh     ✅ PASS    21.931950  🥇 38.30x faster
-lapx-batch-jvr     ✅ PASS    22.040100  🥈 38.11x faster
-lapx-loop-jvr      ✅ PASS   107.704850  🥉 7.80x faster
-lapx-loop-jvh      ✅ PASS   114.691150  🏆 7.32x faster
-lapx-batch-jvsa    ✅ PASS   121.854950  🏆 6.89x faster
-lapx-batch-jvs     ✅ PASS   126.950400  🏆 6.62x faster
-lapx-batch-jvxa    ✅ PASS   216.949200  🏆 3.87x faster
-lapx-batch-jvsa64  ✅ PASS   222.754150  🏆 3.77x faster
-lapx-batch-jvx     ✅ PASS   223.249700  🏆 3.76x faster
-lapx-loop-jvs      ✅ PASS   781.342150  🏆 1.08x faster
-scipy-loop         ⭐ BASE   839.950050  ⭐ baseline
-lapx-loop-jvx      ✅ PASS  1180.486050  🐌 1.41x slower
+lapx-batch-jvr     ✅ PASS    20.475000  🥇 41.55x faster
+lapx-batch-jvh     ✅ PASS    20.880550  🥈 40.75x faster
+lapx-loop-jvr      ✅ PASS   101.692050  🥉 8.37x faster
+lapx-loop-jvh      ✅ PASS   116.548300  🏆 7.30x faster
+lapx-batch-jvs     ✅ PASS   131.421600  🏆 6.47x faster
+lapx-batch-jvsa    ✅ PASS   140.168250  🏆 6.07x faster
+lapx-batch-jvx     ✅ PASS   232.292800  🏆 3.66x faster
+lapx-batch-jvsa64  ✅ PASS   236.849150  🏆 3.59x faster
+lapx-batch-jvxa    ✅ PASS   244.396350  🏆 3.48x faster
+lapx-loop-jvs      ✅ PASS   817.702400  🏆 1.04x faster
+scipy-loop         ⭐ BASE   850.819200  ⭐ baseline
+lapx-loop-jvx      ✅ PASS  1317.432500  🐌 1.55x slower
 ---------------------------------------------------------
 
 ### Dense 500 x (1000x1000) | n_threads=0 | return_cost=False
@@ -447,18 +447,18 @@ input seeds=2026..2027; warmup each round.
 
 Solver             Check       Time (ms)  vs SciPy
 ----------------------------------------------------------
-lapx-batch-jvh     ✅ PASS    308.687250  🥇 36.61x faster
-lapx-batch-jvr     ✅ PASS    311.188400  🥈 36.31x faster
-lapx-batch-jvs     ✅ PASS    523.695450  🥉 21.58x faster
-lapx-batch-jvsa    ✅ PASS    525.729000  🏆 21.49x faster
-lapx-batch-jvsa64  ✅ PASS    577.253800  🏆 19.57x faster
-lapx-batch-jvx     ✅ PASS    578.432000  🏆 19.53x faster
-lapx-batch-jvxa    ✅ PASS    586.463900  🏆 19.27x faster
-lapx-loop-jvh      ✅ PASS   2119.521850  🏆 5.33x faster
-lapx-loop-jvr      ✅ PASS   2151.523350  🏆 5.25x faster
-lapx-loop-jvs      ✅ PASS   6447.690350  🏆 1.75x faster
-lapx-loop-jvx      ✅ PASS   6820.104200  🏆 1.66x faster
-scipy-loop         ⭐ BASE  11299.642650  ⭐ baseline
+lapx-batch-jvh     ✅ PASS    308.471100  🥇 36.16x faster
+lapx-batch-jvr     ✅ PASS    311.741500  🥈 35.78x faster
+lapx-batch-jvsa    ✅ PASS    532.438650  🥉 20.95x faster
+lapx-batch-jvs     ✅ PASS    538.589650  🏆 20.71x faster
+lapx-batch-jvxa    ✅ PASS    582.558100  🏆 19.15x faster
+lapx-batch-jvsa64  ✅ PASS    583.035200  🏆 19.13x faster
+lapx-batch-jvx     ✅ PASS    590.473200  🏆 18.89x faster
+lapx-loop-jvh      ✅ PASS   2150.498500  🏆 5.19x faster
+lapx-loop-jvr      ✅ PASS   2178.718250  🏆 5.12x faster
+lapx-loop-jvs      ✅ PASS   6592.866350  🏆 1.69x faster
+lapx-loop-jvx      ✅ PASS   6809.711100  🏆 1.64x faster
+scipy-loop         ⭐ BASE  11154.971100  ⭐ baseline
 ----------------------------------------------------------
 
 ### Sparse 100 x (1000x1000) | target density=1.00% | n_threads=0 | return_cost=False
@@ -468,21 +468,21 @@ input seeds=2026..2027; warmup each round.
 
 Solver             Check      Time (ms)  vs SciPy
 ---------------------------------------------------------
-lapx-batch-mod     ✅ PASS    18.120150  🥇 92.85x faster
-lapx-batch-jvh     ✅ PASS    59.869300  🥈 28.10x faster
-lapx-batch-jvr     ✅ PASS    60.075950  🥉 28.00x faster
-lapx-loop-mod      ✅ PASS    98.719050  🏆 17.04x faster
-lapx-batch-mod-1t  ✅ PASS    98.949550  🏆 17.00x faster
-lapx-batch-jvsa    ✅ PASS   111.273100  🏆 15.12x faster
-lapx-batch-jvs     ✅ PASS   113.086850  🏆 14.88x faster
-lapx-batch-jvsa64  ✅ PASS   123.190500  🏆 13.66x faster
-lapx-batch-jvx     ✅ PASS   123.686150  🏆 13.60x faster
-lapx-batch-jvxa    ✅ PASS   126.298500  🏆 13.32x faster
-lapx-loop-jvh      ✅ PASS   348.536900  🏆 4.83x faster
-lapx-loop-jvr      ✅ PASS   364.548050  🏆 4.62x faster
-lapx-loop-jvs      ✅ PASS  1191.784700  🏆 1.41x faster
-lapx-loop-jvx      ✅ PASS  1262.302300  🏆 1.33x faster
-scipy-loop         ⭐ BASE  1682.410900  ⭐ baseline
+lapx-batch-mod     ✅ PASS    17.754200  🥇 93.88x faster
+lapx-batch-jvh     ✅ PASS    60.306900  🥈 27.64x faster
+lapx-batch-jvr     ✅ PASS    61.104550  🥉 27.28x faster
+lapx-batch-mod-1t  ✅ PASS    98.382100  🏆 16.94x faster
+lapx-loop-mod      ✅ PASS    99.308150  🏆 16.78x faster
+lapx-batch-jvsa    ✅ PASS   110.353850  🏆 15.10x faster
+lapx-batch-jvs     ✅ PASS   118.678200  🏆 14.04x faster
+lapx-batch-jvsa64  ✅ PASS   123.169300  🏆 13.53x faster
+lapx-batch-jvxa    ✅ PASS   124.200700  🏆 13.42x faster
+lapx-batch-jvx     ✅ PASS   126.765050  🏆 13.15x faster
+lapx-loop-jvh      ✅ PASS   340.511150  🏆 4.89x faster
+lapx-loop-jvr      ✅ PASS   362.495800  🏆 4.60x faster
+lapx-loop-jvs      ✅ PASS  1186.090950  🏆 1.41x faster
+lapx-loop-jvx      ✅ PASS  1267.239600  🏆 1.32x faster
+scipy-loop         ⭐ BASE  1666.677550  ⭐ baseline
 ---------------------------------------------------------
 
 ### Sparse 50 x (2000x2000) | target density=5.00% | n_threads=0 | return_cost=False
@@ -492,21 +492,21 @@ input seeds=2026..2027; warmup each round.
 
 Solver             Check      Time (ms)  vs SciPy
 ---------------------------------------------------------
-lapx-batch-mod     ✅ PASS    60.044800  🥇 85.32x faster
-lapx-batch-jvh     ✅ PASS   210.457550  🥈 24.34x faster
-lapx-batch-jvr     ✅ PASS   213.821850  🥉 23.96x faster
-lapx-batch-jvsa    ✅ PASS   282.295000  🏆 18.15x faster
-lapx-batch-jvs     ✅ PASS   288.003800  🏆 17.79x faster
-lapx-batch-jvx     ✅ PASS   457.999100  🏆 11.19x faster
-lapx-batch-jvsa64  ✅ PASS   468.105650  🏆 10.94x faster
-lapx-batch-jvxa    ✅ PASS   477.668100  🏆 10.73x faster
-lapx-batch-mod-1t  ✅ PASS   525.989900  🏆 9.74x faster
-lapx-loop-mod      ✅ PASS   531.794600  🏆 9.63x faster
-lapx-loop-jvr      ✅ PASS  1064.626250  🏆 4.81x faster
-lapx-loop-jvh      ✅ PASS  1081.290100  🏆 4.74x faster
-lapx-loop-jvs      ✅ PASS  2821.016850  🏆 1.82x faster
-lapx-loop-jvx      ✅ PASS  3654.051850  🏆 1.40x faster
-scipy-loop         ⭐ BASE  5123.226500  ⭐ baseline
+lapx-batch-mod     ✅ PASS    58.790100  🥇 86.00x faster
+lapx-batch-jvr     ✅ PASS   211.135250  🥈 23.95x faster
+lapx-batch-jvh     ✅ PASS   216.405900  🥉 23.36x faster
+lapx-batch-jvs     ✅ PASS   279.922600  🏆 18.06x faster
+lapx-batch-jvsa    ✅ PASS   286.573600  🏆 17.64x faster
+lapx-batch-jvx     ✅ PASS   471.404800  🏆 10.73x faster
+lapx-batch-jvsa64  ✅ PASS   475.835200  🏆 10.63x faster
+lapx-batch-jvxa    ✅ PASS   476.329050  🏆 10.61x faster
+lapx-batch-mod-1t  ✅ PASS   538.098350  🏆 9.40x faster
+lapx-loop-mod      ✅ PASS   540.663300  🏆 9.35x faster
+lapx-loop-jvh      ✅ PASS  1084.536200  🏆 4.66x faster
+lapx-loop-jvr      ✅ PASS  1105.791450  🏆 4.57x faster
+lapx-loop-jvs      ✅ PASS  2831.622850  🏆 1.79x faster
+lapx-loop-jvx      ✅ PASS  3679.481800  🏆 1.37x faster
+scipy-loop         ⭐ BASE  5056.133650  ⭐ baseline
 ---------------------------------------------------------
 ```
 
@@ -539,21 +539,21 @@ The full run uses thresholds **0.05, 0.1, 0.5, 1.0, and 1e9**.
 python benchmark_tracking.py --quick --repeats 3 --seed 2026
 ```
 
-<details><summary>📊 Historical tracking results (LAPX 0.11.0rc1):</summary><br>
+<details><summary>📊 Historical tracking results (LAPX 0.11.0):</summary><br>
 
-Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.
+Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.14.9.
 
 ```
-lapx==0.11.0rc1 (2026/10/20)
-scipy==1.17.1
-numpy==2.4.6
+lapx==0.11.0
+scipy==1.18.1
+numpy==2.5.4
 ```
 
 ```
 Microsoft Windows [Version 10.0.26300.9711]
 (c) Microsoft Corporation. All rights reserved.
 
-D:\DEV\projects\lapx_all\new4\lapx\benchmarks>python benchmark_tracking.py
+D:\DEV\projects\lapx_all\new7\lapx\benchmarks>python benchmark_tracking.py
 
 #################################################################
 # Benchmark with threshold (cost_limit) = 0.05
@@ -562,42 +562,42 @@ D:\DEV\projects\lapx_all\new4\lapx\benchmarks>python benchmark_tracking.py
 --------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX
 --------------------------------------------------------------------------------
-10x10     | 0.000032s 3rd  | 0.000037s ✗ 7th | 0.000035s ✓ 4th | 0.000035s ✓ 5th
-25x20     | 0.000035s 3rd  | 0.000041s ✗ 6th | 0.000039s ✓ 5th | 0.000047s ✓ 8th
-50x50     | 0.000058s 6th  | 0.000067s ✗ 8th | 0.000048s ✓ 5th | 0.000045s ✓ 3rd
-100x150   | 0.000138s 6th  | 0.000480s ✓ 7th | 0.000101s ✓ 4th | 0.000108s ✓ 5th
-250x250   | 0.001118s 7th  | 0.001004s ✗ 6th | 0.000363s ✓ 3rd | 0.000366s ✓ 4th
-550x500   | 0.003476s 6th  | 0.011500s ✓ 7th | 0.001115s ✓ 5th | 0.001092s ✓ 4th
-1000x1000 | 0.023021s 6th  | 0.038744s ✓ 8th | 0.015356s ✓ 3rd | 0.015548s ✓ 5th
-2000x2500 | 0.036226s 6th  | 2.091826s ✓ 8th | 0.018083s ✓ 5th | 0.017675s ✓ 4th
-5000x5000 | 1.115714s 6th  | 1.619377s ✓ 8th | 0.552453s ✓ 4th | 0.645715s ✓ 5th
+10x10     | 0.000032s 3rd  | 0.000037s ✗ 7th | 0.000037s ✓ 6th | 0.000041s ✓ 8th
+25x20     | 0.000036s 3rd  | 0.000043s ✗ 8th | 0.000041s ✓ 6th | 0.000041s ✓ 4th
+50x50     | 0.000057s 6th  | 0.000069s ✗ 7th | 0.000049s ✓ 4th | 0.000048s ✓ 3rd
+100x150   | 0.000135s 6th  | 0.000484s ✓ 7th | 0.000111s ✓ 4th | 0.000115s ✓ 5th
+250x250   | 0.001084s 7th  | 0.000983s ✗ 6th | 0.000372s ✓ 4th | 0.000372s ✓ 3rd
+550x500   | 0.003534s 6th  | 0.010435s ✓ 7th | 0.001052s ✓ 4th | 0.001269s ✓ 5th
+1000x1000 | 0.022508s 6th  | 0.039511s ✓ 8th | 0.015355s ✓ 4th | 0.014907s ✓ 3rd
+2000x2500 | 0.035372s 6th  | 2.196133s ✓ 8th | 0.017676s ✓ 4th | 0.017732s ✓ 5th
+5000x5000 | 1.046945s 6th  | 1.606948s ✓ 8th | 0.594579s ✓ 4th | 0.611765s ✓ 5th
 --------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
 Size      | LAPX LAPJVC     | LAPX LAPJVS     | LAPX LAPJVR     | LAPX LAPJVH
 ---------------------------------------------------------------------------------
-10x10     | 0.000036s ✓ 6th | 0.000038s ✓ 8th | 0.000031s ✓ 2nd | 0.000030s ✓ 1st
-25x20     | 0.000042s ✓ 7th | 0.000038s ✓ 4th | 0.000033s ✓ 2nd | 0.000031s ✓ 1st
-50x50     | 0.000064s ✓ 7th | 0.000046s ✓ 4th | 0.000038s ✓ 2nd | 0.000038s ✓ 1st
-100x150   | 0.000638s ✓ 8th | 0.000100s ✓ 3rd | 0.000066s ✓ 2nd | 0.000062s ✓ 1st
-250x250   | 0.001157s ✓ 8th | 0.000374s ✓ 5th | 0.000256s ✓ 1st | 0.000257s ✓ 2nd
-550x500   | 0.016645s ✓ 8th | 0.000942s ✓ 3rd | 0.000595s ✓ 1st | 0.000826s ✓ 2nd
-1000x1000 | 0.024987s ✓ 7th | 0.015518s ✓ 4th | 0.004184s ✓ 2nd | 0.004031s ✓ 1st
-2000x2500 | 1.704036s ✓ 7th | 0.012404s ✓ 3rd | 0.004598s ✓ 2nd | 0.003996s ✓ 1st
-5000x5000 | 1.292485s ✓ 7th | 0.378975s ✓ 3rd | 0.275935s ✓ 1st | 0.277989s ✓ 2nd
+10x10     | 0.000036s ✓ 4th | 0.000036s ✓ 5th | 0.000032s ✓ 2nd | 0.000031s ✓ 1st
+25x20     | 0.000042s ✓ 7th | 0.000041s ✓ 5th | 0.000033s ✓ 2nd | 0.000033s ✓ 1st
+50x50     | 0.000071s ✓ 8th | 0.000049s ✓ 5th | 0.000040s ✓ 1st | 0.000041s ✓ 2nd
+100x150   | 0.000635s ✓ 8th | 0.000102s ✓ 3rd | 0.000067s ✓ 2nd | 0.000064s ✓ 1st
+250x250   | 0.001165s ✓ 8th | 0.000419s ✓ 5th | 0.000271s ✓ 2nd | 0.000266s ✓ 1st
+550x500   | 0.016811s ✓ 8th | 0.000907s ✓ 3rd | 0.000596s ✓ 1st | 0.000599s ✓ 2nd
+1000x1000 | 0.024380s ✓ 7th | 0.015788s ✓ 5th | 0.003965s ✓ 1st | 0.004103s ✓ 2nd
+2000x2500 | 1.711926s ✓ 7th | 0.012207s ✓ 3rd | 0.004667s ✓ 2nd | 0.004632s ✓ 1st
+5000x5000 | 1.290043s ✓ 7th | 0.381001s ✓ 3rd | 0.275467s ✓ 2nd | 0.275259s ✓ 1st
 ---------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉
-     1. LAPX LAPJVR    :   285.7360 ms | ✅ | 🥇x3 🥈x6
-     2. LAPX LAPJVH    :   287.2603 ms | ✅ | 🥇x6 🥈x3
-     3. LAPX LAPJVS    :   408.4359 ms | ✅ | 🥉x4 🚩x3 🏳️x1 🙅‍♂️x1
-     4. LAPX LAPJV     :   587.5927 ms | ✅ | 🥉x2 🚩x3 🏳️x4
-     5. LAPX LAPJVX    :   680.6321 ms | ✅ | 🥉x1 🚩x3 🏳️x4 🙅‍♂️x1
-     6. BASELINE SciPy :  1179.8184 ms | ⭐ | 🥉x2 🥴x6 🗿x1
-     7. LAPX LAPJVC    :  3040.0884 ms | ✅ | 🥴x1 🗿x5 🙅‍♂️x3
-     8. LAPX LAPJV-IFT :  3763.0748 ms | ⚠️ | 🥴x2 🗿x3 🙅‍♂️x4
+     1. LAPX LAPJVH    :   285.0273 ms | ✅ | 🥇x6 🥈x3
+     2. LAPX LAPJVR    :   285.1385 ms | ✅ | 🥇x3 🥈x6
+     3. LAPX LAPJVS    :   410.5493 ms | ✅ | 🥉x4 🏳️x5
+     4. LAPX LAPJV     :   629.2728 ms | ✅ | 🚩x7 🥴x2
+     5. LAPX LAPJVX    :   646.2896 ms | ✅ | 🥉x3 🚩x1 🏳️x4 🙅‍♂️x1
+     6. BASELINE SciPy :  1109.7030 ms | ⭐ | 🥉x2 🥴x6 🗿x1
+     7. LAPX LAPJVC    :  3045.1094 ms | ✅ | 🚩x1 🗿x4 🙅‍♂️x4
+     8. LAPX LAPJV-IFT :  3854.6450 ms | ⚠️ | 🥴x1 🗿x4 🙅‍♂️x4
  🎉 ------------------------------------------------------------------------- 🎉
 
 
@@ -608,42 +608,42 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 --------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX
 --------------------------------------------------------------------------------
-10x10     | 0.000029s 2nd  | 0.000035s ✗ 7th | 0.000033s ✓ 4th | 0.000033s ✓ 3rd
-25x20     | 0.000033s 3rd  | 0.000041s ✗ 8th | 0.000037s ✓ 4th | 0.000037s ✓ 5th
-50x50     | 0.000056s 6th  | 0.000069s ✗ 8th | 0.000046s ✓ 4th | 0.000045s ✓ 3rd
-100x150   | 0.000157s 6th  | 0.000576s ✓ 7th | 0.000109s ✓ 5th | 0.000106s ✓ 3rd
-250x250   | 0.001132s 7th  | 0.001121s ✓ 6th | 0.000375s ✓ 3rd | 0.000377s ✓ 4th
-550x500   | 0.003465s 6th  | 0.011399s ✓ 7th | 0.001080s ✓ 4th | 0.001086s ✓ 5th
-1000x1000 | 0.022778s 6th  | 0.041162s ✓ 8th | 0.015872s ✓ 4th | 0.015416s ✓ 3rd
-2000x2500 | 0.037486s 6th  | 2.178234s ✓ 8th | 0.017819s ✓ 5th | 0.017145s ✓ 4th
-5000x5000 | 1.174092s 6th  | 1.697081s ✓ 8th | 0.598032s ✓ 4th | 0.648125s ✓ 5th
+10x10     | 0.000034s 3rd  | 0.000037s ✗ 6th | 0.000037s ✓ 7th | 0.000038s ✓ 8th
+25x20     | 0.000036s 3rd  | 0.000044s ✗ 8th | 0.000040s ✓ 5th | 0.000040s ✓ 4th
+50x50     | 0.000058s 6th  | 0.000071s ✗ 8th | 0.000052s ✓ 5th | 0.000050s ✓ 4th
+100x150   | 0.000137s 6th  | 0.000556s ✓ 7th | 0.000106s ✓ 4th | 0.000109s ✓ 5th
+250x250   | 0.001102s 6th  | 0.001137s ✓ 7th | 0.000379s ✓ 4th | 0.000378s ✓ 3rd
+550x500   | 0.003374s 6th  | 0.011250s ✓ 7th | 0.001098s ✓ 4th | 0.001105s ✓ 5th
+1000x1000 | 0.022485s 6th  | 0.041315s ✓ 8th | 0.017454s ✓ 5th | 0.015380s ✓ 3rd
+2000x2500 | 0.035627s 6th  | 2.121254s ✓ 8th | 0.017993s ✓ 5th | 0.017760s ✓ 4th
+5000x5000 | 1.145999s 6th  | 1.734274s ✓ 8th | 0.660984s ✓ 5th | 0.651273s ✓ 4th
 --------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
 Size      | LAPX LAPJVC     | LAPX LAPJVS     | LAPX LAPJVR     | LAPX LAPJVH
 ---------------------------------------------------------------------------------
-10x10     | 0.000043s ✓ 8th | 0.000034s ✓ 5th | 0.000034s ✓ 6th | 0.000028s ✓ 1st
-25x20     | 0.000038s ✓ 7th | 0.000037s ✓ 6th | 0.000031s ✓ 2nd | 0.000031s ✓ 1st
-50x50     | 0.000063s ✓ 7th | 0.000046s ✓ 5th | 0.000038s ✓ 1st | 0.000038s ✓ 2nd
-100x150   | 0.000642s ✓ 8th | 0.000108s ✓ 4th | 0.000064s ✓ 2nd | 0.000061s ✓ 1st
-250x250   | 0.001161s ✓ 8th | 0.000377s ✓ 5th | 0.000270s ✓ 2nd | 0.000261s ✓ 1st
-550x500   | 0.016545s ✓ 8th | 0.000881s ✓ 3rd | 0.000599s ✓ 1st | 0.000602s ✓ 2nd
-1000x1000 | 0.024377s ✓ 7th | 0.015894s ✓ 5th | 0.004144s ✓ 2nd | 0.004049s ✓ 1st
-2000x2500 | 1.720586s ✓ 7th | 0.012190s ✓ 3rd | 0.004586s ✓ 2nd | 0.004549s ✓ 1st
-5000x5000 | 1.280558s ✓ 7th | 0.378798s ✓ 3rd | 0.261815s ✓ 1st | 0.272378s ✓ 2nd
+10x10     | 0.000036s ✓ 4th | 0.000036s ✓ 5th | 0.000032s ✓ 2nd | 0.000031s ✓ 1st
+25x20     | 0.000042s ✓ 7th | 0.000041s ✓ 6th | 0.000033s ✓ 2nd | 0.000033s ✓ 1st
+50x50     | 0.000068s ✓ 7th | 0.000050s ✓ 3rd | 0.000040s ✓ 1st | 0.000040s ✓ 2nd
+100x150   | 0.000750s ✓ 8th | 0.000105s ✓ 3rd | 0.000066s ✓ 2nd | 0.000066s ✓ 1st
+250x250   | 0.001184s ✓ 8th | 0.000423s ✓ 5th | 0.000264s ✓ 1st | 0.000268s ✓ 2nd
+550x500   | 0.016513s ✓ 8th | 0.000932s ✓ 3rd | 0.000569s ✓ 1st | 0.000596s ✓ 2nd
+1000x1000 | 0.025038s ✓ 7th | 0.016192s ✓ 4th | 0.004081s ✓ 2nd | 0.004028s ✓ 1st
+2000x2500 | 1.712588s ✓ 7th | 0.012513s ✓ 3rd | 0.004677s ✓ 2nd | 0.004672s ✓ 1st
+5000x5000 | 1.324406s ✓ 7th | 0.382083s ✓ 3rd | 0.281953s ✓ 2nd | 0.280742s ✓ 1st
 ---------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉
-     1. LAPX LAPJVR    :   271.5815 ms | ✅ | 🥇x3 🥈x5 🥴x1
-     2. LAPX LAPJVH    :   281.9980 ms | ✅ | 🥇x6 🥈x3
-     3. LAPX LAPJVS    :   408.3659 ms | ✅ | 🥉x3 🚩x1 🏳️x4 🥴x1
-     4. LAPX LAPJV     :   633.4017 ms | ✅ | 🥉x1 🚩x6 🏳️x2
-     5. LAPX LAPJVX    :   682.3707 ms | ✅ | 🥉x4 🚩x2 🏳️x3
-     6. BASELINE SciPy :  1239.2296 ms | ⭐ | 🥈x1 🥉x1 🥴x6 🗿x1
-     7. LAPX LAPJVC    :  3044.0131 ms | ✅ | 🗿x5 🙅‍♂️x4
-     8. LAPX LAPJV-IFT :  3929.7179 ms | ⚠️ | 🥴x1 🗿x3 🙅‍♂️x5
+     1. LAPX LAPJVH    :   290.4740 ms | ✅ | 🥇x6 🥈x3
+     2. LAPX LAPJVR    :   291.7147 ms | ✅ | 🥇x3 🥈x6
+     3. LAPX LAPJVS    :   412.3745 ms | ✅ | 🥉x5 🚩x1 🏳️x2 🥴x1
+     4. LAPX LAPJVX    :   686.1327 ms | ✅ | 🥉x2 🚩x4 🏳️x2 🙅‍♂️x1
+     5. LAPX LAPJV     :   698.1436 ms | ✅ | 🚩x3 🏳️x5 🗿x1
+     6. BASELINE SciPy :  1208.8507 ms | ⭐ | 🥉x2 🥴x7
+     7. LAPX LAPJVC    :  3080.6249 ms | ✅ | 🚩x1 🗿x5 🙅‍♂️x3
+     8. LAPX LAPJV-IFT :  3909.9385 ms | ⚠️ | 🥴x1 🗿x3 🙅‍♂️x5
  🎉 ------------------------------------------------------------------------- 🎉
 
 
@@ -654,42 +654,42 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 --------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX
 --------------------------------------------------------------------------------
-10x10     | 0.000031s 3rd  | 0.000037s ✗ 8th | 0.000035s ✓ 5th | 0.000035s ✓ 6th
-25x20     | 0.000034s 3rd  | 0.000042s ✓ 8th | 0.000037s ✓ 4th | 0.000038s ✓ 5th
-50x50     | 0.000056s 6th  | 0.000065s ✓ 8th | 0.000045s ✓ 4th | 0.000045s ✓ 3rd
-100x150   | 0.000142s 6th  | 0.000588s ✓ 7th | 0.000104s ✓ 4th | 0.000110s ✓ 5th
-250x250   | 0.001124s 6th  | 0.001150s ✓ 7th | 0.000376s ✓ 3rd | 0.000434s ✓ 5th
-550x500   | 0.003475s 6th  | 0.011255s ✓ 7th | 0.001134s ✓ 5th | 0.001089s ✓ 4th
-1000x1000 | 0.022863s 6th  | 0.040968s ✓ 8th | 0.015940s ✓ 5th | 0.015489s ✓ 3rd
-2000x2500 | 0.037059s 6th  | 2.107005s ✓ 8th | 0.017796s ✓ 5th | 0.017627s ✓ 4th
-5000x5000 | 1.163267s 6th  | 1.733930s ✓ 8th | 0.654927s ✓ 5th | 0.652927s ✓ 4th
+10x10     | 0.000032s 3rd  | 0.000036s ✗ 7th | 0.000035s ✓ 6th | 0.000039s ✓ 8th
+25x20     | 0.000035s 2nd  | 0.000044s ✓ 8th | 0.000040s ✓ 6th | 0.000040s ✓ 5th
+50x50     | 0.000058s 6th  | 0.000074s ✓ 8th | 0.000050s ✓ 5th | 0.000048s ✓ 3rd
+100x150   | 0.000140s 6th  | 0.000593s ✓ 7th | 0.000107s ✓ 4th | 0.000111s ✓ 5th
+250x250   | 0.001098s 6th  | 0.001249s ✓ 8th | 0.000429s ✓ 4th | 0.000370s ✓ 3rd
+550x500   | 0.003409s 6th  | 0.011595s ✓ 7th | 0.001141s ✓ 5th | 0.001106s ✓ 4th
+1000x1000 | 0.022501s 6th  | 0.041240s ✓ 8th | 0.015979s ✓ 4th | 0.015414s ✓ 3rd
+2000x2500 | 0.033845s 6th  | 1.929752s ✓ 8th | 0.016452s ✓ 4th | 0.018432s ✓ 5th
+5000x5000 | 1.087981s 6th  | 1.580324s ✓ 8th | 0.556389s ✓ 5th | 0.546557s ✓ 4th
 --------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
 Size      | LAPX LAPJVC     | LAPX LAPJVS     | LAPX LAPJVR     | LAPX LAPJVH
 ---------------------------------------------------------------------------------
-10x10     | 0.000036s ✓ 7th | 0.000034s ✓ 4th | 0.000030s ✓ 1st | 0.000030s ✓ 2nd
-25x20     | 0.000039s ✓ 7th | 0.000039s ✓ 6th | 0.000031s ✓ 1st | 0.000034s ✓ 2nd
-50x50     | 0.000061s ✓ 7th | 0.000046s ✓ 5th | 0.000038s ✓ 1st | 0.000038s ✓ 2nd
-100x150   | 0.000638s ✓ 8th | 0.000101s ✓ 3rd | 0.000064s ✓ 1st | 0.000065s ✓ 2nd
-250x250   | 0.001214s ✓ 8th | 0.000385s ✓ 4th | 0.000269s ✓ 2nd | 0.000258s ✓ 1st
-550x500   | 0.016040s ✓ 8th | 0.000996s ✓ 3rd | 0.000576s ✓ 1st | 0.000609s ✓ 2nd
-1000x1000 | 0.024558s ✓ 7th | 0.015870s ✓ 4th | 0.004198s ✓ 2nd | 0.003978s ✓ 1st
-2000x2500 | 1.737007s ✓ 7th | 0.012274s ✓ 3rd | 0.004065s ✓ 1st | 0.004571s ✓ 2nd
-5000x5000 | 1.311709s ✓ 7th | 0.379168s ✓ 3rd | 0.280087s ✓ 2nd | 0.273420s ✓ 1st
+10x10     | 0.000035s ✓ 4th | 0.000035s ✓ 5th | 0.000030s ✓ 1st | 0.000030s ✓ 2nd
+25x20     | 0.000041s ✓ 7th | 0.000039s ✓ 4th | 0.000033s ✓ 1st | 0.000036s ✓ 3rd
+50x50     | 0.000064s ✓ 7th | 0.000049s ✓ 4th | 0.000039s ✓ 1st | 0.000040s ✓ 2nd
+100x150   | 0.000636s ✓ 8th | 0.000105s ✓ 3rd | 0.000069s ✓ 2nd | 0.000063s ✓ 1st
+250x250   | 0.001184s ✓ 7th | 0.000502s ✓ 5th | 0.000262s ✓ 1st | 0.000295s ✓ 2nd
+550x500   | 0.016453s ✓ 8th | 0.000923s ✓ 3rd | 0.000592s ✓ 1st | 0.000675s ✓ 2nd
+1000x1000 | 0.024943s ✓ 7th | 0.016259s ✓ 5th | 0.004075s ✓ 1st | 0.004079s ✓ 2nd
+2000x2500 | 1.639204s ✓ 7th | 0.011577s ✓ 3rd | 0.004113s ✓ 2nd | 0.004088s ✓ 1st
+5000x5000 | 1.277633s ✓ 7th | 0.363599s ✓ 3rd | 0.255808s ✓ 2nd | 0.249738s ✓ 1st
 ---------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉
-     1. LAPX LAPJVH    :   283.0026 ms | ✅ | 🥇x3 🥈x6
-     2. LAPX LAPJVR    :   289.3575 ms | ✅ | 🥇x6 🥈x3
-     3. LAPX LAPJVS    :   408.9130 ms | ✅ | 🥉x4 🚩x3 🏳️x1 🥴x1
-     4. LAPX LAPJVX    :   687.7933 ms | ✅ | 🥉x2 🚩x3 🏳️x3 🥴x1
-     5. LAPX LAPJV     :   690.3940 ms | ✅ | 🥉x1 🚩x3 🏳️x5
-     6. BASELINE SciPy :  1228.0504 ms | ⭐ | 🥉x2 🥴x7
-     7. LAPX LAPJVC    :  3091.3024 ms | ✅ | 🗿x6 🙅‍♂️x3
-     8. LAPX LAPJV-IFT :  3895.0392 ms | ⚠️ | 🗿x3 🙅‍♂️x6
+     1. LAPX LAPJVH    :   259.0425 ms | ✅ | 🥇x3 🥈x5 🥉x1
+     2. LAPX LAPJVR    :   265.0206 ms | ✅ | 🥇x6 🥈x3
+     3. LAPX LAPJVS    :   393.0881 ms | ✅ | 🥉x4 🚩x2 🏳️x3
+     4. LAPX LAPJVX    :   582.1161 ms | ✅ | 🥉x3 🚩x2 🏳️x3 🙅‍♂️x1
+     5. LAPX LAPJV     :   590.6223 ms | ✅ | 🚩x4 🏳️x3 🥴x2
+     6. BASELINE SciPy :  1149.0976 ms | ⭐ | 🥈x1 🥉x1 🥴x7
+     7. LAPX LAPJVC    :  2960.1915 ms | ✅ | 🚩x1 🗿x6 🙅‍♂️x2
+     8. LAPX LAPJV-IFT :  3564.9076 ms | ⚠️ | 🗿x3 🙅‍♂️x6
  🎉 ------------------------------------------------------------------------- 🎉
 
 
@@ -700,42 +700,42 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 --------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX
 --------------------------------------------------------------------------------
-10x10     | 0.000029s 3rd  | 0.000038s ✓ 8th | 0.000033s ✓ 5th | 0.000033s ✓ 6th
-25x20     | 0.000033s 3rd  | 0.000049s ✓ 8th | 0.000038s ✓ 5th | 0.000037s ✓ 4th
-50x50     | 0.000056s 6th  | 0.000065s ✓ 8th | 0.000045s ✓ 4th | 0.000044s ✓ 3rd
-100x150   | 0.000141s 6th  | 0.000585s ✓ 7th | 0.000105s ✓ 4th | 0.000104s ✓ 3rd
-250x250   | 0.001121s 7th  | 0.001117s ✓ 6th | 0.000383s ✓ 5th | 0.000380s ✓ 4th
-550x500   | 0.003438s 6th  | 0.011395s ✓ 7th | 0.001094s ✓ 5th | 0.001083s ✓ 4th
-1000x1000 | 0.022706s 6th  | 0.041878s ✓ 8th | 0.015928s ✓ 5th | 0.015629s ✓ 3rd
-2000x2500 | 0.035596s 6th  | 2.163564s ✓ 8th | 0.017848s ✓ 4th | 0.017927s ✓ 5th
-5000x5000 | 1.127586s 6th  | 1.725706s ✓ 8th | 0.640167s ✓ 5th | 0.612770s ✓ 4th
+10x10     | 0.000032s 3rd  | 0.000036s ✓ 7th | 0.000036s ✓ 6th | 0.000036s ✓ 5th
+25x20     | 0.000035s 3rd  | 0.000044s ✓ 8th | 0.000041s ✓ 5th | 0.000041s ✓ 6th
+50x50     | 0.000055s 6th  | 0.000067s ✓ 8th | 0.000048s ✓ 4th | 0.000047s ✓ 3rd
+100x150   | 0.000144s 6th  | 0.000597s ✓ 7th | 0.000109s ✓ 4th | 0.000110s ✓ 5th
+250x250   | 0.001092s 6th  | 0.001135s ✓ 7th | 0.000367s ✓ 3rd | 0.000379s ✓ 4th
+550x500   | 0.003347s 6th  | 0.010704s ✓ 7th | 0.001120s ✓ 5th | 0.001118s ✓ 4th
+1000x1000 | 0.022431s 6th  | 0.039612s ✓ 8th | 0.015348s ✓ 4th | 0.014943s ✓ 3rd
+2000x2500 | 0.035328s 6th  | 2.170211s ✓ 8th | 0.018410s ✓ 5th | 0.018250s ✓ 4th
+5000x5000 | 1.129035s 6th  | 1.656052s ✓ 8th | 0.590073s ✓ 5th | 0.568115s ✓ 4th
 --------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
 Size      | LAPX LAPJVC     | LAPX LAPJVS     | LAPX LAPJVR     | LAPX LAPJVH
 ---------------------------------------------------------------------------------
-10x10     | 0.000033s ✓ 7th | 0.000032s ✓ 4th | 0.000029s ✓ 1st | 0.000029s ✓ 2nd
-25x20     | 0.000039s ✓ 7th | 0.000038s ✓ 6th | 0.000031s ✓ 2nd | 0.000031s ✓ 1st
-50x50     | 0.000062s ✓ 7th | 0.000046s ✓ 5th | 0.000038s ✓ 1st | 0.000038s ✓ 2nd
-100x150   | 0.000643s ✓ 8th | 0.000106s ✓ 5th | 0.000062s ✓ 2nd | 0.000061s ✓ 1st
-250x250   | 0.001173s ✓ 8th | 0.000378s ✓ 3rd | 0.000263s ✓ 2nd | 0.000260s ✓ 1st
-550x500   | 0.015989s ✓ 8th | 0.000886s ✓ 3rd | 0.000580s ✓ 1st | 0.000701s ✓ 2nd
-1000x1000 | 0.024357s ✓ 7th | 0.015900s ✓ 4th | 0.004126s ✓ 2nd | 0.003988s ✓ 1st
-2000x2500 | 1.725748s ✓ 7th | 0.011325s ✓ 3rd | 0.004652s ✓ 2nd | 0.004247s ✓ 1st
-5000x5000 | 1.300565s ✓ 7th | 0.377369s ✓ 3rd | 0.251710s ✓ 1st | 0.273771s ✓ 2nd
+10x10     | 0.000035s ✓ 4th | 0.000044s ✓ 8th | 0.000030s ✓ 1st | 0.000030s ✓ 2nd
+25x20     | 0.000041s ✓ 7th | 0.000041s ✓ 4th | 0.000032s ✓ 2nd | 0.000032s ✓ 1st
+50x50     | 0.000064s ✓ 7th | 0.000049s ✓ 5th | 0.000039s ✓ 1st | 0.000039s ✓ 2nd
+100x150   | 0.000635s ✓ 8th | 0.000106s ✓ 3rd | 0.000067s ✓ 2nd | 0.000062s ✓ 1st
+250x250   | 0.001186s ✓ 8th | 0.000392s ✓ 5th | 0.000259s ✓ 1st | 0.000264s ✓ 2nd
+550x500   | 0.016309s ✓ 8th | 0.000936s ✓ 3rd | 0.000569s ✓ 1st | 0.000608s ✓ 2nd
+1000x1000 | 0.024233s ✓ 7th | 0.016284s ✓ 5th | 0.004089s ✓ 2nd | 0.004025s ✓ 1st
+2000x2500 | 1.745250s ✓ 7th | 0.012813s ✓ 3rd | 0.004110s ✓ 1st | 0.004657s ✓ 2nd
+5000x5000 | 1.307515s ✓ 7th | 0.385126s ✓ 3rd | 0.278854s ✓ 2nd | 0.252021s ✓ 1st
 ---------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉
-     1. LAPX LAPJVR    :   261.4903 ms | ✅ | 🥇x4 🥈x5
-     2. LAPX LAPJVH    :   283.1252 ms | ✅ | 🥇x5 🥈x4
-     3. LAPX LAPJVS    :   406.0796 ms | ✅ | 🥉x4 🚩x2 🏳️x2 🥴x1
-     4. LAPX LAPJVX    :   648.0079 ms | ✅ | 🥉x3 🚩x4 🏳️x1 🥴x1
-     5. LAPX LAPJV     :   675.6392 ms | ✅ | 🚩x3 🏳️x6
-     6. BASELINE SciPy :  1190.7077 ms | ⭐ | 🥉x2 🥴x6 🗿x1
-     7. LAPX LAPJVC    :  3068.6097 ms | ✅ | 🗿x6 🙅‍♂️x3
-     8. LAPX LAPJV-IFT :  3944.3959 ms | ✅ | 🥴x1 🗿x2 🙅‍♂️x6
+     1. LAPX LAPJVH    :   261.7399 ms | ✅ | 🥇x4 🥈x5
+     2. LAPX LAPJVR    :   288.0496 ms | ✅ | 🥇x5 🥈x4
+     3. LAPX LAPJVS    :   415.7905 ms | ✅ | 🥉x4 🚩x1 🏳️x3 🙅‍♂️x1
+     4. LAPX LAPJVX    :   603.0376 ms | ✅ | 🥉x2 🚩x4 🏳️x2 🥴x1
+     5. LAPX LAPJV     :   625.5504 ms | ✅ | 🥉x1 🚩x3 🏳️x4 🥴x1
+     6. BASELINE SciPy :  1191.4983 ms | ⭐ | 🥉x2 🥴x7
+     7. LAPX LAPJVC    :  3095.2688 ms | ✅ | 🚩x1 🗿x5 🙅‍♂️x3
+     8. LAPX LAPJV-IFT :  3878.4579 ms | ✅ | 🗿x4 🙅‍♂️x5
  🎉 ------------------------------------------------------------------------- 🎉
 
 
@@ -746,42 +746,42 @@ Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 --------------------------------------------------------------------------------
 Size      | BASELINE SciPy | LAPX LAPJV-IFT  | LAPX LAPJV      | LAPX LAPJVX
 --------------------------------------------------------------------------------
-10x10     | 0.000029s 3rd  | 0.000033s ✓ 8th | 0.000033s ✓ 7th | 0.000033s ✓ 5th
-25x20     | 0.000033s 3rd  | 0.000041s ✓ 7th | 0.000038s ✓ 4th | 0.000045s ✓ 8th
-50x50     | 0.000058s 6th  | 0.000066s ✓ 8th | 0.000045s ✓ 3rd | 0.000045s ✓ 4th
-100x150   | 0.000147s 6th  | 0.000589s ✓ 7th | 0.000106s ✓ 5th | 0.000106s ✓ 4th
-250x250   | 0.001120s 6th  | 0.001138s ✓ 7th | 0.000373s ✓ 4th | 0.000371s ✓ 3rd
-550x500   | 0.003473s 6th  | 0.011458s ✓ 7th | 0.001302s ✓ 5th | 0.001074s ✓ 4th
-1000x1000 | 0.022652s 6th  | 0.042463s ✓ 8th | 0.015936s ✓ 5th | 0.015448s ✓ 3rd
-2000x2500 | 0.036005s 6th  | 2.203505s ✓ 8th | 0.018101s ✓ 5th | 0.017784s ✓ 4th
-5000x5000 | 1.185836s 6th  | 1.728481s ✓ 8th | 0.650640s ✓ 5th | 0.646867s ✓ 4th
+10x10     | 0.000031s 3rd  | 0.000036s ✓ 8th | 0.000036s ✓ 7th | 0.000036s ✓ 6th
+25x20     | 0.000036s 3rd  | 0.000044s ✓ 7th | 0.000049s ✓ 8th | 0.000040s ✓ 5th
+50x50     | 0.000055s 6th  | 0.000067s ✓ 8th | 0.000047s ✓ 4th | 0.000047s ✓ 3rd
+100x150   | 0.000137s 6th  | 0.000594s ✓ 7th | 0.000122s ✓ 5th | 0.000110s ✓ 4th
+250x250   | 0.001089s 6th  | 0.001103s ✓ 7th | 0.000378s ✓ 4th | 0.000368s ✓ 3rd
+550x500   | 0.003492s 6th  | 0.011440s ✓ 7th | 0.001088s ✓ 4th | 0.001091s ✓ 5th
+1000x1000 | 0.022558s 6th  | 0.042524s ✓ 8th | 0.016031s ✓ 4th | 0.015456s ✓ 3rd
+2000x2500 | 0.034325s 6th  | 2.105565s ✓ 8th | 0.017508s ✓ 4th | 0.018518s ✓ 5th
+5000x5000 | 1.165366s 6th  | 1.745570s ✓ 8th | 0.617482s ✓ 4th | 0.647913s ✓ 5th
 --------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
 Size      | LAPX LAPJVC     | LAPX LAPJVS     | LAPX LAPJVR     | LAPX LAPJVH
 ---------------------------------------------------------------------------------
-10x10     | 0.000033s ✓ 6th | 0.000032s ✓ 4th | 0.000028s ✓ 1st | 0.000029s ✓ 2nd
-25x20     | 0.000039s ✓ 6th | 0.000039s ✓ 5th | 0.000031s ✓ 2nd | 0.000031s ✓ 1st
-50x50     | 0.000063s ✓ 7th | 0.000046s ✓ 5th | 0.000038s ✓ 2nd | 0.000038s ✓ 1st
-100x150   | 0.000635s ✓ 8th | 0.000102s ✓ 3rd | 0.000063s ✓ 2nd | 0.000061s ✓ 1st
-250x250   | 0.001165s ✓ 8th | 0.000379s ✓ 5th | 0.000272s ✓ 2nd | 0.000264s ✓ 1st
-550x500   | 0.016055s ✓ 8th | 0.001012s ✓ 3rd | 0.000565s ✓ 1st | 0.000601s ✓ 2nd
-1000x1000 | 0.024362s ✓ 7th | 0.015887s ✓ 4th | 0.004143s ✓ 2nd | 0.003990s ✓ 1st
-2000x2500 | 1.744677s ✓ 7th | 0.012428s ✓ 3rd | 0.004609s ✓ 2nd | 0.004586s ✓ 1st
-5000x5000 | 1.277330s ✓ 7th | 0.378245s ✓ 3rd | 0.277742s ✓ 2nd | 0.272951s ✓ 1st
+10x10     | 0.000035s ✓ 5th | 0.000035s ✓ 4th | 0.000030s ✓ 1st | 0.000031s ✓ 2nd
+25x20     | 0.000041s ✓ 6th | 0.000040s ✓ 4th | 0.000033s ✓ 2nd | 0.000033s ✓ 1st
+50x50     | 0.000063s ✓ 7th | 0.000048s ✓ 5th | 0.000039s ✓ 1st | 0.000039s ✓ 2nd
+100x150   | 0.000634s ✓ 8th | 0.000108s ✓ 3rd | 0.000067s ✓ 2nd | 0.000064s ✓ 1st
+250x250   | 0.001191s ✓ 8th | 0.000401s ✓ 5th | 0.000267s ✓ 2nd | 0.000262s ✓ 1st
+550x500   | 0.016468s ✓ 8th | 0.000934s ✓ 3rd | 0.000591s ✓ 1st | 0.000686s ✓ 2nd
+1000x1000 | 0.024765s ✓ 7th | 0.016277s ✓ 5th | 0.004170s ✓ 2nd | 0.004141s ✓ 1st
+2000x2500 | 1.692155s ✓ 7th | 0.012586s ✓ 3rd | 0.004746s ✓ 2nd | 0.004361s ✓ 1st
+5000x5000 | 1.329131s ✓ 7th | 0.381499s ✓ 3rd | 0.280493s ✓ 2nd | 0.277723s ✓ 1st
 ---------------------------------------------------------------------------------
 
 Note: LAPJV-IFT uses in-function filtering lap.lapjv(cost_limit=thresh).
 
  🎉 ---------------------------  OVERALL RANKING  --------------------------- 🎉
-     1. LAPX LAPJVH    :   282.5500 ms | ✅ | 🥇x7 🥈x2
-     2. LAPX LAPJVR    :   287.4900 ms | ✅ | 🥇x2 🥈x7
-     3. LAPX LAPJVS    :   408.1699 ms | ✅ | 🥉x4 🚩x2 🏳️x3
-     4. LAPX LAPJVX    :   681.7735 ms | ✅ | 🥉x2 🚩x5 🏳️x1 🙅‍♂️x1
-     5. LAPX LAPJV     :   686.5746 ms | ✅ | 🥉x1 🚩x2 🏳️x5 🗿x1
-     6. BASELINE SciPy :  1249.3546 ms | ⭐ | 🥉x2 🥴x7
-     7. LAPX LAPJVC    :  3064.3574 ms | ✅ | 🥴x2 🗿x4 🙅‍♂️x3
-     8. LAPX LAPJV-IFT :  3987.7740 ms | ✅ | 🗿x4 🙅‍♂️x5
+     1. LAPX LAPJVH    :   287.3394 ms | ✅ | 🥇x6 🥈x3
+     2. LAPX LAPJVR    :   290.4374 ms | ✅ | 🥇x3 🥈x6
+     3. LAPX LAPJVS    :   411.9278 ms | ✅ | 🥉x4 🚩x2 🏳️x3
+     4. LAPX LAPJV     :   652.7408 ms | ✅ | 🚩x6 🏳️x1 🗿x1 🙅‍♂️x1
+     5. LAPX LAPJVX    :   683.5785 ms | ✅ | 🥉x3 🚩x1 🏳️x4 🥴x1
+     6. BASELINE SciPy :  1227.0881 ms | ⭐ | 🥉x2 🥴x7
+     7. LAPX LAPJVC    :  3064.4836 ms | ✅ | 🏳️x1 🥴x1 🗿x4 🙅‍♂️x3
+     8. LAPX LAPJV-IFT :  3906.9433 ms | ✅ | 🗿x4 🙅‍♂️x5
  🎉 ------------------------------------------------------------------------- 🎉
 ```
 

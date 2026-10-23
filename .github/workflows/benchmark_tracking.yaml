@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install .
-          python tests/check_rh_wheel.py
+          python .github/tests/check_rh_wheel.py
           pip install scipy
       - name: 📊 Run benchmark_tracking.py
         run: |

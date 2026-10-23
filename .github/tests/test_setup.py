@@ -18,6 +18,15 @@ from setuptools.command.build_ext import build_ext
 from setuptools.errors import CompileError, LinkError
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.fixture(autouse=True)
+def repository_cwd(monkeypatch):
+    # setup.py reads project metadata relative to the current directory.
+    monkeypatch.chdir(REPO_ROOT)
+
+
 class ProbeCompiler:
     shared_lib_extension = ".so"
 
@@ -49,8 +58,7 @@ class ProbeCompiler:
 
 @pytest.fixture
 def build_command(monkeypatch):
-    root = Path(__file__).resolve().parents[1]
-    monkeypatch.chdir(root)
+    root = REPO_ROOT
     namespace = runpy.run_path(str(root / "setup.py"))
     for name in ("LAPX_BASEOPTS", "LAPX_LTO", "LAPX_FASTMATH", "LAPX_NATIVE"):
         monkeypatch.delenv(name, raising=False)
@@ -113,7 +121,7 @@ def test_disabled_lto_overrides_existing_flags(build_command, monkeypatch, compi
     assert all(not path.exists() for path in compiler.temp_dirs)
 
 def test_optional_rust_build_uses_separate_library_directory(tmp_path):
-    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'setup.py'))
+    namespace = runpy.run_path(str(REPO_ROOT / 'setup.py'))
     def configured(extension, explicit=None):
         command = namespace['Build'](Distribution({'ext_modules': [Extension(extension, ['probe.cpp'])]}))
         command.build_base = str(tmp_path)
@@ -129,7 +137,7 @@ def test_optional_rust_build_uses_separate_library_directory(tmp_path):
 
 
 def test_wheel_typing_matches_families_across_rebuilds(tmp_path):
-    root = Path(__file__).resolve().parents[1]
+    root = REPO_ROOT
     namespace = runpy.run_path(str(root / 'setup.py'))
     source = tmp_path / 'source' / 'lap'
     source.mkdir(parents=True)
@@ -182,7 +190,7 @@ def test_wheel_typing_matches_families_across_rebuilds(tmp_path):
 
 
 def test_legacy_initializer_rejects_removing_unrelated_exports():
-    root = Path(__file__).resolve().parents[1]
+    root = REPO_ROOT
     namespace = runpy.run_path(str(root / 'setup.py'))
     source = (root / 'lap/__init__.py').read_text(encoding='utf-8')
     source = source.replace("    'lapjvr', 'lapjvh',", "    'lapjvr', 'lapjvh', 'other_solver',")
@@ -193,7 +201,7 @@ def test_legacy_initializer_rejects_removing_unrelated_exports():
 @pytest.fixture
 def packaging_project(tmp_path):
     """Exercise the real packaging commands with Python stand-ins for native solvers."""
-    root = Path(__file__).resolve().parents[1]
+    root = REPO_ROOT
     project = tmp_path / 'project'
     package = project / 'lap'
     package.mkdir(parents=True)
@@ -221,8 +229,14 @@ def packaging_project(tmp_path):
     for module in ('_lapjvr', '_lapjv_rh'):
         (package / (module + EXTENSION_SUFFIXES[0])).write_bytes(b'stale binary')
     (project / 'tests').mkdir()
-    shutil.copy2(root / 'tests/check_rh_wheel.py', project / 'tests/check_rh_wheel.py')
     (project / 'tests/test_omitted.py').write_text('raise AssertionError\n', encoding='utf-8')
+    checks = project / '.github/tests'
+    checks.mkdir(parents=True)
+    shutil.copy2(root / '.github/tests/check_rh_wheel.py', checks / 'check_rh_wheel.py')
+    (checks / 'test_omitted.py').write_text('raise AssertionError\n', encoding='utf-8')
+    workflows = project / '.github/workflows'
+    workflows.mkdir()
+    (workflows / 'omitted.yaml').write_text('name: omitted\n', encoding='utf-8')
     native = project / 'src/_lapjvr'
     native.mkdir(parents=True)
     shutil.copy2(root / 'src/_lapjvr/_lapjv_rh.pyx', native / '_lapjv_rh.pyx')
@@ -335,7 +349,10 @@ def test_source_archive_contains_wheel_checks_and_full_rh_sources(packaging_proj
         assert match is not None, f'Missing project script in test command: {command}'
         script = match.group(1)
         assert contents[script] == (project / script).read_bytes()
-    assert {name for name in contents if name.startswith('tests/')} == {'tests/check_rh_wheel.py'}
+    assert not any(name.startswith('tests/') for name in contents)
+    assert {name for name in contents if name.startswith('.github/')} == {
+        '.github/tests/check_rh_wheel.py',
+    }
     for name in ('lap/__init__.py', 'lap/_lapjv.pyi', 'lap/_lapjvx.pyi',
                  'lap/_lapjvc.pyi', 'lap/_lapjv_rh.pyi', 'src/_lapjvr/_lapjv_rh.pyx'):
         assert contents[name] == (project / name).read_bytes()
@@ -345,7 +362,7 @@ def test_source_archive_contains_wheel_checks_and_full_rh_sources(packaging_proj
 
 @pytest.mark.parametrize('value,expected', [(None, True), ('1', True), ('0', False)])
 def test_rh_families_are_built_together_by_default(monkeypatch, value, expected):
-    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'setup.py'))
+    namespace = runpy.run_path(str(REPO_ROOT / 'setup.py'))
     monkeypatch.delenv('LAPX_BUILD_RUST', raising=False)
     if value is not None:
         monkeypatch.setenv('LAPX_BUILD_RUST', value)
@@ -358,7 +375,7 @@ def test_rh_families_are_built_together_by_default(monkeypatch, value, expected)
     ('win32', 'i686-pc-windows-msvc'),
 ])
 def test_rust_archive_matches_windows_extension_architecture(platform, target):
-    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'setup.py'))
+    namespace = runpy.run_path(str(REPO_ROOT / 'setup.py'))
     choose = namespace['windows_rust_target']
     assert choose(platform) == choose(platform, target) == target
     with pytest.raises(RuntimeError, match='must match'):
@@ -371,7 +388,7 @@ def macos_rust_build(monkeypatch):
     import platform
     import sys
     import sysconfig
-    namespace = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'setup.py'))
+    namespace = runpy.run_path(str(REPO_ROOT / 'setup.py'))
     # The build helper writes directly to os.environ; isolate those writes too.
     monkeypatch.setattr(os, 'environ', dict(os.environ))
     for name in ('LAPX_BUILD_RUST', 'CARGO_BUILD_TARGET', 'ARCHFLAGS', '_PYTHON_HOST_PLATFORM',

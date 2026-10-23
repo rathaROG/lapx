@@ -3,9 +3,13 @@
 [![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
 [![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
 
-# Run the test suite for `lapx`
+# Run the solver test suite for `lapx`
 
 The tests use [`pytest`](https://github.com/pytest-dev/pytest). The [pytest.ini file](https://github.com/rathaROG/lapx/blob/main/tests/pytest.ini) sets the test options.
+
+This directory covers solver behavior, numerical regressions, and public API
+typing. Build configuration, packaging, and installed-wheel checks are documented
+separately in [.github/tests/](../.github/tests/README.md).
 
 ## Run tests
 
@@ -16,7 +20,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
   python -m pip install -r test_requirements.txt
   ```
 
-- Run the full test suite:
+- Run the full solver test suite:
   ```bash
   python -m pytest -v
   ```
@@ -63,7 +67,6 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 | Sparse batches, varying sizes, ordering, and worker errors | `test_lapmod_batch.py` |
 | Invalid inputs, precision, empty inputs, and thread reuse | `test_input_contracts.py`, `test_wrapper_stability.py`, `test_native_stability.py` |
 | Cost-range and reported-bug regressions | `test_large_cost_consistency.py`, `test_arr_loop.py`, `test_*issue_*.py` |
-| Build-option checks without a native compiler | `test_setup.py` |
 | Shared test data and conversions | `conftest.py`, `test_utils.py`, `cost_eps.csv.gz` |
 | Rust/hybrid contract, original-value objectives, and numerical regressions | `test_lapjvr.py` (runs once per family) |
 | R/H coexistence, concurrent worker reuse, and batch result paths (large parallel batches, lowest failing index, result construction at batch sizes 7-33) | `test_lapjv_rh.py` |
@@ -105,7 +108,8 @@ The test for result order coordinates workers with events. It does not use timin
 Use `pytest -q --durations=10` to find slow tests.
 Keep solver speed benchmarks in `benchmarks/`. Do not add timing assertions to the test suite.
 
-Both GitHub test workflows run the full pytest suite on Python 3.9–3.15.
+Both GitHub test workflows run the full solver suite on Python 3.9–3.15,
+with build and packaging checks in a separate step.
 Python 3.7 and 3.8 remain available for source builds but are outside CI coverage.
 
 ## Rust and hybrid families
@@ -124,23 +128,8 @@ cargo test --locked --all-features --manifest-path src/_lapjvr/Cargo.toml
 cargo clippy --locked --all-targets --all-features --manifest-path src/_lapjvr/Cargo.toml -- -D warnings
 ```
 
-`tests/check_rh_wheel.py` is a standalone installed-wheel smoke check requiring
-only NumPy. Wheel CI uses it to fail if either family is missing. For musllinux
-ARMv7, CI builds with `LAPX_BUILD_RUST=0` and passes `--legacy-only` to check all
-pre-existing solvers and require the R/H extension and exports to be absent.
-The smoke check also requires the R/H stub and typing imports to match the
-wheel's solver set. The source archive always retains the full typing sources.
-It also includes this standalone smoke check so cibuildwheel can test wheels
-built from the archive. Other test-suite files remain outside the archive.
-
-`test_setup.py` covers legacy-only editable installs (including source edits,
-exports, typing files, and stale binaries) and source-archive contents without
-requiring a native compiler. Legacy-only editable installs use setuptools'
-strict link layout; reinstall after changing package exports or adding modules.
-Run the smoke check outside the checkout package path so it tests the installed package. The
-R/H CI workflow builds from the source archive and tests that wheel, using
-current stable Rust. It also checks a compiled legacy-only editable install.
-Cross-platform CI results must be obtained before claiming platform qualification.
+See the [build and packaging guide](../.github/tests/README.md) for installed-wheel
+smoke checks, legacy-only builds, editable installs, and source-archive checks.
 
 ## Static type checks
 

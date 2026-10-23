@@ -1,0 +1,4 @@
+pytest
+pytest-timeout
+setuptools>=67.8.0
+wheel

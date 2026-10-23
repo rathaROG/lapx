@@ -515,7 +515,8 @@ for return types and native worker details.
 
 See the [benchmark guide](https://github.com/rathaROG/lapx/blob/main/benchmark.md) for commands, repeat controls, timing methods, and historical results.
 
-See the [test guide](https://github.com/rathaROG/lapx/tree/main/tests) to run the full test suite.
+See the [solver test guide](https://github.com/rathaROG/lapx/tree/main/tests) and the
+[build and packaging guide](https://github.com/rathaROG/lapx/tree/main/.github/tests) to run the checks.
 
 ## 📝 License
 

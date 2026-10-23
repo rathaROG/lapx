@@ -10,4 +10,4 @@ prune .github
 prune .vscode
 prune benchmarks
 prune tests
-include tests/check_rh_wheel.py
+include .github/tests/check_rh_wheel.py

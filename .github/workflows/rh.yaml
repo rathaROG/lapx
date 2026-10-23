@@ -7,6 +7,7 @@ on:
       - 'src/_lapjvr/**'
       - 'lap/**'
       - 'tests/**'
+      - '.github/tests/**'
       - 'setup.py'
       - 'pyproject.toml'
       - 'MANIFEST.in'
@@ -41,10 +42,12 @@ jobs:
           python -m build
       - name: Install and check the built wheel
         run: |
-          python -m pip install numpy scipy pytest pytest-timeout setuptools pyright typing_extensions
+          python -m pip install -r .github/tests/requirements.txt numpy scipy pyright typing_extensions
           python -m pip install --no-deps --no-index --find-links=dist lapx
-          python tests/check_rh_wheel.py
+          python .github/tests/check_rh_wheel.py
           python -m pyright tests/typing/return_cost.py
+      - name: Test build and packaging configuration
+        run: python -m pytest -q .github/tests
       - name: Test installed package
         working-directory: tests
         run: python -m pytest -q
@@ -57,8 +60,10 @@ jobs:
       - name: Check legacy-only exports
         working-directory: tests
         run: |
-          python check_rh_wheel.py --legacy-only
-          python -m pytest -q test_setup.py test_smoke.py test_input_contracts.py test_wrapper_stability.py
+          python ../.github/tests/check_rh_wheel.py --legacy-only
+          python -m pytest -q test_smoke.py test_input_contracts.py test_wrapper_stability.py
+      - name: Test legacy-only build and packaging configuration
+        run: python -m pytest -q .github/tests
       - name: Install legacy-only editable package
         working-directory: tests
         env:
@@ -69,7 +74,7 @@ jobs:
       - name: Check legacy-only editable exports
         working-directory: tests
         run: |
-          python check_rh_wheel.py --legacy-only
+          python ../.github/tests/check_rh_wheel.py --legacy-only
           python -c "from lap import *"
           python -m pytest -q test_smoke.py
       - uses: actions/upload-artifact@v7

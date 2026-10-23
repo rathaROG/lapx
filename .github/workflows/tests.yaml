@@ -36,9 +36,11 @@ jobs:
       - name: Install and check this checkout's wheel
         run: |
           python -m pip install --force-reinstall --no-deps --no-index --find-links=dist lapx
-          python tests/check_rh_wheel.py
+          python .github/tests/check_rh_wheel.py
       - name: Prepare for full tests
-        run: pip install -U pytest pytest-timeout numpy scipy
+        run: python -m pip install -U -r .github/tests/requirements.txt numpy scipy
+      - name: Test build and packaging configuration
+        run: python -m pytest -q .github/tests
       - name: 🧑‍🔬 Run full tests with pytest 👨‍⚖️
         run: |
           cd tests
@@ -81,9 +83,11 @@ jobs:
       - name: Install and check this checkout's wheel
         run: |
           python -m pip install --force-reinstall --no-deps --no-index --find-links=dist lapx
-          python tests/check_rh_wheel.py
+          python .github/tests/check_rh_wheel.py
       - name: Prepare for full tests
-        run: pip install -U pytest pytest-timeout numpy scipy
+        run: python -m pip install -U -r .github/tests/requirements.txt numpy scipy
+      - name: Test build and packaging configuration
+        run: python -m pytest -q .github/tests
       - name: 🧑‍🔬 Run full tests with pytest 👨‍⚖️
         run: |
           cd tests

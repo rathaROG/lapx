@@ -3,7 +3,7 @@ requires = ["setuptools>=67.8.0", "numpy>=1.21.6", "Cython>=0.29.32", "pybind11>
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-command = "python {project}/tests/check_rh_wheel.py"
+test-command = "python {project}/.github/tests/check_rh_wheel.py"
 
 [tool.cibuildwheel.linux]
 before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable"
@@ -16,4 +16,4 @@ select = "*-musllinux_armv7l"
 # Keep this fallback in the alternate Linux ARM CI configuration too.
 before-all = ""
 environment.LAPX_BUILD_RUST = "0"
-test-command = "python {project}/tests/check_rh_wheel.py --legacy-only"
+test-command = "python {project}/.github/tests/check_rh_wheel.py --legacy-only"
