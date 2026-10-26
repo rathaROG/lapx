@@ -187,6 +187,14 @@ impl<T: Cost> Rectangular<T> {
         let prefer_free_ties = NEAR_SQUARE && super::profile::prefer_free_ties();
         #[cfg(not(feature = "profile"))]
         let prefer_free_ties = NEAR_SQUARE;
+        // Bound initialization churn on large rectangles. Required and optional
+        // paths use different allowances to balance reduction and search work.
+        // Budget all rows so a small second-pass remainder retains useful work.
+        let reduction_budget = if rows >= 128 && cols - rows > rows / 8 {
+            rows.saturating_mul(if OPTIONAL { 8 } else { 4 })
+        } else {
+            usize::MAX
+        };
         for _ in 0..2 {
             let previous = num_free;
             num_free = 0;
@@ -228,7 +236,7 @@ impl<T: Cost> Rectangular<T> {
                     }
                 }
                 let mut displaced = y[j1];
-                let reduce = reductions < k.saturating_mul(reduction_limit);
+                let reduce = reductions < k.saturating_mul(reduction_limit).min(reduction_budget);
                 let new_v = v[j1] - (second - min);
                 // Do not choose a nonminimal fallback merely because the
                 // potential update exceeds the working type's finite range.
