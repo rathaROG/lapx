@@ -121,7 +121,7 @@ jobs:
 
   build_linux_intel:
     name: Build linux-intel (Python 3.9-3.15)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python 3.x
@@ -177,7 +177,7 @@ jobs:
 
   build_source:
     name: Build source dist
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python 3.x
