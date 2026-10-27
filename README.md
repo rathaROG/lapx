@@ -325,7 +325,7 @@ total, x, y = lap.lapmod(n, cc, ii, kk)
 
 #### 8. Rust and hybrid functions `lapjvr` and `lapjvh`
 
-R/H were **about 3–10× faster than SciPy** across benchmarks; see [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0110rc1).
+R/H were **about 3–8× faster than SciPy** across benchmarks; see [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0110rc1).
 
 `lapjvr` and `lapjvh` share a Rust Jonker-Volgenant implementation. For square
 problems with infinite `cost_limit`, `lapjvh` uses C++ completion. Both return
