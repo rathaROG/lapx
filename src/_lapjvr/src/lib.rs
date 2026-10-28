@@ -120,13 +120,13 @@ const FREE: usize = usize::MAX;
 // their register pressure otherwise makes this hot loop compiler-sensitive.
 // Starting at infinity preserves column order, including a forbidden column 0.
 #[inline(never)]
-fn required_row_minima<T: Cost>(row: &[T], dual: &[T]) -> (T, T, usize, usize) {
-    let mut min = T::INF;
-    let mut second = T::INF;
+fn required_row_minima<T: Cost>(row: &[T], dual: &[f64]) -> (f64, f64, usize, usize) {
+    let mut min = f64::INFINITY;
+    let mut second = f64::INFINITY;
     let mut first_column = FREE;
     let mut second_column = FREE;
     for (j, (&cost, &potential)) in row.iter().zip(dual).enumerate() {
-        let value = cost - potential;
+        let value = cost.to_f64() - potential;
         if value < second {
             if value >= min {
                 second = value;

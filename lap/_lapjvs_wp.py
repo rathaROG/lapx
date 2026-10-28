@@ -99,8 +99,10 @@ def lapjvs(
           x[i] gives the assigned column for row i, or -1 if the row has no assignment.
           y[j] gives the assigned row for column j, or -1 if the column has no assignment.
     prefer_float32 : bool, default True
-        If True, the kernel uses float32 to reduce memory bandwidth and improve speed.
-        If False and the input is float64, the kernel uses float64.
+        If True, store working costs in float32, converting the input if needed.
+        If False and the input is float64, preserve float64 costs. Float32
+        input remains float32. Both paths use float64 potentials, distances,
+        and reduced-cost arithmetic; conversion can still round input costs.
         The solver recalculates the total from the original cost array,
         regardless of the kernel data type.
 
@@ -127,8 +129,12 @@ def lapjvs(
       It pads the right, bottom, or both with zeros to make rectangular problems square.
       It returns only assignments within the original (n, m) region.
       It uses only these assignments for the total cost.
-    - The kernel may use float32 or float64.
+    - Working cost storage may use float32 or float64. Potentials, distances,
+      and reduced-cost arithmetic use float64 in both cases.
       The solver always sums total costs in float64 from the original cost array.
+    - Float64 working arithmetic reduces cancellation, but extreme cost ranges
+      can still obscure small objective differences. It is not exact arithmetic
+      for arbitrary ranges, and it cannot restore costs rounded during conversion.
     """
     # Keep the original array to compute the final cost from it (preserves previous behavior)
     A = np.asarray(cost)
@@ -326,8 +332,10 @@ def lapjvsa(
         If True, return the total cost first.
         The solver calculates this total from the original input matrix.
     prefer_float32 : bool, default True
-        Request a float32 kernel for performance.
-        If False and the input is float64, the kernel uses float64.
+        Request float32 working cost storage, converting the input if needed.
+        If False and the input is float64, preserve float64 costs. Float32
+        input remains float32. Potentials, distances, and reduced-cost
+        arithmetic use float64 in both paths.
 
     Returns
     -------
@@ -353,6 +361,9 @@ def lapjvsa(
       values are undefined. Positive infinity can represent a forbidden assignment.
     - For rectangular inputs, pairs contain only assignments within the original (n, m) region.
     - The solver sums total costs in float64 from the original cost array.
+    - Float64 working arithmetic reduces cancellation, but extreme cost ranges
+      can still obscure small objective differences. It cannot restore costs
+      rounded during conversion.
     """
     A = np.asarray(cost)
     if A.ndim != 2:

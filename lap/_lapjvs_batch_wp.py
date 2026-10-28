@@ -119,7 +119,8 @@ def lapjvs_batch(
 
         The function creates no thread pool for one worker or at most one problem.
     prefer_float32 : bool, default True
-        Request a float32 kernel for each problem.
+        Request float32 working cost storage for each problem. Potentials,
+        distances, and reduced-cost arithmetic use float64 in both paths.
         The wrapper passes this option to lapjvs. See lapjvs for details.
 
     Returns
@@ -147,8 +148,8 @@ def lapjvs_batch(
     The native kernel releases the global interpreter lock (GIL).
     Multiple threads can make large batches faster on systems with multiple CPU cores.
 
-    Each problem may use float32 or float64. Kernel selection and data conversion
-    follow the single solver rules. Totals use float64.
+    Working costs may use float32 or float64. Potentials and distances use
+    float64. Cost conversion follows the single solver rules; totals use float64.
 
     Results keep the input order regardless of the thread count.
     """
@@ -279,7 +280,8 @@ def lapjvsa_batch(
 
         The function creates no thread pool for one worker or at most one problem.
     prefer_float32 : bool, default True
-        Request a float32 kernel for each problem.
+        Request float32 working cost storage for each problem. Potentials,
+        distances, and reduced-cost arithmetic use float64 in both paths.
         The wrapper passes this option to lapjvsa. See lapjvsa for details.
 
     Returns

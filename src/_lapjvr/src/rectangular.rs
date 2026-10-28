@@ -3,6 +3,7 @@
 // followed by a shortest augmenting path with rectangular dual constraints.
 
 use super::{required_row_minima, resize, Cost, Error, FREE};
+use std::marker::PhantomData;
 
 #[derive(Default)]
 pub(crate) struct Rectangular<T> {
@@ -13,13 +14,16 @@ pub(crate) struct Rectangular<T> {
     free_rows: Vec<usize>,
     columns: Vec<usize>,
     predecessor: Vec<usize>,
-    distance: Vec<T>,
-    row_dual: Vec<T>,
-    column_dual: Vec<T>,
+    // Keep float32 cost storage while reducing cancellation in reduced costs
+    // when a legitimate finite cost is much larger than the differences.
+    distance: Vec<f64>,
+    row_dual: Vec<f64>,
+    column_dual: Vec<f64>,
+    cost_type: PhantomData<T>,
 }
 
-struct Minimum<T> {
-    cost: T,
+struct Minimum {
+    cost: f64,
     column: usize,
 }
 
@@ -27,17 +31,17 @@ struct Minimum<T> {
 #[inline(always)]
 fn scan_optional_row<T: Cost, const GROUPED: bool>(
     row: &[T],
-    dual: &[T],
-    penalty: T,
-) -> [Minimum<T>; 2] {
+    dual: &[f64],
+    penalty: f64,
+) -> [Minimum; 2] {
     let mut min = penalty;
     let mut second = penalty;
     let mut first_column = FREE;
     let mut second_column = FREE;
-    let mut scan = |start: usize, costs: &[T], potentials: &[T]| {
+    let mut scan = |start: usize, costs: &[T], potentials: &[f64]| {
         for (offset, (&cost, &potential)) in costs.iter().zip(potentials).enumerate() {
             let j = start + offset;
-            let value = cost - potential;
+            let value = cost.to_f64() - potential;
             if value < second {
                 if value >= min {
                     second = value;
@@ -82,12 +86,12 @@ fn scan_optional_row<T: Cost, const GROUPED: bool>(
 
 // Keep the larger scan independent of allocation and shortest-path state.
 #[inline(never)]
-fn grouped_optional_row_minima<T: Cost>(row: &[T], dual: &[T], penalty: T) -> [Minimum<T>; 2] {
+fn grouped_optional_row_minima<T: Cost>(row: &[T], dual: &[f64], penalty: f64) -> [Minimum; 2] {
     scan_optional_row::<T, true>(row, dual, penalty)
 }
 
 #[inline(always)]
-fn optional_row_minima<T: Cost>(row: &[T], dual: &[T], penalty: T) -> [Minimum<T>; 2] {
+fn optional_row_minima<T: Cost>(row: &[T], dual: &[f64], penalty: f64) -> [Minimum; 2] {
     // A helper call per row costs more than it saves on very short scans.
     if row.len() <= 16 {
         scan_optional_row::<T, false>(row, dual, penalty)
@@ -148,14 +152,17 @@ impl<T: Cost> Rectangular<T> {
         if rows == 0 {
             return Ok(());
         }
+        // The caller rounds each half-limit and their sum in the cost type.
+        // Promote that represented penalty, rather than recomputing it here.
+        let penalty = penalty.to_f64();
         resize(&mut self.x, rows, FREE)?;
         resize(&mut self.y, cols, FREE)?;
         resize(&mut self.free_rows, rows, 0)?;
         resize(&mut self.columns, cols, 0)?;
         resize(&mut self.predecessor, cols, FREE)?;
-        resize(&mut self.distance, cols, T::INF)?;
-        resize(&mut self.row_dual, rows, T::default())?;
-        resize(&mut self.column_dual, cols, T::default())?;
+        resize(&mut self.distance, cols, f64::INFINITY)?;
+        resize(&mut self.row_dual, rows, 0.0)?;
+        resize(&mut self.column_dual, cols, 0.0)?;
         let x = &mut self.x[..rows];
         let y = &mut self.y[..cols];
         let free = &mut self.free_rows[..rows];
@@ -166,8 +173,8 @@ impl<T: Cost> Rectangular<T> {
         let v = &mut self.column_dual[..cols];
         x.fill(FREE);
         y.fill(FREE);
-        u.fill(T::default());
-        v.fill(T::default());
+        u.fill(0.0);
+        v.fill(0.0);
         for (i, slot) in free.iter_mut().enumerate() {
             *slot = i;
         }
@@ -228,7 +235,7 @@ impl<T: Cost> Rectangular<T> {
                         j1 = j2;
                     } else {
                         for j in 0..cols {
-                            if y[j] == FREE && row[j] - v[j] == min {
+                            if y[j] == FREE && row[j].to_f64() - v[j] == min {
                                 j1 = j;
                                 break;
                             }
@@ -258,7 +265,7 @@ impl<T: Cost> Rectangular<T> {
                 }
                 x[i] = j1;
                 y[j1] = i;
-                u[i] = row[j1] - v[j1];
+                u[i] = row[j1].to_f64() - v[j1];
                 if !u[i].finite() {
                     return Err(Error::Infeasible);
                 }
@@ -282,9 +289,9 @@ impl<T: Cost> Rectangular<T> {
             // Keep root's reduced costs in d; the first relaxation below
             // reuses them instead of reading the row again.
             let row = &costs[root * cols..(root + 1) * cols];
-            let mut min = if OPTIONAL { penalty } else { T::INF };
+            let mut min = if OPTIONAL { penalty } else { f64::INFINITY };
             for j in 0..cols {
-                let value = row[j] - v[j];
+                let value = row[j].to_f64() - v[j];
                 d[j] = value;
                 if value < min {
                     min = value;
@@ -298,8 +305,8 @@ impl<T: Cost> Rectangular<T> {
             x[root] = FREE;
             let mut low = 0;
             let mut current = root;
-            let mut distance = T::default();
-            let mut dummy_distance = T::INF;
+            let mut distance = 0.0;
+            let mut dummy_distance = f64::INFINITY;
             let mut dummy_row = FREE;
             let sink = loop {
                 if OPTIONAL {
@@ -311,7 +318,7 @@ impl<T: Cost> Rectangular<T> {
                 }
                 let row = &costs[current * cols..(current + 1) * cols];
                 let row_potential = u[current];
-                let mut best = T::INF;
+                let mut best = f64::INFINITY;
                 let mut best_pos = FREE;
                 profile_count!(self, relaxation_columns, cols - low);
                 if low == 0 {
@@ -329,7 +336,7 @@ impl<T: Cost> Rectangular<T> {
                     }
                 } else {
                     for (offset, &j) in columns[low..].iter().enumerate() {
-                        let candidate = distance + (row[j] - v[j] - row_potential);
+                        let candidate = distance + (row[j].to_f64() - v[j] - row_potential);
                         if candidate < d[j] {
                             d[j] = candidate;
                             pred[j] = current;
@@ -360,19 +367,19 @@ impl<T: Cost> Rectangular<T> {
             };
 
             // Maintain feasible row duals and non-positive column duals.
-            u[root] = u[root] + distance;
+            u[root] += distance;
             if !u[root].finite() {
                 return Err(Error::Infeasible);
             }
             for &j in &columns[..low] {
                 let adjustment = distance - d[j];
                 if y[j] != FREE {
-                    u[y[j]] = u[y[j]] + adjustment;
+                    u[y[j]] += adjustment;
                     if !u[y[j]].finite() {
                         return Err(Error::Infeasible);
                     }
                 }
-                v[j] = v[j] - adjustment;
+                v[j] -= adjustment;
                 if !v[j].finite() {
                     return Err(Error::Infeasible);
                 }
@@ -426,6 +433,159 @@ impl<T: Cost> Rectangular<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn assert_float32_certificate(
+        solver: &Rectangular<f32>,
+        costs: &[f32],
+        rows: usize,
+        cols: usize,
+        penalty: Option<f64>,
+        expected: f64,
+    ) {
+        let primal: f64 = solver.x[..rows]
+            .iter()
+            .enumerate()
+            .map(|(i, &j)| {
+                if j == FREE {
+                    penalty.expect("required rows must be assigned")
+                } else {
+                    assert_eq!(solver.y[j], i);
+                    assert_eq!(
+                        solver.row_dual[i] + solver.column_dual[j],
+                        costs[i * cols + j].to_f64()
+                    );
+                    costs[i * cols + j].to_f64()
+                }
+            })
+            .sum();
+        let dual: f64 = solver.row_dual[..rows]
+            .iter()
+            .chain(&solver.column_dual[..cols])
+            .sum();
+        assert_eq!(primal, expected);
+        assert_eq!(primal, dual);
+        for i in 0..rows {
+            if let Some(penalty) = penalty {
+                assert!(solver.row_dual[i] <= penalty);
+                if solver.x[i] == FREE {
+                    assert_eq!(solver.row_dual[i], penalty);
+                }
+            }
+            for j in 0..cols {
+                assert!(solver.row_dual[i] + solver.column_dual[j] <= costs[i * cols + j].to_f64());
+            }
+        }
+        for j in 0..cols {
+            assert!(solver.column_dual[j] <= 0.0);
+            if solver.y[j] == FREE {
+                assert_eq!(solver.column_dual[j], 0.0);
+            }
+        }
+    }
+
+    #[test]
+    fn float32_storage_preserves_small_rectangular_assignment_differences() {
+        let mut solver = Rectangular::<f32>::default();
+        for (large, small) in [
+            (2_902_499.0_f32 / 16.0, 1.0_f32 / 4096.0),
+            (16777216.0, 0.125),
+        ] {
+            // Both rows compete for the middle column. Its two exactly
+            // representable small costs must remain distinguishable after a
+            // large column-potential update; the other row pays `large`.
+            let original = [large, 2.0 * small, large, large, small, large];
+            for reverse_rows in [false, true] {
+                let costs: Vec<f32> = if reverse_rows {
+                    original[3..]
+                        .iter()
+                        .chain(&original[..3])
+                        .copied()
+                        .collect()
+                } else {
+                    original.to_vec()
+                };
+                solver.solve(&costs, 2, 3).unwrap();
+                assert_float32_certificate(
+                    &solver,
+                    &costs,
+                    2,
+                    3,
+                    None,
+                    large.to_f64() + small.to_f64(),
+                );
+                // A high finite penalty retains the required optimum. A low
+                // penalty exercises the implicit sink and leaves one row out.
+                for penalty in [2.0 * large, 4.0 * small] {
+                    solver.solve_optional(&costs, 2, 3, penalty).unwrap();
+                    assert_float32_certificate(
+                        &solver,
+                        &costs,
+                        2,
+                        3,
+                        Some(penalty.to_f64()),
+                        penalty.to_f64().min(large.to_f64()) + small.to_f64(),
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn float32_small_differences_survive_rectangular_sap_relaxation() {
+        let mut solver = Rectangular::<f32>::default();
+        for (large, small) in [
+            (2_902_499.0_f32 / 16.0, 1.0_f32 / 4096.0),
+            (16_777_216.0_f32, 0.125_f32),
+        ] {
+            // Three rows compete for two cheap columns. Initialization leaves
+            // one row unresolved; later SAP relaxation must preserve H-2s.
+            // The exact optimum H+s makes row 0 take either large-cost column.
+            let costs = [
+                2.0 * small,
+                2.0 * small,
+                large,
+                large,
+                small,
+                small,
+                large,
+                large,
+                0.0,
+                0.0,
+                large,
+                large,
+            ];
+            let expected = large.to_f64() + small.to_f64();
+            for optional in [false, true] {
+                let penalty = 2.0 * large;
+                if optional {
+                    solver.solve_optional(&costs, 3, 4, penalty).unwrap();
+                } else {
+                    solver.solve(&costs, 3, 4).unwrap();
+                }
+                assert_float32_certificate(
+                    &solver,
+                    &costs,
+                    3,
+                    4,
+                    if optional {
+                        Some(penalty.to_f64())
+                    } else {
+                        None
+                    },
+                    expected,
+                );
+                assert!((2..4).contains(&solver.x[0]));
+                assert!(solver.x[1] < 2 && solver.x[2] < 2);
+                assert_ne!(solver.x[1], solver.x[2]);
+                #[cfg(feature = "profile")]
+                {
+                    assert_eq!(solver.profile.reduction_rows, 4);
+                    assert_eq!(solver.profile.augmentations, 1);
+                    assert_eq!(solver.profile.relaxation_columns, 9);
+                }
+            }
+        }
+    }
 
     fn brute(costs: &[f64], r: usize, c: usize, row: usize, used: usize) -> f64 {
         if row == r {
@@ -709,7 +869,7 @@ mod tests {
                             _ => T::from_f64(((seed >> 32) % 33) as f64 / 4.0 - 4.0),
                         };
                         row.push(cost);
-                        dual.push(T::from_f64(-(((seed >> 16) % 9) as f64) / 4.0));
+                        dual.push(-(((seed >> 16) % 9) as f64) / 4.0);
                     }
                     if n > 1 && pattern >= 4 {
                         row[0] = if pattern == 4 { T::INF } else { penalty };
@@ -717,12 +877,13 @@ mod tests {
                     }
                     // Stable sorting is independent of the scan. Put the two
                     // unmatched choices first so they retain priority on ties.
+                    let penalty = penalty.to_f64();
                     let mut expected = vec![(penalty, FREE), (penalty, FREE)];
                     expected.extend(
                         row.iter()
                             .zip(&dual)
                             .enumerate()
-                            .map(|(j, (&cost, &potential))| (cost - potential, j)),
+                            .map(|(j, (&cost, &potential))| (cost.to_f64() - potential, j)),
                     );
                     expected.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
                     let actual = optional_row_minima(&row, &dual, penalty);

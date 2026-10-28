@@ -117,9 +117,13 @@ instead of forking after native worker pools have initialized.
   inputs use float64. Explicit `"float32"` and `"float64"` select the working cost
   precision. Finite costs and limits must fit the float32 range when float32 is
   used; values that overflow conversion raise `ValueError`.
-- Required square problems use float64 potentials and distances even with
-  float32 costs. Rectangular and finite-limit paths use the selected working
-  precision.
+- All paths use float64 potentials, distances, and reduced-cost arithmetic,
+  including when costs are stored in float32. Finite-limit half-penalties and
+  their sum are still rounded in the selected cost precision before promotion
+  to float64; widening does not change that objective convention.
+- Float64 working arithmetic reduces cancellation, but extreme cost ranges can
+  still obscure small objective differences. It is not an arbitrary-range
+  exactness guarantee and cannot restore costs rounded during conversion.
 - Rectangular inputs require `extend_cost=True` unless `cost_limit` is finite.
   Rectangular and finite-limit problems use native Rust paths without padding
   the matrix to a square.

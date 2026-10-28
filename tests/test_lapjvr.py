@@ -37,21 +37,72 @@ def selected_total(cost, pairs):
     return total
 
 
-def objective(cost, pairs, limit):
-    total = cost[tuple(pairs.T)].sum(dtype=np.float64)
-    return total + (sum(cost.shape) - 2 * len(pairs)) * limit / 2 if np.isfinite(limit) else total
+def working_dtype_for(cost):
+    dtype = np.asarray(cost).dtype
+    return np.float32 if dtype.kind == 'f' and dtype.itemsize == 4 else np.float64
 
 
-def reference(cost, limit):
+def objective(cost, pairs, limit, *, working_dtype):
+    # Optimization sees represented working costs; returned API totals are
+    # checked separately with selected_total on the original input.
+    represented = np.asarray(cost, dtype=working_dtype)
+    total = represented[tuple(pairs.T)].sum(dtype=np.float64)
+    if not np.isfinite(limit):
+        return total
+    half = float(np.dtype(working_dtype).type(float(limit) / 2))
+    return total + (sum(represented.shape) - 2 * len(pairs)) * half
+
+
+def reference(cost, limit, *, working_dtype):
+    represented = np.asarray(cost, dtype=working_dtype)
     if np.isfinite(limit):
-        n, m = cost.shape
+        n, m = represented.shape
+        half = float(np.dtype(working_dtype).type(float(limit) / 2))
         a = np.zeros((n+m, n+m), dtype=np.float64)
-        a[:n, :m] = cost
-        a[:n, m:] = a[n:, :m] = limit / 2
+        a[:n, :m] = represented
+        a[:n, m:] = a[n:, :m] = half
     else:
-        a = cost
+        a = represented
     rows, cols = linear_sum_assignment(a)
     return a[rows, cols].sum(dtype=np.float64)
+
+
+@pytest.mark.parametrize('precision,working_dtype', [
+    ('float32', np.float32), ('float64', np.float64),
+])
+def test_reference_uses_represented_half_limit(native, precision, working_dtype):
+    cost = np.array([[2**-27, .5], [.5, 2]], dtype=np.float64)
+    limit = 1 - 2**-25
+    total, pairs = native.lapjvr(cost, cost_limit=limit, precision=precision,
+                                output='pairs')
+    # Float32 rounds each half upward to .5. Float64 preserves the lower raw
+    # half. These two represented objectives have strictly different optima.
+    expected = 1.0 if working_dtype == np.float32 else 1 - 3 * 2**-27
+    assert reference(cost, limit, working_dtype=working_dtype) == expected
+    assert objective(cost, pairs, limit, working_dtype=working_dtype) == expected
+    assert len(pairs) == (2 if working_dtype == np.float32 else 1)
+    assert total == selected_total(cost, pairs)
+
+
+@pytest.mark.parametrize('precision,working_dtype', [
+    ('float32', np.float32), ('float64', np.float64),
+])
+def test_reference_quantizes_costs_but_returned_total_uses_original_input(
+        native, precision, working_dtype):
+    eps = float(np.finfo(np.float32).eps)
+    cost = np.array([[1 + 5 * eps / 8, 1., 4.],
+                     [1 + 11 * eps / 8, 1 + 5 * eps / 8, 4.]], dtype=np.float64)
+    selected_optimum = 2 + eps if working_dtype == np.float32 else 2 + 5 * eps / 4
+    for limit in (np.inf, 3.):
+        total, pairs = native.lapjvr(cost, extend_cost=True, cost_limit=limit,
+                                    precision=precision, output='pairs')
+        # A 2x3 complete matching leaves one column unmatched in finite mode.
+        expected = selected_optimum + (1.5 if np.isfinite(limit) else 0.)
+        assert reference(cost, limit, working_dtype=working_dtype) == expected
+        assert objective(cost, pairs, limit, working_dtype=working_dtype) == expected
+        assert total == selected_total(cost, pairs)
+        if working_dtype == np.float32:
+            assert total > 2 + 5 * eps / 4  # Different optimum before quantization.
 
 
 @pytest.mark.parametrize('seed', [20261017, 20261023, 20261101])
@@ -69,12 +120,12 @@ def test_float32_affine_offsets(native, seed, offsets, output):
         cost += shift[None, :]
     cost = cost.astype(np.float32)
     cost.setflags(write=False)
-    expected = reference(cost, np.inf)
+    expected = reference(cost, np.inf, working_dtype=working_dtype_for(cost))
     for precision in ('native', 'float32'):
         total, *result = native.lapjvr(cost, precision=precision, output=output)
         pairs = as_pairs(result[0] if output == 'pairs' else result, output)
         assert len(pairs) == len(np.unique(pairs[:, 1])) == n
-        assert objective(cost, pairs, np.inf) == expected
+        assert objective(cost, pairs, np.inf, working_dtype=working_dtype_for(cost)) == expected
         assert total == selected_total(cost, pairs)
 
     # Reused workspaces and worker threads must return the same optimum.
@@ -98,7 +149,7 @@ def test_float32_offsets_during_reduction_and_search(native, output):
     for cost in costs:
         result = native.lapjvr(cost, return_cost=False, output=output)
         pairs = as_pairs(result, output)
-        assert objective(cost, pairs, np.inf) == reference(cost, np.inf)
+        assert objective(cost, pairs, np.inf, working_dtype=working_dtype_for(cost)) == reference(cost, np.inf, working_dtype=working_dtype_for(cost))
 
 
 @pytest.mark.parametrize('dtype', [np.float32, np.float64])
@@ -127,11 +178,11 @@ def test_required_block_conflicts_and_workspace_reuse(native, dtype, output, see
         pairs = as_pairs(result[0] if output == 'pairs' else result, output)
         np.testing.assert_array_equal(pairs[:, 0], np.arange(n))
         np.testing.assert_array_equal(np.sort(pairs[:, 1]), np.arange(n))
-        expected = reference(actual, np.inf)
+        expected = reference(actual, np.inf, working_dtype=working_dtype_for(actual))
         if dtype == np.float32:
-            assert objective(actual, pairs, np.inf) == expected
+            assert objective(actual, pairs, np.inf, working_dtype=working_dtype_for(actual)) == expected
         else:
-            np.testing.assert_allclose(objective(actual, pairs, np.inf), expected,
+            np.testing.assert_allclose(objective(actual, pairs, np.inf, working_dtype=working_dtype_for(actual)), expected,
                                        rtol=1e-12, atol=1e-12)
         assert total == selected_total(actual, pairs)
         native.lapjvr(np.zeros((3, 3), dtype=dtype))
@@ -171,13 +222,13 @@ def test_heterogeneous_square_rows_offsets_forbidden_and_permutations(native, dt
             selected = as_pairs(result[1] if output == 'pairs' else result[1:], output)
             assert len(selected) == n
             assert len(np.unique(selected[:, 1])) == n
-            assert objective(centered, selected, np.inf) == reference(centered, np.inf)
+            assert objective(centered, selected, np.inf, working_dtype=working_dtype_for(centered)) == reference(centered, np.inf, working_dtype=working_dtype_for(centered))
             assert result[0] == selected_total(actual, selected)
     infeasible = costs.copy()
     infeasible[1] = np.inf
     with pytest.raises(ValueError):
         native.lapjvr(infeasible)
-    assert native.lapjvr(costs)[0] == reference(costs, np.inf)
+    assert native.lapjvr(costs)[0] == reference(costs, np.inf, working_dtype=working_dtype_for(costs))
 
 
 @pytest.mark.parametrize('dtype', [np.float32, np.float64])
@@ -196,7 +247,7 @@ def test_seeded_objective_orientation_and_original_totals(native, dtype, output,
         assert total == cost[tuple(pairs.T)].sum(dtype=np.float64)
         if not np.isfinite(limit):
             assert len(pairs) == min(shape)
-        assert objective(cost, pairs, limit) == pytest.approx(reference(cost, limit))
+        assert objective(cost, pairs, limit, working_dtype=working_dtype_for(cost)) == pytest.approx(reference(cost, limit, working_dtype=working_dtype_for(cost)))
 
 
 @pytest.mark.parametrize('dtype', [np.float32, np.float64])
@@ -207,14 +258,15 @@ def test_small_tied_optional_objective_by_enumeration(native, dtype):
         for _ in range(30):
             cost = rng.integers(-3, 6, (n, m)).astype(dtype)
             limit = float(rng.integers(-2, 5))
+            half = float(np.dtype(dtype).type(limit / 2))
             best = np.inf
             for k in range(min(n, m) + 1):
                 for rows in itertools.combinations(range(n), k):
                     for cols in itertools.permutations(range(m), k):
-                        value = sum(float(cost[i, j]) for i, j in zip(rows, cols)) + (n+m-2*k)*limit/2
+                        value = sum(float(cost[i, j]) for i, j in zip(rows, cols)) + (n+m-2*k)*half
                         best = min(best, value)
             pairs = native.lapjvr(cost, cost_limit=limit, return_cost=False, output='pairs')
-            assert objective(cost, pairs, limit) == best
+            assert objective(cost, pairs, limit, working_dtype=working_dtype_for(cost)) == best
 
 
 @pytest.mark.parametrize('output', ['indices', 'pairs'])
@@ -333,7 +385,7 @@ def test_tall_tile_boundaries_preserve_objective_and_original_indices(native, sh
     for cost, total, pairs in zip(costs, totals, arrays):
         assert np.all(pairs[1:, 0] > pairs[:-1, 0])
         assert total == pytest.approx(cost[tuple(pairs.T)].sum(dtype=np.float64), rel=1e-14)
-        assert objective(cost, pairs, limit) == pytest.approx(reference(cost, limit))
+        assert objective(cost, pairs, limit, working_dtype=working_dtype_for(cost)) == pytest.approx(reference(cost, limit, working_dtype=working_dtype_for(cost)))
         single = native.lapjvr(cost, extend_cost=True, cost_limit=limit, output='pairs')
         np.testing.assert_array_equal(single[1], pairs)
 
@@ -377,10 +429,10 @@ def test_unaligned_numeric_and_strided_conversions(native):
     cost = np.ndarray((4, 4), dtype=np.float64, buffer=bytearray(4*4*8+1), offset=1)
     cost[:] = np.arange(16).reshape(4, 4)
     assert not cost.flags.aligned
-    assert native.lapjvr(cost)[0] == reference(cost, np.inf)
+    assert native.lapjvr(cost)[0] == reference(cost, np.inf, working_dtype=working_dtype_for(cost))
     for dtype in (np.float16, np.int16, np.int64, np.bool_):
         a = np.eye(3, dtype=dtype)[:, ::-1]
-        assert native.lapjvr(a)[0] == reference(a.astype(float), np.inf)
+        assert native.lapjvr(a)[0] == reference(a.astype(float), np.inf, working_dtype=working_dtype_for(a.astype(float)))
 
 
 @pytest.mark.parametrize('kind', ['list', 'subclass', 'array-protocol'])
@@ -496,7 +548,7 @@ def test_native_rectangles_negative_forbidden_and_seeded_floats(native, dtype, s
         np.fill_diagonal(missing, False)
         a[missing] = np.inf
         total, pairs = native.lapjvr(a, extend_cost=True, output='pairs')
-        expected = reference(a, np.inf)
+        expected = reference(a, np.inf, working_dtype=working_dtype_for(a))
         assert total == pytest.approx(expected, rel=2e-6 if dtype == np.float32 else 1e-11, abs=1e-5 if dtype == np.float32 else 1e-11)
         assert len(pairs) == min(shape)
         assert np.all(pairs[1:, 0] > pairs[:-1, 0])
@@ -532,13 +584,25 @@ def test_rectangular_unused_infinite_columns_and_hall_infeasibility(native):
             native.lapjvr(cost, extend_cost=True)
 
 
-@pytest.mark.parametrize('dtype,magnitude', [(np.float32, 3e38), (np.float64, 1e308)])
-def test_rectangular_reduced_cost_overflow_is_an_error(native, dtype, magnitude):
-    a = np.array([[-magnitude, magnitude, magnitude], [-magnitude, 0., magnitude]], dtype=dtype)
+def test_rectangular_float32_reduced_costs_use_wide_arithmetic(native):
+    magnitude = np.float32(3e38)
+    a = np.array([[-magnitude, magnitude, magnitude], [-magnitude, 0., magnitude]], dtype=np.float32)
+    for cost in (a, a.T):
+        total, pairs = native.lapjvr(cost, extend_cost=True, output='pairs')
+        assert len(pairs) == 2
+        # The reduced-cost range exceeds float32, while the represented optimum
+        # and the float64 working arithmetic are finite.
+        assert total == -float(magnitude)
+        assert float(cost[tuple(pairs.T)].sum(dtype=np.float64)) == total
+
+
+def test_rectangular_float64_reduced_cost_overflow_is_an_error(native):
+    magnitude = 1e308
+    a = np.array([[-magnitude, magnitude, magnitude], [-magnitude, 0., magnitude]], dtype=np.float64)
     for cost in (a, a.T):
         with pytest.raises(ValueError, match='overflow'):
             native.lapjvr(cost, extend_cost=True)
-    good = np.array([[0., 1., 2.], [1., 0., 2.]], dtype=dtype)
+    good = np.array([[0., 1., 2.], [1., 0., 2.]], dtype=np.float64)
     assert native.lapjvr(good, extend_cost=True)[0] == 0.
 
 
@@ -560,7 +624,7 @@ def test_implicit_limits_objective_and_batch(native, dtype, output, shape, limit
         assert total == single[0]
         assert total == pytest.approx(cost[tuple(pairs.T)].sum(dtype=np.float64), rel=1e-14, abs=1e-14)
         np.testing.assert_array_equal(pairs, as_pairs(single[1] if output == 'pairs' else single[1:], output))
-        assert objective(cost, pairs, limit) == pytest.approx(reference(cost, limit), rel=2e-6, abs=2e-6)
+        assert objective(cost, pairs, limit, working_dtype=working_dtype_for(cost)) == pytest.approx(reference(cost, limit, working_dtype=working_dtype_for(cost)), rel=2e-6, abs=2e-6)
         assert len(np.unique(pairs[:, 0])) == len(np.unique(pairs[:, 1])) == len(pairs)
         assert np.all(pairs[1:, 0] > pairs[:-1, 0])
         assert np.isfinite(cost[tuple(pairs.T)]).all()
@@ -575,13 +639,16 @@ def test_implicit_limit_is_optimized_before_pair_selection(native, dtype):
     # Every edge equals the rejection threshold: any cardinality is optimal.
     tied = np.full((3, 4), 2., dtype=dtype)
     pairs = native.lapjvr(tied, cost_limit=2., output='pairs')[1]
-    assert objective(tied, pairs, 2.) == reference(tied, 2.)
+    assert objective(tied, pairs, 2., working_dtype=working_dtype_for(tied)) == reference(tied, 2., working_dtype=working_dtype_for(tied))
     tiny = np.nextafter(dtype(0), dtype(1))
     tied = np.array([[tiny]], dtype=dtype)
     pairs = native.lapjvr(tied, cost_limit=float(tiny), output='pairs')[1]
-    # For one edge equal to the limit, matching and rejection both cost tiny.
-    # The augmented reference cannot represent tiny / 2 for float64 subnormals.
-    assert objective(tied, pairs, float(tiny)) == float(tiny)
+    # The represented half-limit underflows to zero in both cost dtypes.
+    # Rejection therefore costs zero; raw-limit arithmetic would incorrectly
+    # treat matching and rejection as tied at tiny.
+    assert len(pairs) == 0
+    assert objective(tied, pairs, float(tiny), working_dtype=dtype) == 0.
+    assert reference(tied, float(tiny), working_dtype=dtype) == 0.
     assert native.lapjvr(np.array([[-tiny]], dtype=dtype), cost_limit=float(tiny))[0] == -float(tiny)
 
 
@@ -677,8 +744,8 @@ def test_rectangular_initial_minimum_ties_and_forbidden_edges(native, dtype, out
             for i, cost in enumerate(oriented):
                 single = native.lapjvr(cost, extend_cost=True, cost_limit=limit, output=output)
                 pairs = as_pairs(single[1] if output == 'pairs' else single[1:], output)
-                assert objective(cost, pairs, limit) == pytest.approx(
-                    reference(cost, limit), rel=2e-6 if dtype == np.float32 else 1e-11)
+                assert objective(cost, pairs, limit, working_dtype=working_dtype_for(cost)) == pytest.approx(
+                    reference(cost, limit, working_dtype=working_dtype_for(cost)), rel=2e-6 if dtype == np.float32 else 1e-11)
                 assert single[0] == serial[0][i]
                 assert single[0] == pytest.approx(cost[tuple(pairs.T)].sum(dtype=np.float64), rel=1e-14)
                 for result in (serial, parallel):
@@ -745,7 +812,7 @@ def test_finite_square_rejection_conflicts_and_complete_sparse_matches(native, d
             pairs = as_pairs(result[1] if output == 'pairs' else result[1:], output)
             if index in (0,5):
                 assert len(pairs) == n  # Unique beneficial permutation, even one ULP below the limit.
-            assert objective(a,pairs,limit) == pytest.approx(reference(a,limit),rel=2e-6,abs=2e-6)
+            assert objective(a,pairs,limit, working_dtype=working_dtype_for(a)) == pytest.approx(reference(a,limit, working_dtype=working_dtype_for(a)),rel=2e-6,abs=2e-6)
             assert result[0] == selected_total(a, pairs)
             assert len(np.unique(pairs[:,1])) == len(pairs)
             assert np.all(pairs[1:,0] > pairs[:-1,0])
@@ -776,7 +843,7 @@ def test_optional_scratch_reuse_after_rejection_and_size_changes(native, dtype, 
             singles = [native.lapjvr(a, cost_limit=limit, output=output) for a in inputs]
             for a, result in zip(inputs, singles):
                 pairs = as_pairs(result[1] if output == 'pairs' else result[1:], output)
-                assert objective(a, pairs, limit) == pytest.approx(reference(a, limit),
+                assert objective(a, pairs, limit, working_dtype=working_dtype_for(a)) == pytest.approx(reference(a, limit, working_dtype=working_dtype_for(a)),
                                                                  rel=2e-6, abs=2e-6)
                 assert result[0] == selected_total(a, pairs)
             for threads in (0, 1, 2):
@@ -815,8 +882,8 @@ def test_dense_optional_conflicts_permuted_and_misleading_samples(native, dtype,
         singles = [native.lapjvr(a,cost_limit=limit,output=output) for a in costs]
         for a, single in zip(costs,singles):
             selected = as_pairs(single[1] if output == 'pairs' else single[1:],output)
-            assert objective(a,selected,limit) == pytest.approx(
-                reference(a,limit), rel=2e-6 if dtype == np.float32 else 1e-11, abs=2e-6)
+            assert objective(a,selected,limit, working_dtype=working_dtype_for(a)) == pytest.approx(
+                reference(a,limit, working_dtype=working_dtype_for(a)), rel=2e-6 if dtype == np.float32 else 1e-11, abs=2e-6)
             assert single[0] == selected_total(a, selected)
             assert len(np.unique(selected[:,1])) == len(selected)
             assert np.all(selected[1:,0] > selected[:-1,0])
@@ -844,10 +911,12 @@ def test_dense_optional_conflicts_with_large_affine_offsets(native, dtype, outpu
         actual_center = cost.astype(np.float64)-offset
         # Center the reference before solving, so a huge constant cannot hide
         # a wrong optional objective behind a large relative tolerance.
-        expected = reference(actual_center,.5)
+        # These offsets and half-penalties are exactly represented in both
+        # dtypes. The centered float64 reference avoids quantizing them again.
+        expected = reference(actual_center,.5, working_dtype=working_dtype_for(actual_center))
         single = native.lapjvr(cost,cost_limit=limit,output=output)
         selected = as_pairs(single[1] if output == 'pairs' else single[1:],output)
-        assert objective(actual_center,selected,.5) == expected
+        assert objective(actual_center,selected,.5, working_dtype=working_dtype_for(actual_center)) == expected
         assert single[0] == selected_total(cost, selected)
         for threads in (0,1,8):
             result = native.lapjvr_batch(np.stack([cost]*3),cost_limit=limit,
@@ -877,7 +946,7 @@ def test_optional_sparse_rows_and_misleading_endpoints(native, dtype, output, n,
     singles = [native.lapjvr(a, cost_limit=limit, output=output) for a in inputs]
     for a, result in zip(inputs, singles):
         pairs = as_pairs(result[1] if output == 'pairs' else result[1:], output)
-        assert objective(a, pairs, limit) == pytest.approx(reference(a, limit),
+        assert objective(a, pairs, limit, working_dtype=working_dtype_for(a)) == pytest.approx(reference(a, limit, working_dtype=working_dtype_for(a)),
                                                          rel=2e-6, abs=2e-6)
         assert result[0] == selected_total(a, pairs)
     for threads in (0, 1, 2):

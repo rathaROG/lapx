@@ -143,7 +143,7 @@ Results with these values are undefined. Positive infinity (`np.inf`) can repres
 `lapjvc` treats `NaN` and either infinity as forbidden assignments.
 `lapmod` checks its sparse arrays. Stored costs must be finite, non-negative, and less than `lap.LARGE`.
 
-With `return_cost=True` (the default), the solvers sum total costs in float64 from the original costs, even when they solve in float32.
+With `return_cost=True` (the default), the solvers sum total costs in float64 from the original costs, even when working costs are stored in float32.
 Set `return_cost=False` when you need only assignments. This skips the total-cost calculation.
 
 <details><summary>Cost limits and filtering after solving</summary>
@@ -268,6 +268,9 @@ pairs = np.column_stack((rows, cols))
 
 `lapjvs` extends Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv).
 Its scalar kernel does not require AVX2 instructions.
+Working costs use float32 by default; potentials, distances, and reduced-cost
+arithmetic use float64. To preserve float64 input costs, pass
+`prefer_float32=False` with a float64 array.
 It supports square and rectangular cost matrices. It can return either of these output formats:
 
 - Aligned index arrays, as in SciPy's [`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
@@ -346,6 +349,12 @@ Both support rectangular inputs (`extend_cost=True`), finite `cost_limit`, and
 problems are solved without square padding. See the
 [API guide](https://github.com/rathaROG/lapx/blob/main/src/_lapjvr/README.md)
 for full signatures, return types, and precision rules.
+
+All paths use float64 potentials and distances while retaining the selected
+cost storage. Finite-limit penalties retain their rounding in the selected
+cost precision.
+Wider working arithmetic reduces cancellation; extreme cost ranges can still
+hide small objective differences. Cost conversion can also round input values.
 
 If you don't need the other LAPX solvers, you can use the dedicated
 [laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or

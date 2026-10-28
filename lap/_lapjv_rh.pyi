@@ -283,9 +283,12 @@ Notes
 LAPJVR uses Rust for required square completion. Rectangular and
 finite-limit problems use native Rust paths without square padding.
 
-Required square problems use float64 potentials and distances even with
-float32 costs. Rectangular and finite-limit paths use the selected working
-precision.
+All paths use float64 potentials, distances, and reduced-cost arithmetic,
+including with float32 cost storage. Finite-limit half-penalties and their
+sum retain rounding in the selected cost precision before promotion.
+Float64 working arithmetic reduces cancellation, but extreme cost ranges
+can still obscure small objective differences. It does not provide
+arbitrary-range exactness or restore costs rounded during conversion.
 A finite limit optimizes rejection jointly with matching; it is not
 equivalent to filtering a required solution after solving. Equal-cost
 optima can produce different assignments across solvers or precisions.
@@ -384,9 +387,12 @@ LAPJVH uses Rust initialization/reduction and C++ completion for
 required square problems. Rectangular and finite-limit problems use
 the same native Rust paths as LAPJVR, without square padding.
 
-Required square problems use float64 potentials and distances even with
-float32 costs. Rectangular and finite-limit paths use the selected working
-precision.
+All paths use float64 potentials, distances, and reduced-cost arithmetic,
+including with float32 cost storage. Finite-limit half-penalties and their
+sum retain rounding in the selected cost precision before promotion.
+Float64 working arithmetic reduces cancellation, but extreme cost ranges
+can still obscure small objective differences. It does not provide
+arbitrary-range exactness or restore costs rounded during conversion.
 A finite limit optimizes rejection jointly with matching; it is not
 equivalent to filtering a required solution after solving. Equal-cost
 optima can produce different assignments across solvers or precisions.
@@ -500,9 +506,12 @@ Notes
 LAPJVR uses Rust for required square completion. Rectangular and
 finite-limit problems use native Rust paths without square padding.
 
-Required square problems use float64 potentials and distances even with
-float32 costs. Rectangular and finite-limit paths use the selected working
-precision.
+All paths use float64 potentials, distances, and reduced-cost arithmetic,
+including with float32 cost storage. Finite-limit half-penalties and their
+sum retain rounding in the selected cost precision before promotion.
+Float64 working arithmetic reduces cancellation, but extreme cost ranges
+can still obscure small objective differences. It does not provide
+arbitrary-range exactness or restore costs rounded during conversion.
 Finite limits optimize rejection jointly with matching; they are not
 equivalent to filtering required solutions after solving. Equal-cost
 optima can produce different assignments across solvers or precisions.
@@ -627,9 +636,12 @@ LAPJVH uses Rust initialization/reduction and C++ completion for
 required square problems. Rectangular and finite-limit problems use
 the same native Rust paths as LAPJVR, without square padding.
 
-Required square problems use float64 potentials and distances even with
-float32 costs. Rectangular and finite-limit paths use the selected working
-precision.
+All paths use float64 potentials, distances, and reduced-cost arithmetic,
+including with float32 cost storage. Finite-limit half-penalties and their
+sum retain rounding in the selected cost precision before promotion.
+Float64 working arithmetic reduces cancellation, but extreme cost ranges
+can still obscure small objective differences. It does not provide
+arbitrary-range exactness or restore costs rounded during conversion.
 Finite limits optimize rejection jointly with matching; they are not
 equivalent to filtering required solutions after solving. Equal-cost
 optima can produce different assignments across solvers or precisions.

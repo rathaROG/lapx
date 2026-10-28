@@ -67,6 +67,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 | Sparse batches, varying sizes, ordering, and worker errors | `test_lapmod_batch.py` |
 | Invalid inputs, precision, empty inputs, and thread reuse | `test_input_contracts.py`, `test_wrapper_stability.py`, `test_native_stability.py` |
 | Cost-range and reported-bug regressions | `test_large_cost_consistency.py`, `test_arr_loop.py`, `test_*issue_*.py` |
+| Small objective differences beside large finite costs, with exact represented-value optima | `test_float32_working_precision.py` |
 | Shared test data and conversions | `conftest.py`, `test_utils.py`, `cost_eps.csv.gz` |
 | Rust/hybrid contract, original-value objectives, and numerical regressions | `test_lapjvr.py` (runs once per family) |
 | R/H coexistence, concurrent worker reuse, and batch result paths (large parallel batches, lowest failing index, result construction at batch sizes 7-33) | `test_lapjv_rh.py` |
@@ -93,6 +94,11 @@ square and rectangular matrices. They fail if a required export cannot load.
 Only the R/H families may be absent in an intentionally legacy-only build.
 
 Numerical tests also use SciPy and fixed regression optima as independent references.
+The R/H finite-limit oracle receives the working cost dtype explicitly, rounds
+each half-penalty in that dtype, and checks returned totals on the original input
+separately. Small-gap regressions use exact enumeration; the native search fixture
+also verifies that initialization reaches augmenting search and checks its dual
+certificate and work counters when profiling is enabled.
 Batch-versus-single and thread-reuse comparisons check API consistency; they do
 not establish optimality on their own. Precision-specific tests compare the
 represented problem at that precision. Equal-cost solutions may use different

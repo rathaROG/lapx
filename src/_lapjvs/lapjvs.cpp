@@ -9,13 +9,13 @@
 static char module_docstring[] =
     "This module wraps the LAPJVS Jonker-Volgenant algorithm for linear sum assignment. It uses scalar instructions without AVX2 or SIMD.";
 static char lapjvs_native_docstring[] =
-    "Solve the linear sum assignment problem with the input data type (float32 or float64). Return (row_ind, col_ind).";
+    "Solve with float32 or float64 input costs and float64 working arithmetic. Return (row_ind, col_ind).";
 static char lapjvs_float32_docstring[] =
-    "Solve the linear sum assignment problem in float32. Convert the input if necessary. Return (row_ind, col_ind).";
+    "Solve with float32 costs and float64 working arithmetic. Convert the input if necessary. Return (row_ind, col_ind).";
 static char lapjvsa_native_docstring[] =
-    "Solve the linear sum assignment problem with the input data type (float32 or float64). Return pairs with shape (K, 2).";
+    "Solve with float32 or float64 input costs and float64 working arithmetic. Return pairs with shape (K, 2).";
 static char lapjvsa_float32_docstring[] =
-    "Solve the linear sum assignment problem in float32. Convert the input if necessary. Return pairs with shape (K, 2).";
+    "Solve with float32 costs and float64 working arithmetic. Convert the input if necessary. Return pairs with shape (K, 2).";
 
 static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwargs);
 static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwargs);
@@ -89,7 +89,8 @@ static always_inline void call_lap(int dim, const void *restrict cost_matrix,
   PyThreadState *state = PyEval_SaveThread();
   try {
     auto cost_matrix_typed = reinterpret_cast<const F*>(cost_matrix);
-    auto v_typed = reinterpret_cast<F*>(v);
+    // Cost storage stays F; potentials and search arithmetic use double.
+    auto v_typed = reinterpret_cast<double*>(v);
     if (verbose) {
       lapjvs<true>(dim, cost_matrix_typed, row_ind, col_ind, v_typed);
     } else {
@@ -159,7 +160,7 @@ static PyObject *py_lapjvs_native(PyObject *self, PyObject *args, PyObject *kwar
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
   if (typ == NPY_FLOAT32) {
-    std::unique_ptr<float[]> v(new float[dim]);
+    std::unique_ptr<double[]> v(new double[dim]);
     call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
   } else {
     std::unique_ptr<double[]> v(new double[dim]);
@@ -227,7 +228,7 @@ static PyObject *py_lapjvs_float32(PyObject *self, PyObject *args, PyObject *kwa
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
-  std::unique_ptr<float[]> v(new float[dim]);
+  std::unique_ptr<double[]> v(new double[dim]);
   call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
 
   return Py_BuildValue("(OO)", row_ind_array.get(), col_ind_array.get());
@@ -292,7 +293,7 @@ static PyObject *py_lapjvsa_native(PyObject *self, PyObject *args, PyObject *kwa
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
   if (typ == NPY_FLOAT32) {
-    std::unique_ptr<float[]> v(new float[dim]);
+    std::unique_ptr<double[]> v(new double[dim]);
     call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
   } else {
     std::unique_ptr<double[]> v(new double[dim]);
@@ -377,7 +378,7 @@ static PyObject *py_lapjvsa_float32(PyObject *self, PyObject *args, PyObject *kw
   auto row_ind = reinterpret_cast<int*>(PyArray_DATA(row_ind_array.get()));
   auto col_ind = reinterpret_cast<int*>(PyArray_DATA(col_ind_array.get()));
 
-  std::unique_ptr<float[]> v(new float[dim]);
+  std::unique_ptr<double[]> v(new double[dim]);
   call_lap<float>(dim, cost_matrix, verbose, row_ind, col_ind, v.get());
 
   // Count/build pairs

@@ -19,18 +19,18 @@
 #define restrict
 #endif
 
-template <typename idx, typename cost>
-always_inline std::tuple<cost, cost, idx, idx>
+template <typename idx, typename cost, typename work>
+always_inline std::tuple<work, work, idx, idx>
 find_umins_regular(
     idx dim, idx i, const cost *restrict assign_cost,
-    const cost *restrict v) {
+    const work *restrict v) {
   const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
-  cost umin = local_cost[0] - v[0];
+  work umin = static_cast<work>(local_cost[0]) - v[0];
   idx j1 = 0;
   idx j2 = -1;
-  cost usubmin = std::numeric_limits<cost>::max();
+  work usubmin = std::numeric_limits<work>::max();
   for (idx j = 1; j < dim; j++) {
-    cost h = local_cost[j] - v[j];
+    work h = static_cast<work>(local_cost[j]) - v[j];
     if (h < usubmin) {
       if (h >= umin) {
         usubmin = h;
@@ -46,11 +46,11 @@ find_umins_regular(
   return std::make_tuple(umin, usubmin, j1, j2);
 }
 
-template <typename idx, typename cost>
-always_inline std::tuple<cost, cost, idx, idx>
+template <typename idx, typename cost, typename work>
+always_inline std::tuple<work, work, idx, idx>
 find_umins(
     idx dim, idx i, const cost *restrict assign_cost,
-    const cost *restrict v) {
+    const work *restrict v) {
   return find_umins_regular(dim, i, assign_cost, v);
 }
 
@@ -61,14 +61,14 @@ find_umins(
 /// @param rowsol out column assigned to row in solution / size dim
 /// @param colsol out row assigned to column in solution / size dim
 /// @param v inout dual variables, column reduction numbers / size dim
-template <bool verbose, typename idx, typename cost>
+template <bool verbose, typename idx, typename cost, typename work>
 void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol, 
-    idx *restrict colsol, cost *restrict v) {
+    idx *restrict colsol, work *restrict v) {
   // Reuse per-thread buffers to avoid per-call allocations
   static thread_local std::vector<idx> collist_vec;
   static thread_local std::vector<idx> matches_vec;
   static thread_local std::vector<idx> pred_vec;
-  static thread_local std::vector<cost> d_vec;
+  static thread_local std::vector<work> d_vec;
 
   if ((int)collist_vec.size() < dim) collist_vec.resize(dim);
   if ((int)matches_vec.size() < dim) matches_vec.resize(dim);
@@ -77,7 +77,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
 
   idx *restrict collist = collist_vec.data();  // list of columns to be scanned.
   idx *restrict matches = matches_vec.data();  // counts how many times a row could be assigned.
-  cost *restrict d = d_vec.data();             // 'cost-distance' in augmenting path calculation.
+  work *restrict d = d_vec.data();             // 'cost-distance' in augmenting path calculation.
   idx *restrict pred = pred_vec.data();        // row-predecessor of column in augmenting/alternating path.
 
   // init how many times a row will be assigned in the column reduction.
@@ -127,10 +127,10 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
       free_rows[numfree++] = i;
     } else if (matches[i] == 1) {  // transfer reduction from rows assigned once.
       idx j1 = rowsol[i];
-      cost min = std::numeric_limits<cost>::max();
+      work min = std::numeric_limits<work>::max();
       for (idx j = 0; j < dim; j++) {
         if (j != j1) {
-          cost cand = local_cost[j] - v[j];
+          work cand = static_cast<work>(local_cost[j]) - v[j];
           if (cand < min) min = cand;
         }
       }
@@ -152,12 +152,12 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
       ++rr_count;
 
       // find minimum and second minimum reduced cost over columns.
-      cost umin, usubmin;
+      work umin, usubmin;
       idx j1, j2;
       std::tie(umin, usubmin, j1, j2) = find_umins(dim, i, assign_cost, v);
 
       idx i0 = colsol[j1];
-      cost vj1_new = v[j1] - (usubmin - umin);
+      work vj1_new = v[j1] - (usubmin - umin);
       // Bound repeated displacements; finish remaining rows by augmentation.
       const bool reduce = rr_count < static_cast<size_t>(k) * dim;
       bool vj1_lowers = vj1_new < v[j1] && reduce;
@@ -195,7 +195,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
 
     // Dijkstra shortest path algorithm.
     for (idx j = 0; j < dim; j++) {
-      d[j] = assign_cost[static_cast<size_t>(freerow) * dim + j] - v[j];
+      d[j] = static_cast<work>(assign_cost[static_cast<size_t>(freerow) * dim + j]) - v[j];
       pred[j] = freerow;
       collist[j] = j;
     }
@@ -204,7 +204,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
     idx up = 0;
     bool unassigned_found = false;
     idx last = 0;
-    cost min = 0;
+    work min = 0;
     do {
       if (up == low) {
         last = low - 1;
@@ -213,7 +213,7 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
         min = d[collist[up++]];
         for (idx k = up; k < dim; k++) {
           idx j = collist[k];
-          cost h = d[j];
+          work h = d[j];
           if (h <= min) {
             if (h < min) {
               up = low;
@@ -239,10 +239,10 @@ void lapjvs(int dim, const cost *restrict assign_cost, idx *restrict rowsol,
         low++;
         idx i = colsol[j1];
         const cost *local_cost = &assign_cost[static_cast<size_t>(i) * dim];
-        cost h = local_cost[j1] - v[j1] - min;
+        work h = static_cast<work>(local_cost[j1]) - v[j1] - min;
         for (idx k = up; k < dim; k++) {
           idx j = collist[k];
-          cost v2 = local_cost[j] - v[j] - h;
+          work v2 = static_cast<work>(local_cost[j]) - v[j] - h;
           if (v2 < d[j]) {
             pred[j] = i;
             if (v2 == min) {
