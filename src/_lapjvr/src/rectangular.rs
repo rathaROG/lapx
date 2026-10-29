@@ -104,14 +104,7 @@ impl<T: Cost> Rectangular<T> {
     /// Match every row of a flat rows <= cols matrix, leaving extra columns
     /// unused. Scratch is O(rows + cols); no square cost buffer is created.
     pub(crate) fn solve(&mut self, costs: &[T], rows: usize, cols: usize) -> Result<(), Error> {
-        // The tighter policy targets competition for scarce extra columns.
-        // Preserve the established wide-rectangle path as a separate compiled
-        // specialization, including its hot minimum scan and reduction bound.
-        if rows > 128 && cols >= rows && cols - rows <= rows / 8 {
-            self.solve_impl::<false, true>(costs, rows, cols, T::INF)
-        } else {
-            self.solve_impl::<false, false>(costs, rows, cols, T::INF)
-        }
+        self.solve_impl::<false>(costs, rows, cols, T::INF)
     }
 
     /// Each row may instead remain unmatched at `penalty`. The implicit sink
@@ -126,14 +119,10 @@ impl<T: Cost> Rectangular<T> {
         if !penalty.finite() {
             return Err(Error::Infeasible);
         }
-        if rows == cols {
-            self.solve_impl::<true, true>(costs, rows, cols, penalty)
-        } else {
-            self.solve_impl::<true, false>(costs, rows, cols, penalty)
-        }
+        self.solve_impl::<true>(costs, rows, cols, penalty)
     }
 
-    fn solve_impl<const OPTIONAL: bool, const NEAR_SQUARE: bool>(
+    fn solve_impl<const OPTIONAL: bool>(
         &mut self,
         costs: &[T],
         rows: usize,
@@ -185,23 +174,23 @@ impl<T: Cost> Rectangular<T> {
         // Bounded row reductions do: a lowered column is assigned immediately
         // and stays occupied, even when its row is displaced.
         let mut num_free = rows;
+        // The q < k*B allowance bounds each pass to B times its starting free
+        // row count in full row scans. One extra tie scan per row preserves
+        // O(rows*cols) initialization work with the default B <= 4.
         #[cfg(feature = "profile")]
-        let reduction_limit =
-            super::profile::reduction_limit(if NEAR_SQUARE { cols.min(8) } else { cols });
+        let reduction_limit = super::profile::reduction_limit(cols.min(4));
         #[cfg(not(feature = "profile"))]
-        let reduction_limit = if NEAR_SQUARE { cols.min(8) } else { cols };
+        let reduction_limit = cols.min(4);
         #[cfg(feature = "profile")]
-        let prefer_free_ties = NEAR_SQUARE && super::profile::prefer_free_ties();
+        let prefer_free_ties = super::profile::prefer_free_ties();
         #[cfg(not(feature = "profile"))]
-        let prefer_free_ties = NEAR_SQUARE;
-        // Bound initialization churn on large rectangles. Required and optional
-        // paths use different allowances to balance reduction and search work.
-        // Budget all rows so a small second-pass remainder retains useful work.
-        let reduction_budget = if rows >= 128 && cols - rows > rows / 8 {
-            rows.saturating_mul(if OPTIONAL { 8 } else { 4 })
-        } else {
-            usize::MAX
-        };
+        let prefer_free_ties = true;
+        // Track required-mode displacement stalls across both passes. Once a
+        // window expires, later assignments cannot re-enable lowering. Optional
+        // mode retains the B=4 allowance without a displacement-stall cutoff.
+        let window = if OPTIONAL { usize::MAX } else { rows.max(8) };
+        let mut stalled = 0usize;
+        let mut reduction_active = true;
         for _ in 0..2 {
             let previous = num_free;
             num_free = 0;
@@ -225,6 +214,7 @@ impl<T: Cost> Rectangular<T> {
                 if OPTIONAL && j1 == FREE {
                     x[i] = FREE;
                     u[i] = penalty;
+                    stalled = 0;
                     continue;
                 }
                 // Resolve tied occupied minima outside the hot minimum scan.
@@ -243,7 +233,7 @@ impl<T: Cost> Rectangular<T> {
                     }
                 }
                 let mut displaced = y[j1];
-                let reduce = reductions < k.saturating_mul(reduction_limit).min(reduction_budget);
+                let reduce = reduction_active && reductions < k.saturating_mul(reduction_limit);
                 let new_v = v[j1] - (second - min);
                 // Do not choose a nonminimal fallback merely because the
                 // potential update exceeds the working type's finite range.
@@ -259,6 +249,7 @@ impl<T: Cost> Rectangular<T> {
                     if OPTIONAL && j1 == FREE {
                         x[i] = FREE;
                         u[i] = penalty;
+                        stalled = 0;
                         continue;
                     }
                     displaced = y[j1];
@@ -268,6 +259,14 @@ impl<T: Cost> Rectangular<T> {
                 u[i] = row[j1].to_f64() - v[j1];
                 if !u[i].finite() {
                     return Err(Error::Infeasible);
+                }
+                if displaced == FREE {
+                    stalled = 0;
+                } else {
+                    stalled += 1;
+                    if reduction_active && stalled >= window {
+                        reduction_active = false;
+                    }
                 }
                 if displaced != FREE {
                     if lowers {
@@ -584,6 +583,34 @@ mod tests {
                     assert_eq!(solver.profile.relaxation_columns, 9);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn displacement_window_only_interrupts_required_reduction() {
+        // Four rows compete for three cheap columns. A long displacement
+        // chain can finish optional initialization, while required matching
+        // stops lowering and resolves the remaining row by augmentation.
+        let costs = [
+            19.0_f32, 83.0, 84.0, 270.0, 202.0, 50.0, 85.0, 13.0, 261.0, 267.0, 25.0, 90.0, 20.0,
+            263.0, 205.0, 88.0, 67.0, 75.0, 296.0, 290.0,
+        ];
+        let mut solver = Rectangular::<f32>::default();
+        solver.solve(&costs, 4, 5).unwrap();
+        assert_float32_certificate(&solver, &costs, 4, 5, None, 304.0);
+        #[cfg(feature = "profile")]
+        {
+            assert_eq!(solver.profile.reduction_rows, 14);
+            assert_eq!(solver.profile.augmentations, 1);
+        }
+        // The penalty exceeds every edge cost, so both modes have the same
+        // fully matched optimum [0, 2, 4, 1]. Only the stopping policy differs.
+        solver.solve_optional(&costs, 4, 5, 10_000.0).unwrap();
+        assert_float32_certificate(&solver, &costs, 4, 5, Some(10_000.0), 304.0);
+        #[cfg(feature = "profile")]
+        {
+            assert_eq!(solver.profile.reduction_rows, 15);
+            assert_eq!(solver.profile.augmentations, 0);
         }
     }
 

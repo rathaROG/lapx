@@ -3,11 +3,6 @@
 > <sup>- 2026/10/27: [v0.12.0](https://github.com/rathaROG/lapx/releases/tag/v0.12.0) improved performance on congested inputs for **`lapjvr`**, **`lapjvh`**, **`lapjvr_batch`**, and **`lapjvh_batch`**. </sup><br>
 > <sup>- 2026/10/19: [v0.11.0rc1](https://github.com/rathaROG/lapx/releases/tag/v0.11.0rc1) added the Rust and hybrid solvers: **`lapjvr`**, **`lapjvh`**, **`lapjvr_batch`**, and **`lapjvh_batch`**. </sup><br>
 > <sup>- 2026/09/07: [v0.10.0rc1](https://github.com/rathaROG/lapx/releases/tag/v0.10.0rc1) added Python 3.15 support and **`lapmod_batch`**. It improved type hints, stability, and performance. </sup><br>
-> <sup>- 2025/10/31: [v0.9.0](https://github.com/rathaROG/lapx/releases/tag/v0.9.0) improved stability and performance across all solvers. </sup><br>
-> <sup>- 2025/10/27: [v0.8.0](https://github.com/rathaROG/lapx/releases/tag/v0.8.0) added **`lapjvx_batch`**, **`lapjvxa_batch`**, **`lapjvs_batch`**, **`lapjvsa_batch`** and **`lapjvsa`**. </sup><br>
-> <sup>- 2025/10/21: [v0.7.0](https://github.com/rathaROG/lapx/releases/tag/v0.7.0) added **`lapjvs`**. </sup><br>
-> <sup>- 2025/10/16: [v0.6.0](https://github.com/rathaROG/lapx/releases/tag/v0.6.0) added **`lapjvx`**, **`lapjvxa`**, and **`lapjvc`**. </sup><br>
-> <sup>- See [GitHub releases](https://github.com/rathaROG/lapx/releases) for all release notes. </sup><br>
 
 </details>
 
@@ -328,7 +323,7 @@ total, x, y = lap.lapmod(n, cc, ii, kk)
 
 #### 8. Rust and hybrid functions `lapjvr` and `lapjvh`
 
-R/H were **about 3–8× faster than SciPy** across benchmarks; see [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0110rc1).
+R/H were **about 3–10× faster than SciPy** across benchmarks; see [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0110rc1).
 
 `lapjvr` and `lapjvh` share a Rust Jonker-Volgenant implementation. For square
 problems with infinite `cost_limit`, `lapjvh` uses C++ completion. Both return

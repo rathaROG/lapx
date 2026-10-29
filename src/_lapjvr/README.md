@@ -147,6 +147,19 @@ instead of forking after native worker pools have initialized.
 
 ## Implementation and verification
 
+The shared rectangular initializer uses `B = min(columns, 4)` in both
+row-reduction passes and prefers a free column when reduced costs tie. Each
+pass allows at most `B` times its initial free-row count in row scans before
+augmenting search. For required rectangular assignments, `max(rows, 8)`
+consecutive displacements without acquiring a free column disable further
+price lowering for both passes; the current scan completes normally.
+
+Finite-limit problems, including optional square problems, use the same budget
+and tie rule without the stall window: interrupting useful optional chains can
+increase augmenting-search work. Required-square initialization and Rust/C++
+completion choices are preserved. Performance depends on the input, and tie
+scans can add overhead on heavily tied costs. Equally optimal pairs may differ.
+
 All four functions are native exports from `lap._lapjv_rh`, with signatures
 and documentation in [the type stub](../../lap/_lapjv_rh.pyi). Run Rust checks
 from the repository root:
