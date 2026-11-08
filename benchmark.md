@@ -10,10 +10,17 @@ The [single-matrix](benchmarks/benchmark_single.py), [batch](benchmarks/benchmar
 and [tracking](benchmarks/benchmark_tracking.py) scripts compare assignment workflows with SciPy on your machine.
 The recorded results below include the test environment and per-case settings.
 
+These scripts compare LAPX solver families.
+The [paper benchmark guide](https://github.com/rathaROG/lap-paper/blob/main/benchmark/README.md)
+documents a separate protocol for assignment, cached tracking/replay, and LSAPE experiments.
+To reproduce the paper's tables and figures, use that protocol, its pinned dependencies, and its recorded evidence.
+
 ## 💡 Run the benchmarks
 
+Install the published package and obtain the scripts:
+
 ```bash
-python -m pip install -U lapx scipy
+python -m pip install -U "lapx>=0.13.0" scipy
 git clone https://github.com/rathaROG/lapx.git
 cd lapx/benchmarks
 python benchmark_single.py --quick
@@ -21,25 +28,35 @@ python benchmark_batch.py --quick
 python benchmark_tracking.py --quick
 ```
 
-For a local build, install and run from the repository root:
+For a local build, start from the repository root:
 
 ```bash
 python -m pip install . scipy
-python -m benchmarks.benchmark_single --quick
-python -m benchmarks.benchmark_batch --quick --threads 2
-python -m benchmarks.benchmark_tracking --quick
+cd benchmarks
+python benchmark_single.py --quick
+python benchmark_batch.py --quick --threads 2
+python benchmark_tracking.py --quick
 ```
+
+The published-package commands run the cloned scripts with the installed LAPX package.
+The local-build commands install LAPX from the checkout.
+Run the scripts from `benchmarks/` to load the installed package instead of the source package.
+For comparisons, record the script revision, package versions, machine, and command.
 
 ### Repeats and timing
 
 All three scripts accept `--repeats N` and `--seed N` (default **2026**).
-Batch defaults to **2 shuffled rounds**, using seeds **2026 and 2027**; single and tracking default to **3 rounds**.
+Batch defaults to **2 shuffled rounds**, using seeds **2026 and 2027**.
+Single and tracking default to **3 rounds**.
 Each round generates a fresh input using `seed + round_index`, with the matrix dimensions included in the seed.
-Every solver receives the same input, warms up on it, and runs in a shuffled order.
+Batch seeds also include the batch size.
+Every solver receives the same input.
+Each round warms up all solvers before it times them in a shuffled order.
 Input generation, sparse preparation, warmup, and independent result checks are outside timing.
 
 Single and batch tables are sorted by time and show milliseconds, correctness, and speed relative to SciPy.
-Tracking keeps sizes as rows and groups four solvers per table, with times in seconds, followed by an overall ranking in milliseconds.
+Tracking keeps sizes as rows and groups up to four solvers per table, with times in seconds.
+An overall ranking follows, with times in milliseconds.
 The reported time is the median across rounds. For two rounds, this is the average of the two timings.
 With `--repeats 1`, it is the single timed round.
 
@@ -62,11 +79,14 @@ python benchmark_tracking.py --quick --repeats 1
 
 Single and tracking benchmarks use `return_cost=False` and include pair construction where needed.
 R/H request `output='pairs'` directly with `precision='native'` on float64 inputs.
-The other solvers keep their default precision settings: JVS uses float32, while the batch `jvsa64` row uses float64.
+The other solvers keep their default precision settings.
+JVS uses float32, while the batch `jvsa64` row uses float64.
 Unavailable R/H solvers are skipped.
 
-Single checks compare assignment pairs with SciPy in every round. Tracking also compares unmatched row and column sets.
+Single checks compare assignment pairs with SciPy in every round, regardless of pair order.
+Tracking also compares unmatched row and column sets.
 A mismatch in any round remains visible in the final table.
+These checks require the same pairs, even when different assignments have the same cost.
 
 <details><summary>Batch benchmark methods</summary>
 
@@ -74,11 +94,14 @@ A mismatch in any round remains visible in the final table.
 
 Batch solvers and sequential loops use `return_cost=False` by default.
 Add `--cost` to include total-cost calculation in the timed calls.
-The optional `Cost (last round)` column shows the total across the final round's batch; the time remains the median across rounds.
+The optional `Cost (last round)` column shows the total across the final round's batch.
+The time remains the median across rounds.
 SciPy's loop sums selected costs with NumPy when `--cost` is enabled.
 
-`--threads N` controls batch solvers; **0** uses the CPU count, capped by batch size.
-R/H may run small workloads serially. Explicit positive requests are capped by batch size, with no fixed eight-thread ceiling.
+`--threads N` controls batch solvers.
+With **0**, each solver uses its automatic policy, starting from the CPU count and capped by batch size.
+R/H may run small workloads serially in automatic mode.
+Explicit positive requests are capped by batch size, with no fixed eight-thread ceiling.
 The loop rows remain sequential. R/H batch and loop rows use direct pairs.
 
 ```bash
@@ -89,12 +112,13 @@ python benchmark_batch.py --sparse-only --threads 8
 ### Sparse comparisons
 
 Sparse cases compare dense solvers with a `lapmod` loop and `lapmod_batch`.
-Each round uses the same costs and allowed assignments: dense arrays mark missing edges with `np.inf`,
-while `lapmod` receives finite entries in `(n, cc, ii, kk)` form.
+Within each round, all solvers use the same costs and allowed assignments.
+Dense arrays mark missing edges with `np.inf`, while `lapmod` receives finite entries in `(n, cc, ii, kk)` form.
 Preparing these sparse arrays is excluded from solver times.
 
 The generator keeps a finite diagonal so every problem has a full assignment.
-Headers show the **target density**; the diagonal can increase the actual density.
+Headers show the **target density**.
+The diagonal can increase the actual density.
 The default sparse cases are **100 × 1000x1000 at 1%** and **50 × 2000x2000 at 5%**.
 `--quick` keeps both sparse cases and all dense cases except 4000x4000.
 
@@ -106,7 +130,9 @@ The sparse section is skipped if `lapmod_batch` is unavailable.
 
 Every timed result is checked for valid assignments and per-problem costs matching SciPy within floating-point tolerances.
 With `--cost`, returned totals must also match costs calculated from the original input.
-Passing rows show `PASS`; a mismatch raises an error. All checks run outside timing.
+Passing rows show `PASS`.
+A mismatch raises an error.
+All checks run outside timing.
 
 </details>
 
@@ -119,6 +145,7 @@ They build the checkout and check R/H availability before benchmarking.
 
 R/H single and batch results use float64 costs and `return_cost=False`.
 See each case for matrix sizes, thread counts, and timing settings.
+The recorded output identifies package versions and local command paths, but does not include an exact source revision.
 
 Sample run: Windows 11, i9-13900KS (8 P-cores + 8 E-cores), Python 3.11.17.
 
@@ -529,8 +556,10 @@ All solvers use `return_cost=False`.
 - `LAPX LAPJV-IFT` passes `cost_limit=thresh` to `lapjv` during optimization.
 - The other rows, including SciPy, remove pairs above `thresh` after solving.
 
-Each threshold produces two tables with up to four solvers each and a repeated Size column, followed by the overall ranking across all solvers.
-`✓` means matched pairs and unmatched indices equal SciPy in every round; `✗` marks a difference in any round.
+Each threshold produces two tables with up to four solvers each and a repeated Size column.
+The overall ranking follows and includes all solvers.
+`✓` means matched pairs and unmatched indices equal SciPy in every round.
+`✗` marks a difference in any round.
 `LAPX LAPJV-IFT` can differ because its threshold is applied during optimization.
 The overall ranking sums median times across sizes and counts each solver's placements with 🥇, 🥈, 🥉, 🚩, 🏳️, 🥴, 🗿, and 🙅‍♂️.
 See [Cost values in the README](README.md#cost-values) for the distinction between the threshold methods.

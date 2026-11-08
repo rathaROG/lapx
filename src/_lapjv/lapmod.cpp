@@ -212,8 +212,8 @@ int_t _find_sparse_2(cost_t *d, int_t *scan, const uint_t n_todo, int_t *todo, b
 
 
 /** 
- * Scan all columns in TODO starting from arbitrary column in SCAN and try to
- * decrease d of the TODO columns using the SCAN column.
+ * Scan all columns in TODO, starting from an arbitrary column in SCAN.
+ * Use the SCAN column to try to decrease d of the TODO columns.
  */
 int_t _scan_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                      uint_t *plo, uint_t *phi, cost_t *d, int_t *cols, 
@@ -282,8 +282,8 @@ int_t _scan_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 
 
 /** 
- * Scan all columns in TODO starting from arbitrary column in SCAN and try to
- * decrease d of the TODO columns using the SCAN column.
+ * Scan all columns in TODO, starting from an arbitrary column in SCAN.
+ * Use the SCAN column to try to decrease d of the TODO columns.
  */
 int_t _scan_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk, 
                      uint_t *plo, uint_t *phi, cost_t *d, int_t *pred, 
@@ -364,7 +364,7 @@ int_t _scan_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 
 
 /** 
- * Single iteration of modified Dijkstra shortest path algorithm as explained in the JV paper.
+ * Run one iteration of the modified Dijkstra shortest path algorithm from the JV paper.
  * This version loops over all column indices (some of which might be inf).
  * @return The closest free column index.
  */
@@ -437,8 +437,8 @@ int_t find_path_sparse_1(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 
 
 /** 
- * Single iteration of modified Dijkstra shortest path algorithm as explained in the JV paper.
- * This version loops over non-inf column indices (which requires some additional bookkeeping).
+ * Run one iteration of the modified Dijkstra shortest path algorithm from the JV paper.
+ * This version loops over non-inf column indices. This requires some additional bookkeeping.
  * @return The closest free column index.
  */
 int_t find_path_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
@@ -554,7 +554,7 @@ int_t find_path_sparse_2(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
 }
 
 
-/** Find path using one of the two find_path variants selected based on sparsity. */
+/** Find a path with one of the two find_path variants, selected based on sparsity. */
 int_t find_path_sparse_dynamic(const uint_t n, cost_t *cc, uint_t *ii, uint_t *kk,
                                const int_t start_i, int_t *y, cost_t *v, int_t *pred)
 {

@@ -102,7 +102,7 @@ def lapjvs(
         If True, store working costs in float32, converting the input if needed.
         If False and the input is float64, preserve float64 costs. Float32
         input remains float32. Both paths use float64 potentials, distances,
-        and reduced-cost arithmetic; conversion can still round input costs.
+        and reduced-cost arithmetic. Conversion can still round input costs.
         The solver recalculates the total from the original cost array,
         regardless of the kernel data type.
 

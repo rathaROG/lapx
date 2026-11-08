@@ -13,8 +13,8 @@
 	cost[i][j] = cost for pairing left node i with right node j
 	Lmate[i] = index of right node that left node i pairs with
 	Rmate[j] = index of left node that right node j pairs with
-	The values in cost[i][j] may be positive or negative.  To perform
-	maximization, simply negate the cost[][] matrix.
+	The values in cost[i][j] may be positive or negative.  To maximize
+	the objective, negate the cost[][] matrix.
 
 	Taken from https://github.com/jaehyunp/
 	Adapted by https://github.com/cheind
@@ -35,8 +35,8 @@ void solve_dense(const std::vector< std::vector<T> > &cost, std::vector<int> &Lm
 	//   Lmate[i] = index of right node that left node i pairs with
 	//   Rmate[j] = index of left node that right node j pairs with
 	//
-	// The values in cost[i][j] may be positive or negative.  To perform
-	// maximization, simply negate the cost[][] matrix.
+	// The values in cost[i][j] may be positive or negative.  To maximize
+	// the objective, negate the cost[][] matrix.
 	//////////////////////////////////////////////////////////////////////
 
 	typedef std::vector<T> VD;

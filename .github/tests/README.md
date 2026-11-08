@@ -1,7 +1,8 @@
 # Build and packaging checks
 
-This directory checks how LAPX is built and distributed. Solver behavior,
-numerical regressions, and public API typing checks live in [tests/](../../tests/README.md).
+This directory checks how LAPX is built and distributed.
+The [solver tests](../../tests/README.md) cover solver behavior, numerical
+regressions, and public API typing.
 
 ## Build configuration tests
 
@@ -30,10 +31,11 @@ After installing a built wheel, run from the repository root:
 python .github/tests/check_rh_wheel.py
 ```
 
-`check_rh_wheel.py` is a standalone check requiring only NumPy and the installed
-package. It checks both R/H families and verifies that native exports and typing
-files match the installed solver set. Invoke the script by path as shown so the
-checkout's source package does not shadow the installed package.
+`check_rh_wheel.py` requires only NumPy and the installed package.
+It checks both R/H families and verifies that native exports and typing files
+match the installed solvers.
+Run the script by path as shown to load the installed package instead of the
+checkout's source package.
 
 For an intentionally legacy-only build (`LAPX_BUILD_RUST=0`), use:
 
@@ -41,12 +43,12 @@ For an intentionally legacy-only build (`LAPX_BUILD_RUST=0`), use:
 python .github/tests/check_rh_wheel.py --legacy-only
 ```
 
-This checks all pre-existing solvers and requires the R/H extension, exports, and
+This checks all legacy solvers and requires the R/H extension, exports, and
 stub to be absent. The musllinux ARMv7 wheel jobs use this mode.
 
 The source archive includes `.github/tests/check_rh_wheel.py` so cibuildwheel can
 test wheels built from the archive. Other `.github/` files and the solver test
-suite remain excluded. The archive always retains the full R/H sources and typing.
+suite remain excluded. The archive always includes the full R/H sources and typing files.
 
 The two full-test workflows run build checks and solver tests in separate steps.
 The [R/H integration workflow](../workflows/rh.yaml) also builds a wheel from the

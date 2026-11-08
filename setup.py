@@ -31,7 +31,7 @@ def include_pybind11():
 
 
 def build_rust_enabled():
-    """Build both R/H families by default; allow an explicit legacy-only build."""
+    """Build both R/H families by default. Allow an explicit legacy-only build."""
     import os
     value = os.environ.get('LAPX_BUILD_RUST', '1').strip()
     if value not in ('0', '1'):
@@ -476,6 +476,13 @@ def main_setup():
         author="Ratha SIV",
         maintainer="rathaROG",
         url="https://github.com/rathaROG/lapx",
+        project_urls={
+            "Documentation": "https://github.com/rathaROG/lapx/blob/main/README.md",
+            "Source": "https://github.com/rathaROG/lapx",
+            "Issues": "https://github.com/rathaROG/lapx/issues",
+            "Benchmarks": "https://github.com/rathaROG/lapx/blob/main/benchmark.md",
+            "Paper": "https://github.com/rathaROG/lap-paper",
+        },
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         keywords=['Linear Assignment Problem Solver', 'LAP solver',

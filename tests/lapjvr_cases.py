@@ -1,8 +1,8 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
 """Preserved tracking and finite-limit fixtures for LAPJVR tests.
 
-Every family is independently seeded. Row/column permutations prevent the
-affordability sample from relying on contiguous blocks. Generation is untimed.
+Each family has an independent random seed. Row and column permutations prevent
+the affordability sample from relying on contiguous blocks. Generation is untimed.
 """
 
 import hashlib
@@ -53,7 +53,7 @@ def conflict_cases(seed=20261031, dtype='float64', sizes=None):
 def tracking_costs(n, m, seed, dtype):
     """Same synthetic cost generator as the historical fastlap harness.
 
-    These new cases time public solver calls only, without tracking decoration.
+    These cases use the cost generator without tracking decoration.
     """
     rng = np.random.default_rng(seed)
     centers = rng.uniform(0, 1000, (n, 2))

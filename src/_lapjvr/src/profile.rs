@@ -1,4 +1,4 @@
-//! Opt-in diagnostic instrumentation. Absent from normal library builds.
+//! Opt-in diagnostic instrumentation. Normal library builds exclude it.
 
 use super::{rectangular::Rectangular, Cost, Error, Workspace, FREE};
 

@@ -149,7 +149,7 @@ def lapjvs_batch(
     Multiple threads can make large batches faster on systems with multiple CPU cores.
 
     Working costs may use float32 or float64. Potentials and distances use
-    float64. Cost conversion follows the single solver rules; totals use float64.
+    float64. Cost conversion follows the single solver rules. Totals use float64.
 
     Results keep the input order regardless of the thread count.
     """

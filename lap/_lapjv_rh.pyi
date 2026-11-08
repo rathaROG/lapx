@@ -261,7 +261,7 @@ rows, cols : np.ndarray, shape (K,), dtype int64
 pairs : np.ndarray, shape (K, 2), dtype int64
     Returned instead of rows and cols if output='pairs'. Each row contains
     (row_index, column_index), with pairs sorted by row index.
-    K is at most min(N, M); finite limits can choose fewer matches. An empty
+    K is at most min(N, M). Finite limits can choose fewer matches. An empty
     matrix dimension returns arrays with K=0 and total cost 0.0.
 
 Raises
@@ -269,10 +269,14 @@ Raises
 TypeError
     cost has a non-real numeric dtype, such as complex, object, or string.
 ValueError
-    The input is not 2D, a nonempty rectangle is disallowed, an option or
-    limit is invalid, float32 conversion overflows, dimensions exceed
-    native limits, required matches are infeasible, or reduced costs
-    overflow.
+    The function raises this exception in these cases:
+    - The input is not 2D.
+    - A nonempty rectangle is disallowed.
+    - An option or limit is invalid.
+    - Float32 conversion overflows.
+    - Dimensions exceed native limits.
+    - Required matches are infeasible.
+    - Reduced costs overflow.
 MemoryError
     An input copy, output array, or native workspace cannot be allocated.
 RuntimeError
@@ -284,17 +288,19 @@ LAPJVR uses Rust for required square completion. Rectangular and
 finite-limit problems use native Rust paths without square padding.
 
 All paths use float64 potentials, distances, and reduced-cost arithmetic,
-including with float32 cost storage. Finite-limit half-penalties and their
-sum retain rounding in the selected cost precision before promotion.
+including with float32 cost storage. The solver rounds finite-limit
+half-penalties and their sum in the selected cost precision before promotion.
 Float64 working arithmetic reduces cancellation, but extreme cost ranges
-can still obscure small objective differences. It does not provide
-arbitrary-range exactness or restore costs rounded during conversion.
-A finite limit optimizes rejection jointly with matching; it is not
-equivalent to filtering a required solution after solving. Equal-cost
+can still obscure small objective differences. It does not provide exact
+arithmetic for arbitrary ranges or restore costs rounded during conversion.
+
+A finite limit optimizes rejection jointly with matching. This differs
+from filtering a required solution after the solver returns. Equal-cost
 optima can produce different assignments across solvers or precisions.
 
-Suitable contiguous arrays are borrowed, and the native solve releases
-the GIL. Other inputs may be copied for layout or precision conversion.
+The solver borrows suitable contiguous arrays and releases the global
+interpreter lock (GIL) during the native solve. It may copy other inputs
+for layout or precision conversion.
 Do not mutate or resize the input or any alias until the call returns.
 
 See Also
@@ -364,7 +370,7 @@ rows, cols : np.ndarray, shape (K,), dtype int64
 pairs : np.ndarray, shape (K, 2), dtype int64
     Returned instead of rows and cols if output='pairs'. Each row contains
     (row_index, column_index), with pairs sorted by row index.
-    K is at most min(N, M); finite limits can choose fewer matches. An empty
+    K is at most min(N, M). Finite limits can choose fewer matches. An empty
     matrix dimension returns arrays with K=0 and total cost 0.0.
 
 Raises
@@ -372,10 +378,14 @@ Raises
 TypeError
     cost has a non-real numeric dtype, such as complex, object, or string.
 ValueError
-    The input is not 2D, a nonempty rectangle is disallowed, an option or
-    limit is invalid, float32 conversion overflows, dimensions exceed
-    native limits, required matches are infeasible, or reduced costs
-    overflow.
+    The function raises this exception in these cases:
+    - The input is not 2D.
+    - A nonempty rectangle is disallowed.
+    - An option or limit is invalid.
+    - Float32 conversion overflows.
+    - Dimensions exceed native limits.
+    - Required matches are infeasible.
+    - Reduced costs overflow.
 MemoryError
     An input copy, output array, or native workspace cannot be allocated.
 RuntimeError
@@ -383,22 +393,24 @@ RuntimeError
 
 Notes
 -----
-LAPJVH uses Rust initialization/reduction and C++ completion for
+LAPJVH uses Rust initialization and reduction with C++ completion for
 required square problems. Rectangular and finite-limit problems use
 the same native Rust paths as LAPJVR, without square padding.
 
 All paths use float64 potentials, distances, and reduced-cost arithmetic,
-including with float32 cost storage. Finite-limit half-penalties and their
-sum retain rounding in the selected cost precision before promotion.
+including with float32 cost storage. The solver rounds finite-limit
+half-penalties and their sum in the selected cost precision before promotion.
 Float64 working arithmetic reduces cancellation, but extreme cost ranges
-can still obscure small objective differences. It does not provide
-arbitrary-range exactness or restore costs rounded during conversion.
-A finite limit optimizes rejection jointly with matching; it is not
-equivalent to filtering a required solution after solving. Equal-cost
+can still obscure small objective differences. It does not provide exact
+arithmetic for arbitrary ranges or restore costs rounded during conversion.
+
+A finite limit optimizes rejection jointly with matching. This differs
+from filtering a required solution after the solver returns. Equal-cost
 optima can produce different assignments across solvers or precisions.
 
-Suitable contiguous arrays are borrowed, and the native solve releases
-the GIL. Other inputs may be copied for layout or precision conversion.
+The solver borrows suitable contiguous arrays and releases the global
+interpreter lock (GIL) during the native solve. It may copy other inputs
+for layout or precision conversion.
 Do not mutate or resize the input or any alias until the call returns.
 
 See Also
@@ -480,7 +492,7 @@ pairs_list : list of np.ndarray
     Returned instead of the two index lists if output='pairs'. The list has
     length B. Entry b has shape (K_b, 2) and dtype int64. Each row contains
     (row_index, column_index), with pairs sorted by row index.
-    K_b is at most min(N, M); finite limits can choose fewer matches.
+    K_b is at most min(N, M). Finite limits can choose fewer matches.
     An empty batch returns empty lists and, when requested, an empty totals
     array. An empty matrix dimension returns empty assignments and zero
     totals for each problem.
@@ -491,11 +503,17 @@ TypeError
     costs has a non-real numeric dtype, or n_threads cannot be interpreted
     as an integer.
 ValueError
-    The input is not 3D, nonempty rectangles are disallowed, options or
-    thread counts are invalid, float32 conversion overflows, dimensions
-    exceed native limits, required matches are infeasible, or reduced
-    costs overflow. Native solver failures identify the lowest failing
-    batch index; no partial batch result is returned.
+    The function raises this exception in these cases:
+    - The input is not 3D.
+    - Nonempty rectangles are disallowed.
+    - Options or thread counts are invalid.
+    - Float32 conversion overflows.
+    - Dimensions exceed native limits.
+    - Required matches are infeasible.
+    - Reduced costs overflow.
+
+    Native solver failures identify the lowest failing batch index.
+    The solver returns no partial batch result.
 MemoryError
     Input copies, outputs, native workspaces, or workers cannot be allocated.
 RuntimeError
@@ -507,23 +525,26 @@ LAPJVR uses Rust for required square completion. Rectangular and
 finite-limit problems use native Rust paths without square padding.
 
 All paths use float64 potentials, distances, and reduced-cost arithmetic,
-including with float32 cost storage. Finite-limit half-penalties and their
-sum retain rounding in the selected cost precision before promotion.
+including with float32 cost storage. The solver rounds finite-limit
+half-penalties and their sum in the selected cost precision before promotion.
 Float64 working arithmetic reduces cancellation, but extreme cost ranges
-can still obscure small objective differences. It does not provide
-arbitrary-range exactness or restore costs rounded during conversion.
-Finite limits optimize rejection jointly with matching; they are not
-equivalent to filtering required solutions after solving. Equal-cost
+can still obscure small objective differences. It does not provide exact
+arithmetic for arbitrary ranges or restore costs rounded during conversion.
+
+Finite limits optimize rejection jointly with matching. This differs
+from filtering required solutions after the solver returns. Equal-cost
 optima can produce different assignments across solvers or precisions.
 
-Suitable contiguous arrays are borrowed, and the native solve releases
-the GIL. Other inputs may be copied for layout or precision conversion.
+The solver borrows suitable contiguous arrays and releases the global
+interpreter lock (GIL) during the native solve. It may copy other inputs
+for layout or precision conversion.
 Do not mutate or resize the input or any alias until the call returns.
 
-Both families share reusable native worker pools and workspaces. Calls may
-run concurrently, and each call keeps its own completion strategy. Avoid
-oversubscribing CPU cores with concurrent large batches. Use process
-spawning instead of forking after native worker pools have initialized.
+LAPJVR and LAPJVH share reusable native worker pools and workspaces.
+Calls may run concurrently, and each call keeps its own completion strategy.
+Avoid oversubscribing CPU cores with concurrent large batches.
+After native worker pools have initialized, use process spawning instead
+of forking.
 
 See Also
 --------
@@ -609,7 +630,7 @@ pairs_list : list of np.ndarray
     Returned instead of the two index lists if output='pairs'. The list has
     length B. Entry b has shape (K_b, 2) and dtype int64. Each row contains
     (row_index, column_index), with pairs sorted by row index.
-    K_b is at most min(N, M); finite limits can choose fewer matches.
+    K_b is at most min(N, M). Finite limits can choose fewer matches.
     An empty batch returns empty lists and, when requested, an empty totals
     array. An empty matrix dimension returns empty assignments and zero
     totals for each problem.
@@ -620,11 +641,17 @@ TypeError
     costs has a non-real numeric dtype, or n_threads cannot be interpreted
     as an integer.
 ValueError
-    The input is not 3D, nonempty rectangles are disallowed, options or
-    thread counts are invalid, float32 conversion overflows, dimensions
-    exceed native limits, required matches are infeasible, or reduced
-    costs overflow. Native solver failures identify the lowest failing
-    batch index; no partial batch result is returned.
+    The function raises this exception in these cases:
+    - The input is not 3D.
+    - Nonempty rectangles are disallowed.
+    - Options or thread counts are invalid.
+    - Float32 conversion overflows.
+    - Dimensions exceed native limits.
+    - Required matches are infeasible.
+    - Reduced costs overflow.
+
+    Native solver failures identify the lowest failing batch index.
+    The solver returns no partial batch result.
 MemoryError
     Input copies, outputs, native workspaces, or workers cannot be allocated.
 RuntimeError
@@ -632,28 +659,31 @@ RuntimeError
 
 Notes
 -----
-LAPJVH uses Rust initialization/reduction and C++ completion for
+LAPJVH uses Rust initialization and reduction with C++ completion for
 required square problems. Rectangular and finite-limit problems use
 the same native Rust paths as LAPJVR, without square padding.
 
 All paths use float64 potentials, distances, and reduced-cost arithmetic,
-including with float32 cost storage. Finite-limit half-penalties and their
-sum retain rounding in the selected cost precision before promotion.
+including with float32 cost storage. The solver rounds finite-limit
+half-penalties and their sum in the selected cost precision before promotion.
 Float64 working arithmetic reduces cancellation, but extreme cost ranges
-can still obscure small objective differences. It does not provide
-arbitrary-range exactness or restore costs rounded during conversion.
-Finite limits optimize rejection jointly with matching; they are not
-equivalent to filtering required solutions after solving. Equal-cost
+can still obscure small objective differences. It does not provide exact
+arithmetic for arbitrary ranges or restore costs rounded during conversion.
+
+Finite limits optimize rejection jointly with matching. This differs
+from filtering required solutions after the solver returns. Equal-cost
 optima can produce different assignments across solvers or precisions.
 
-Suitable contiguous arrays are borrowed, and the native solve releases
-the GIL. Other inputs may be copied for layout or precision conversion.
+The solver borrows suitable contiguous arrays and releases the global
+interpreter lock (GIL) during the native solve. It may copy other inputs
+for layout or precision conversion.
 Do not mutate or resize the input or any alias until the call returns.
 
-Both families share reusable native worker pools and workspaces. Calls may
-run concurrently, and each call keeps its own completion strategy. Avoid
-oversubscribing CPU cores with concurrent large batches. Use process
-spawning instead of forking after native worker pools have initialized.
+LAPJVR and LAPJVH share reusable native worker pools and workspaces.
+Calls may run concurrently, and each call keeps its own completion strategy.
+Avoid oversubscribing CPU cores with concurrent large batches.
+After native worker pools have initialized, use process spawning instead
+of forking.
 
 See Also
 --------

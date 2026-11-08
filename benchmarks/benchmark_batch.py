@@ -1,7 +1,7 @@
 """Compare dense and sparse batch assignment timings.
 
 R/H use direct pairs and precision='native' on float64 inputs.
-Total-cost calculation is optional via --cost. Input preparation, warmup,
+Use --cost to include total-cost calculation. Input preparation, warmup,
 and result checks are outside timing.
 """
 

@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Ratha SIV | MIT License
-"""Standalone installed-wheel check; only NumPy is required."""
+"""Check an installed wheel. Only NumPy and the installed package are required."""
 import argparse
 import ast
 from importlib import import_module

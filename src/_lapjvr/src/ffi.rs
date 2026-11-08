@@ -329,9 +329,9 @@ fn batch<T: Kernel>(
 }
 
 /// C boundary for the Cython adapter. Every pointer must be aligned, non-null,
-/// and valid for its described length; inputs must remain immutable throughout
-/// this call, outputs must be disjoint and exclusively owned by this call.
-/// Panics are contained here and never unwind through Python/C++ frames.
+/// and valid for its described length. Inputs must remain immutable throughout
+/// this call. Outputs must be disjoint and exclusively owned by this call.
+/// This boundary contains panics. They never unwind through Python/C++ frames.
 #[no_mangle]
 pub unsafe extern "C" fn lapjvr_run(
     costs: *const std::ffi::c_void,

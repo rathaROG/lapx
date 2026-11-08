@@ -1,8 +1,9 @@
 """Compare the time needed to produce assignment pairs.
 
 All solvers use return_cost=False. R/H preserve the generated float64 inputs
-with precision='native'; existing solvers keep their default precision settings.
-Pairs are requested directly where supported; required conversion is timed.
+with precision='native'. Other solvers keep their default precision settings.
+The benchmark requests pairs directly where supported. Timing includes any
+required conversion to pairs.
 Input generation, warmup, and result checks are outside timing.
 """
 

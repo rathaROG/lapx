@@ -5,33 +5,40 @@ problems with infinite `cost_limit`, completion uses Rust (`lapjvr`) or C++
 (`lapjvh`). Rectangular and finite-limit problems use the same Rust paths
 without square padding. Both families provide single and batch functions.
 
-If you don't need the other LAPX solvers, you can use the dedicated
+If you do not need the other LAPX solvers, you can use the dedicated
 [laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or
-[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead; each provides
+[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead. Each provides
 the same options through `lapjv` and `lapjv_batch`.
-The [paper](https://github.com/rathaROG/lap-paper/blob/main/output/pdf/native_rectangular_assignment.pdf)
-([repository](https://github.com/rathaROG/lap-paper)) describes this solver and
-compares it with the other LAPX solvers and SciPy.
+The [repository paper](https://github.com/rathaROG/lap-paper/blob/main/output/pdf/native_rectangular_assignment.pdf)
+and [arXiv preprint](https://arxiv.org/abs/2610.35948) describe the solver and
+compare it with the other LAPX solvers and SciPy.
+The revised repository manuscript evaluates LAPX 0.13.0 and lapcpp/laprust 1.2.0
+across four Windows/Linux and Python environments. Check the
+[publication status](https://github.com/rathaROG/lap-paper#native-rectangular-linear-assignment-with-implicit-rejection)
+for differences from arXiv. Use the
+[paper benchmark guide](https://github.com/rathaROG/lap-paper/blob/main/benchmark/README.md)
+for its workloads, precision settings, and pinned environments.
 
 ## Build and install
 
 Prebuilt wheels require no Rust compiler. To build from source, install stable
-Rust/Cargo and the normal LAPX C++ build prerequisites, then run from the
-repository root:
+Rust/Cargo and the normal LAPX C++ build prerequisites. Then run this command
+from the repository root:
 
 ```bash
 python -m pip install .
 ```
 
-Standard builds include both families. Set `LAPX_BUILD_RUST=0` for a legacy-only
-build, or `LAPX_BUILD_RUST=1` to enable R/H explicitly. Legacy-only wheels omit
-the R/H extension, type stub, and exports; source archives retain the full
-sources. musllinux ARMv7 wheels are legacy-only; manylinux ARMv7 and musllinux
-AArch64 wheels include R/H.
+Standard builds include both families. A legacy-only build includes the other
+LAPX solvers and omits R/H. Set `LAPX_BUILD_RUST=0` for a legacy-only build.
+Set `LAPX_BUILD_RUST=1` to enable R/H explicitly.
+Legacy-only wheels omit the R/H extension, type stub, and exports.
+Source archives retain the full sources. musllinux ARMv7 wheels are legacy-only.
+manylinux ARMv7 and musllinux AArch64 wheels include R/H.
 
 Legacy-only editable installs use setuptools' strict link layout under
-`build/`. Keep that directory while the install is in use, and reinstall after
-changing package exports or adding modules. If overriding `--build-lib`, use
+`build/`. Keep that directory while the install is in use. After changing
+package exports or adding modules, reinstall the package. If overriding `--build-lib`, use
 separate directories for full and legacy-only builds.
 
 `LAPX_BASEOPTS`, `LAPX_LTO`, and `LAPX_NATIVE` also configure the Rust build.
@@ -56,8 +63,8 @@ on `output` and `return_cost`:
 | `"pairs"` | `pairs` | `(total, pairs)` |
 
 Indices use int64 and are sorted by row. Each `rows[i], cols[i]`
-is a matched pair in the original matrix; unmatched rows and columns are
-omitted. `pairs` has shape `(K, 2)`, including `(0, 2)` for empty results.
+is a matched pair in the original matrix. Results omit unmatched rows and columns.
+`pairs` has shape `(K, 2)`, including `(0, 2)` for empty results.
 `total` is a Python float, summed in float64 from selected original input
 costs before any float32 conversion.
 
@@ -83,8 +90,8 @@ lap.lapjvh_batch(costs, extend_cost=False, cost_limit=np.inf, return_cost=True,
 
 `costs` is a real numeric array-like of shape `(B, N, M)`. Results keep input
 order: `(rows, cols)` or, with `output="pairs"`, `pairs`. Each
-list has length `B`; its arrays may contain different numbers of matches.
-If `return_cost` is True, return a float64 array of `B` totals first:
+list has length `B`. Its arrays may contain different numbers of matches.
+If `return_cost` is True, the result contains a float64 array of `B` totals first:
 `(totals, rows, cols)` or `(totals, pairs)`. An empty batch returns
 empty lists and, when requested, empty totals. Empty matrix dimensions give
 empty assignments and zero totals. Totals follow the single-matrix rules.
@@ -107,33 +114,34 @@ totals, pairs = lap.lapjvh_batch(
 - Positive values: Use at most this many workers, capped by `B`, not the CPU count.
 
 Empty and single-item batches run serially. Automatic mode may also run small
-workloads serially. Both families share reusable native worker pools;
-concurrent calls keep their completion choices local. Use process spawning
+workloads serially. Both families share reusable native worker pools.
+Concurrent calls keep their completion choices local. Use process spawning
 instead of forking after native worker pools have initialized.
 
 ## Precision, matching, and errors
 
-- `precision="native"` preserves float32/float64 input storage; other real numeric
+- `precision="native"` preserves float32/float64 input storage. Other real numeric
   inputs use float64. Explicit `"float32"` and `"float64"` select the working cost
   precision. Finite costs and limits must fit the float32 range when float32 is
-  used; values that overflow conversion raise `ValueError`.
+  used. Values that overflow conversion raise `ValueError`.
 - All paths use float64 potentials, distances, and reduced-cost arithmetic,
   including when costs are stored in float32. Finite-limit half-penalties and
   their sum are still rounded in the selected cost precision before promotion
-  to float64; widening does not change that objective convention.
+  to float64. Widening does not change that objective convention.
 - Float64 working arithmetic reduces cancellation, but extreme cost ranges can
-  still obscure small objective differences. It is not an arbitrary-range
-  exactness guarantee and cannot restore costs rounded during conversion.
+  still obscure small objective differences. Float64 working arithmetic does
+  not guarantee exactness for arbitrary cost ranges or restore costs rounded
+  during conversion.
 - Rectangular inputs require `extend_cost=True` unless `cost_limit` is finite.
   Rectangular and finite-limit problems use native Rust paths without padding
   the matrix to a square.
 - A finite limit minimizes selected costs plus half the limit for every
   unmatched row and column. The returned total sums only selected original
   costs, excluding those penalties. A finite limit can therefore choose fewer
-  than `min(N, M)` pairs; it is not equivalent to filtering a required solution.
-  Negative finite limits are allowed; NaN and negative infinity are invalid.
+  than `min(N, M)` pairs. This optimization differs from filtering a required solution.
+  Negative finite limits are allowed. NaN and negative infinity are invalid.
   With `cost_limit=np.inf`, each problem requires `min(N, M)` matches.
-- The solver does not check for NaN (not a number) or negative infinity.
+- The solver does not check costs for NaN (not a number) or negative infinity.
   Check or remove these values before you call the solver. Results with these
   values are undefined. Positive infinity can represent a forbidden assignment.
   Infeasible required assignments and reduced-cost overflow raise `ValueError`.
@@ -152,7 +160,7 @@ row-reduction passes and prefers a free column when reduced costs tie. Each
 pass allows at most `B` times its initial free-row count in row scans before
 augmenting search. For required rectangular assignments, `max(rows, 8)`
 consecutive displacements without acquiring a free column disable further
-price lowering for both passes; the current scan completes normally.
+price lowering for both passes. The current scan completes normally.
 
 Finite-limit problems, including optional square problems, use the same budget
 and tie rule without the stall window: interrupting useful optional chains can

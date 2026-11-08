@@ -8,8 +8,8 @@ tracking cases require partial assignments and cost thresholds.
 
 The wrappers convert solver outputs to a common format: matched pairs and
 lists of unmatched indices. The benchmark measures the full wrapper call.
-This includes the solve, the removal of matches above the cost threshold,
-and the calculation of unmatched indices.
+This includes solving, pair construction where needed, threshold handling,
+and calculation of unmatched indices.
 All solvers use return_cost=False. R/H request direct pairs with
 precision='native' on the generated float64 inputs.
 
@@ -19,14 +19,16 @@ that can result from threshold rules and solver internals.
 Notes
 -----
 - The benchmark measures behavior that object tracking code typically needs.
-  Each solver produces a full assignment. The wrapper then removes matches
-  above the cost threshold to create matched and unmatched sets.
-- The benchmark intentionally applies the threshold after the solve for these reasons:
-  * The output has the matched and unmatched sets that tracking code expects.
-  * This avoids slower internal paths that partial-assignment options such as cost_limit may select.
-- To enforce partial assignment during optimization, pass cost_limit directly
-  to a solver that accepts it. This prevents costly matches during the solve.
-  Expect differences in performance and unmatched sets compared with threshold checks after the solve.
+  Except for LAPJV-IFT, each solver produces a full assignment. Its wrapper
+  then removes matches above the cost threshold to create matched and unmatched sets.
+- Applying the threshold after solving produces the sets that tracking code
+  expects. It avoids slower internal paths that partial-assignment options
+  such as cost_limit may select.
+- LAPJV-IFT passes cost_limit directly to lap.lapjv. The solver applies this
+  threshold during optimization. Its wrapper does not apply another threshold
+  check after solving.
+- The two threshold methods can produce different assignments, unmatched sets,
+  and timings.
 """
 
 import argparse
@@ -102,7 +104,7 @@ def lapx_jv_ift(cost_matrix, thresh):
     cost_matrix : ndarray, shape (n_rows, n_cols)
         The cost matrix for assignment.
     thresh : float
-        The cost threshold. The wrapper removes matches with cost > thresh.
+        The cost threshold passed to the solver as cost_limit.
 
     Notes
     -----
@@ -124,7 +126,7 @@ def lapx_jv(cost_matrix, thresh):
     """Run :func:`lap.lapjv` (LAPX JV). Then remove assignments above the cost threshold.
 
     The wrapper calls lap.lapjv without cost_limit. It then removes matches whose
-    cost exceeds thresh. The other wrappers in this benchmark use the same method.
+    cost exceeds thresh. The other wrappers use this method, except for lapx_jv_ift.
 
     Parameters
     ----------
@@ -194,7 +196,7 @@ def lapx_jvs(cost_matrix, thresh):
 
 
 def lapx_jvr(cost_matrix, thresh):
-    """Run LAPJVR, then remove pairs above the cost threshold."""
+    """Run LAPJVR. Then remove pairs above the cost threshold."""
     matches = lap.lapjvr(cost_matrix, extend_cost=True, return_cost=False,
                          precision='native', output='pairs')
     mask = cost_matrix[matches[:, 0], matches[:, 1]] <= thresh
@@ -202,7 +204,7 @@ def lapx_jvr(cost_matrix, thresh):
 
 
 def lapx_jvh(cost_matrix, thresh):
-    """Run LAPJVH, then remove pairs above the cost threshold."""
+    """Run LAPJVH. Then remove pairs above the cost threshold."""
     matches = lap.lapjvh(cost_matrix, extend_cost=True, return_cost=False,
                          precision='native', output='pairs')
     mask = cost_matrix[matches[:, 0], matches[:, 1]] <= thresh
@@ -343,7 +345,7 @@ def print_overall_ranking(header, all_results, position_records):
 
 
 def benchmark_tabular(sizes, thresh=1e6, debug=False, *, seed=2026, repeats=3):
-    """Collect median timings by size, then print the table and overall ranking."""
+    """Collect median timings by size. Print the tables and overall ranking."""
     table_rows = []
     solvers = [
         ('BASELINE SciPy', scipy_lsa),

@@ -14,6 +14,7 @@
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg?logo=github&logoColor=lightgray)](https://github.com/rathaROG/lapx/releases)
 [![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-gold?logo=pypi&logoColor=deepskyblue)](https://pypi.org/project/lapx/#files)
 [![Python Versions](https://img.shields.io/pypi/pyversions/lapx.svg?logo=python&logoColor=gold)](https://pypi.org/project/lapx/)
+[![arXiv](https://img.shields.io/badge/arXiv-2610.35948-b31b1b)](https://arxiv.org/abs/2610.35948)
 
 # Linear Assignment Problem Solvers · 𝕏
 
@@ -42,8 +43,8 @@ based on papers ¹˒² and A. Volgenant's public domain Pascal implementation ³
 
 [![Wheels](https://img.shields.io/pypi/wheel/lapx)](https://pypi.org/project/lapx/)
 [![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
-[![Downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/project/lapx)
-[![Downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/project/lapx)
+[![Total downloads](https://static.pepy.tech/badge/lapx)](https://pepy.tech/projects/lapx)
+[![Monthly downloads](https://static.pepy.tech/badge/lapx/month)](https://pepy.tech/projects/lapx)
 
 ```bash
 python -m pip install lapx
@@ -139,7 +140,8 @@ Results with these values are undefined. Positive infinity (`np.inf`) can repres
 `lapjvc` treats `NaN` and either infinity as forbidden assignments.
 `lapmod` checks its sparse arrays. Stored costs must be finite, non-negative, and less than `lap.LARGE`.
 
-With `return_cost=True` (the default), the solvers sum total costs in float64 from the original costs, even when working costs are stored in float32.
+With `return_cost=True` (the default), the solvers sum total costs in float64 from the original costs.
+This rule also applies when working costs use float32 storage.
 Set `return_cost=False` when you need only assignments. This skips the total-cost calculation.
 
 <details><summary>Cost limits and filtering after solving</summary>
@@ -148,8 +150,8 @@ Set `return_cost=False` when you need only assignments. This skips the total-cos
 The JVX and R/H batch solvers support it too.
 The value must be finite or positive infinity. The default `np.inf` applies no finite cost limit.
 With a finite limit, the solver considers leaving items unmatched during optimization.
-Unmatched rows and columns each incur half the limit during optimization;
-returned totals exclude those penalties.
+Unmatched rows and columns each incur half the limit during optimization.
+Returned totals exclude those penalties.
 JV/JVX solvers expand each nonempty `(N, M)` problem to shape `(N+M, N+M)`,
 which requires more memory and can slow the solve. R/H handles finite limits without square padding.
 
@@ -195,7 +197,7 @@ For a cost matrix `cost` with shape `(N, M)`, `x` has N entries and `y` has M en
 Unmatched entries are `-1`.
 
 For example, `x = [1, 0]` means row 0 uses column 1 and row 1 uses column 0.
-The example above converts mapping arrays to pairs; use
+The example above converts mapping arrays to pairs. Use
 [`lapjvx`](https://github.com/rathaROG/lapx#2-the-new-function-lapjvx)
 for aligned row and column indices, as in SciPy.
 See the original `lapjv` documentation at [gatagat/lap](https://github.com/gatagat/lap).
@@ -264,7 +266,7 @@ pairs = np.column_stack((rows, cols))
 
 `lapjvs` extends Vadim Markovtsev's [`lapjv`](https://github.com/src-d/lapjv).
 Its scalar kernel does not require AVX2 instructions.
-Working costs use float32 by default; potentials, distances, and reduced-cost
+Working costs use float32 by default. Potentials, distances, and reduced-cost
 arithmetic use float64. To preserve float64 input costs, pass
 `prefer_float32=False` with a float64 array.
 It supports square and rectangular cost matrices. It can return either of these output formats:
@@ -324,11 +326,13 @@ total, x, y = lap.lapmod(n, cc, ii, kk)
 
 #### 8. Rust and hybrid functions `lapjvr` and `lapjvh`
 
-R/H were **about 3–10× faster than SciPy** across benchmarks; see [benchmark.md](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0110rc1).
+Compare R/H with SciPy in the
+[recorded LAPX 0.13.0 results](https://github.com/rathaROG/lapx/blob/main/benchmark.md#historical-results-lapx-0130).
+These measurements apply to the recorded environment and workloads. Performance depends on the input and solver options.
 
 `lapjvr` and `lapjvh` share a Rust Jonker-Volgenant implementation. For square
 problems with infinite `cost_limit`, `lapjvh` uses C++ completion. Both return
-aligned row and column indices, like `lapjvx`; use `output="pairs"` for the
+aligned row and column indices, like `lapjvx`. Use `output="pairs"` for the
 pair layout of `lapjvxa`.
 
 ```python
@@ -349,16 +353,15 @@ for full signatures, return types, and precision rules.
 All paths use float64 potentials and distances while retaining the selected
 cost storage. Finite-limit penalties retain their rounding in the selected
 cost precision.
-Wider working arithmetic reduces cancellation; extreme cost ranges can still
+Wider working arithmetic reduces cancellation. Extreme cost ranges can still
 hide small objective differences. Cost conversion can also round input values.
 
-If you don't need the other LAPX solvers, you can use the dedicated
+If you do not need the other LAPX solvers, you can use the dedicated
 [laprust](https://github.com/rathaROG/laprust) (Rust, from `lapjvr`) or
-[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead; each provides
+[lapcpp](https://github.com/rathaROG/lapcpp) (C++) package instead. Each provides
 the same options through `lapjv` and `lapjv_batch`.
-The [paper](https://github.com/rathaROG/lap-paper/blob/main/output/pdf/native_rectangular_assignment.pdf)
-([repository](https://github.com/rathaROG/lap-paper)) describes this solver and
-compares it with the other LAPX solvers and SciPy.
+The [paper section](https://github.com/rathaROG/lapx#paper) links the solver description,
+comparisons with the other LAPX solvers and SciPy, and reproduction materials.
 
 ---
 
@@ -504,7 +507,7 @@ totals, rows, cols = lap.lapjvr_batch(batch_costs, extend_cost=True, n_threads=2
 totals, pairs = lap.lapjvh_batch(batch_costs, extend_cost=True, output="pairs", n_threads=2)
 ```
 
-The `n_threads` rules above apply; automatic mode may run small workloads
+The `n_threads` rules above apply. Automatic mode may run small workloads
 serially. See the [batch API guide](https://github.com/rathaROG/lapx/blob/main/src/_lapjvr/README.md#batch-api)
 for return types and native worker details.
 
@@ -516,13 +519,37 @@ for return types and native worker details.
 [![Benchmark (Batch)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_batch.yaml)
 [![Benchmark (Object Tracking)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/benchmark_tracking.yaml)
 
-[![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
-[![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
-
 See the [benchmark guide](https://github.com/rathaROG/lapx/blob/main/benchmark.md) for commands, repeat controls, timing methods, and historical results.
 
 See the [solver test guide](https://github.com/rathaROG/lapx/tree/main/tests) and the
 [build and packaging guide](https://github.com/rathaROG/lapx/tree/main/.github/tests) to run the checks.
+
+<a id="paper"></a>
+
+## 📄 Paper
+
+The paper *Native Rectangular Linear Assignment with Implicit Rejection:
+A Jonker–Volgenant Solver without Square Expansion* describes native rectangular
+assignment and implicit rejection. It compares the native solvers with SciPy
+and other Jonker–Volgenant implementations.
+
+Read the [repository PDF](https://github.com/rathaROG/lap-paper/blob/main/output/pdf/native_rectangular_assignment.pdf)
+or the [arXiv preprint](https://arxiv.org/abs/2610.35948).
+The revised repository manuscript evaluates lapcpp/laprust **1.2.0** and
+LAPX **0.13.0** across four Windows/Linux and Python environments.
+The arXiv version can differ. Check the
+[paper repository's publication status](https://github.com/rathaROG/lap-paper#native-rectangular-linear-assignment-with-implicit-rejection)
+before comparing versions or results.
+
+The package benchmarks above use uniform random costs.
+JVS uses its default float32 working precision, except for explicitly named float64 cases.
+The paper uses its own workloads, precision settings, and pinned environments,
+including JVS configured for float64.
+Use the [paper benchmark guide](https://github.com/rathaROG/lap-paper/blob/main/benchmark/README.md)
+to reproduce its structured, geometric, finite-limit, memory, and application experiments.
+The [frozen evidence](https://github.com/rathaROG/lap-paper/blob/main/benchmark/evidence/README.md)
+and [artifact guide](https://github.com/rathaROG/lap-paper/blob/main/benchmark/paper-artifacts/README.md)
+support regeneration of figures and tables from saved results.
 
 ## 📝 License
 

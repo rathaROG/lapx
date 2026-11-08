@@ -1,7 +1,5 @@
 [![GitHub release](https://img.shields.io/github/release/rathaROG/lapx.svg)](https://github.com/rathaROG/lapx/releases)
 [![PyPI version](https://badge.fury.io/py/lapx.svg)](https://badge.fury.io/py/lapx)
-[![Full Tests](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests.yaml)
-[![Full Tests (Plus)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml/badge.svg)](https://github.com/rathaROG/lapx/actions/workflows/tests_plus.yaml)
 
 # Run the solver test suite for `lapx`
 
@@ -19,6 +17,13 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
   ```bash
   python -m pip install -r test_requirements.txt
   ```
+
+- To test the current checkout, build and install it:
+  ```bash
+  python -m pip install ..
+  ```
+  A source build requires C++ and Rust compilers.
+  See the [build guide](../README.md#-installation) for requirements and optional legacy-only builds.
 
 - Run the full solver test suite:
   ```bash
@@ -38,10 +43,10 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 
 **Notes**:
 
-- To test an installed wheel or editable build, run pytest from `tests/` so the
-  repository's source package does not shadow the installed package.
-  Running `python -m pytest -c tests/pytest.ini -q tests` from the repository root
-  instead tests the source package and requires its native extensions to be built in place.
+- To test an installed wheel or editable build, run pytest from `tests/`.
+  This loads the installed package instead of the repository's source package.
+  The root command `python -m pytest -c tests/pytest.ini -q tests` tests the source package.
+  It requires native extensions built in place.
   Both commands use the same timeout and marker settings as continuous integration (CI).
 - The repository includes test data such as [cost_eps.csv.gz](https://github.com/rathaROG/lapx/blob/main/tests/cost_eps.csv.gz).
   Tests use these files without additional setup.
@@ -80,30 +85,34 @@ Keep shared pytest fixtures in `conftest.py`. Keep helpers that generate data in
 Matrix fixtures have function scope because some tests change their inputs.
 The generators use local random state. This preserves the fixed test data without changes to other tests.
 
-## Coverage and CI checks
+## Test coverage and CI checks
 
 Keep CI checks deterministic and small.
 `test_input_contracts.py` checks invalid dimensions, exceptions from workers, and recovery after errors.
 It uses broadcast views to check sparse size limits.
 Empty-input tests fail if they encounter unexpected exceptions.
 
-The dense smoke tests require full matching cardinality, integer indices,
-in-bounds unique assignments, consistent inverse mappings, and correct totals.
+The dense smoke tests require the expected number of matches and integer indices.
+They also require unique assignments within bounds, consistent inverse mappings,
+and correct totals.
 They compare each single and batch solver with exhaustive enumeration on small
 square and rectangular matrices. They fail if a required export cannot load.
 Only the R/H families may be absent in an intentionally legacy-only build.
 
 Numerical tests also use SciPy and fixed regression optima as independent references.
-The R/H finite-limit oracle receives the working cost dtype explicitly, rounds
-each half-penalty in that dtype, and checks returned totals on the original input
-separately. Small-gap regressions use exact enumeration; the native search fixture
-also verifies that initialization reaches augmenting search and checks its dual
-certificate and work counters when profiling is enabled.
-Batch-versus-single and thread-reuse comparisons check API consistency; they do
-not establish optimality on their own. Precision-specific tests compare the
-represented problem at that precision. Equal-cost solutions may use different
-pairs; exact assignment comparisons are reserved for unique optima or explicit
-ordering and determinism checks.
+The R/H finite-limit reference receives the working cost dtype explicitly.
+It rounds each half-penalty in that dtype and checks returned totals on the
+original input separately.
+Regressions with small cost differences use exact enumeration.
+The native search fixture verifies that initialization reaches augmenting search.
+When profiling is enabled, it also checks the dual certificate and work counters.
+
+Batch-versus-single and thread-reuse comparisons check API consistency.
+They do not establish optimality on their own.
+Tests for each precision compare the problem represented at that precision.
+Equal-cost solutions may use different pairs.
+Use exact assignment comparisons only for unique optima or explicit ordering and
+determinism checks.
 
 The sparse path-search cases in `test_lapmod.py` check the Python solver and each native path version.
 They compare results with every possible assignment on matrices no larger than 4x4 (24 permutations).
@@ -120,16 +129,23 @@ Python 3.7 and 3.8 remain available for source builds but are outside CI coverag
 
 ## Rust and hybrid families
 
-Build the current checkout with a current Rust toolchain and C++ compiler.
+Build the current checkout with Rust 1.83 or later and a C++17 compiler.
 Standard builds include both families; `LAPX_BUILD_RUST=0` omits both.
-The numerical suite runs against the public `lapjvr` and `lapjvh` exports,
-covering both layouts, totals on/off, precision, native rectangles, finite
+The numerical suite runs against the public `lapjvr` and `lapjvh` exports.
+It covers both layouts, both return modes, precision, native rectangles, finite
 limits, forbidden edges, workspace reuse, threads, offsets, and conflicts.
 The coexistence suite alternates families within one process and calls them
 concurrently. It also checks signatures, exports, errors, and recovery.
 
+From the `tests/` directory, run the Python checks:
+
 ```bash
-python -m pytest -q tests/test_lapjvr.py tests/test_lapjv_rh.py
+python -m pytest -q test_lapjvr.py test_lapjv_rh.py
+```
+
+From the repository root, run the native checks:
+
+```bash
 cargo test --locked --all-features --manifest-path src/_lapjvr/Cargo.toml
 cargo clippy --locked --all-targets --all-features --manifest-path src/_lapjvr/Cargo.toml -- -D warnings
 ```
@@ -143,7 +159,7 @@ smoke checks, legacy-only builds, editable installs, and source-archive checks.
 Their `.pyi` files and native source docstrings carry matching public documentation.
 Update both when changing these APIs.
 
-This optional developer tool checks return-type annotations separately from the runtime tests.
+Pyright checks return-type annotations separately from the runtime tests.
 It requires two additional packages: `pyright` and `typing_extensions`.
 The `test_requirements.txt` file does not install these packages.
 Install them once per Python environment:

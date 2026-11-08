@@ -11,13 +11,13 @@
 /**
     Updated by rathaROG:
 
-    2025/10/30: Improve speed almost 2x for rectangular matrices by using ZERO padding
-    for dummy rows/columns instead of LARGE_COST padding. This avoids filling the entire
-    padded area with LARGE_COST and speeds up rectangular cases significantly.
+    2025/10/30: Use ZERO padding for dummy rows and columns instead of LARGE_COST padding.
+    This improves speed almost 2x for rectangular matrices. It avoids filling the entire
+    padded area with LARGE_COST and significantly improves speed for rectangular cases.
 
-    2025/10/16: The return value is changed to include total_cost as the first element of 
-    the tuple. This is to avoid recalculating the total cost in Python, which can be 
-    inefficient for large matrices.
+    2025/10/16: Include total_cost as the first element of the returned tuple.
+    This avoids recalculating the total cost in Python, which can be inefficient
+    for large matrices.
 */
 
 namespace py = pybind11;

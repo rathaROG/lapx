@@ -176,8 +176,8 @@ uint_t _find_dense(const uint_t n, uint_t lo, cost_t *d, int_t *cols, int_t *y)
 
 
 /** 
- * Scan all columns in TODO starting from arbitrary column in SCAN
- * and try to decrease d of the TODO columns using the SCAN column.
+ * Scan all columns in TODO, starting from an arbitrary column in SCAN.
+ * Use the SCAN column to try to decrease d of the TODO columns.
  */
 int_t _scan_dense(const uint_t n, cost_t *cost[], uint_t *plo, uint_t*phi,
                   cost_t *d, int_t *cols, int_t *pred, int_t *y, cost_t *v)
@@ -218,7 +218,7 @@ int_t _scan_dense(const uint_t n, cost_t *cost[], uint_t *plo, uint_t*phi,
 
 
 /** 
- * Single iteration of modified Dijkstra shortest path algorithm as explained in the JV paper.
+ * Run one iteration of the modified Dijkstra shortest path algorithm from the JV paper.
  * This is a dense matrix version.
  * @return The closest free column index.
  */
@@ -322,7 +322,7 @@ int_t _ca_dense(const uint_t n, cost_t *cost[], const uint_t n_free_rows,
 }
 
 
-/** Solve dense sparse LAP. */
+/** Solve a dense LAP. */
 int lapjv_internal(const uint_t n, cost_t *cost[], int_t *x, int_t *y)
 {
     int ret;

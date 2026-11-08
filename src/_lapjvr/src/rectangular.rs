@@ -101,14 +101,14 @@ fn optional_row_minima<T: Cost>(row: &[T], dual: &[f64], penalty: f64) -> [Minim
 }
 
 impl<T: Cost> Rectangular<T> {
-    /// Match every row of a flat rows <= cols matrix, leaving extra columns
-    /// unused. Scratch is O(rows + cols); no square cost buffer is created.
+    /// Match every row of a flat rows <= cols matrix. Leave extra columns
+    /// unused. Scratch is O(rows + cols). No square cost buffer is created.
     pub(crate) fn solve(&mut self, costs: &[T], rows: usize, cols: usize) -> Result<(), Error> {
         self.solve_impl::<false>(costs, rows, cols, T::INF)
     }
 
     /// Each row may instead remain unmatched at `penalty`. The implicit sink
-    /// replaces all dummy columns; no dummy costs or dummy assignments exist.
+    /// replaces all dummy columns. No dummy costs or dummy assignments exist.
     pub(crate) fn solve_optional(
         &mut self,
         costs: &[T],

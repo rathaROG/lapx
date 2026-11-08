@@ -63,7 +63,7 @@ Else:
 Notes
 -----
 - This function uses the classic dense JV algorithm.
-  For very large, sparse, or otherwise structured problems, consider lapjv or lapjvx variants optimized for those cases.
+  For very large, sparse, or otherwise structured problems, consider lapjv or lapjvx variants. These variants are optimized for those cases.
 - Use np.nan or np.inf to represent forbidden assignments in floating inputs.
 
 Examples
