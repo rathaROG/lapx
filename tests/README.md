@@ -73,6 +73,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
 | Invalid inputs, precision, empty inputs, and thread reuse | `test_input_contracts.py`, `test_wrapper_stability.py`, `test_native_stability.py` |
 | Cost-range and reported-bug regressions | `test_large_cost_consistency.py`, `test_arr_loop.py`, `test_*issue_*.py` |
 | Small objective differences beside large finite costs, with exact represented-value optima | `test_float32_working_precision.py` |
+| The three precision examples from src-d/lapjv issue 94, including known optimality limits | `test_src_d_lapjv_issue_94.py` |
 | Shared test data and conversions | `conftest.py`, `test_utils.py`, `cost_eps.csv.gz` |
 | Rust/hybrid contract, original-value objectives, and numerical regressions | `test_lapjvr.py` (runs once per family) |
 | R/H coexistence, concurrent worker reuse, and batch result paths (large parallel batches, lowest failing index, result construction at batch sizes 7-33) | `test_lapjv_rh.py` |
@@ -126,6 +127,43 @@ Keep solver speed benchmarks in `benchmarks/`. Do not add timing assertions to t
 Both GitHub test workflows run the full solver suite on Python 3.9–3.15,
 with build and packaging checks in a separate step.
 Python 3.7 and 3.8 remain available for source builds but are outside CI coverage.
+
+## Precision cases from src-d/lapjv issue 94
+
+[`test_src_d_lapjv_issue_94.py`](test_src_d_lapjv_issue_94.py) reproduces all three
+inputs in [issue 94](https://github.com/src-d/lapjv/issues/94).
+The suite covers dense single and batch functions, both return modes, float32
+and float64 inputs, and the available precision options. Batch cases use one
+and two workers, with original and column-permuted inputs.
+
+The 2×2 case uses exact fractions and exhaustive enumeration.
+The two 1000×1000 cases preserve the issue's seed and put `1e6` or `1e15` in
+the final 50 rows. Every full matching pays the same cost for those rows.
+The reference solves only the remaining 950×1000 block with SciPy, at the
+solver's working precision. Tests compare that block's selected costs separately,
+so the large constant contribution cannot hide an error.
+
+The tests record these confirmed optimality limits in LAPX 0.13.0:
+
+| Case | Known failures |
+| --- | --- |
+| Constant rows of `1e6`, float32 input | `lapjvc` |
+| Constant rows of `1e15`, either input dtype | JV/JVX/JVC/JVS families and their batch variants |
+
+R/H must pass all these cases. The original 2×2 case must pass for every dense
+solver. Sparse `lapmod` tests require rejection because these costs exceed its
+supported range, which requires values strictly below `lap.LARGE` (`1e6`).
+
+Known failures use strict `xfail`, restricted to a custom optimality exception.
+Invalid shapes, indices, mappings, totals, and input changes still fail normally.
+Known-failing batch cases also check each result against its corresponding
+single call before checking optimality, so swapped results cannot become expected failures.
+An unexpected pass also fails, so a solver fix requires updating the expected
+failure marks. To inspect the known failures directly, run from `tests/`:
+
+```bash
+python -m pytest -q test_src_d_lapjv_issue_94.py --runxfail
+```
 
 ## Rust and hybrid families
 

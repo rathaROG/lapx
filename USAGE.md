@@ -4,6 +4,7 @@ Use this guide for solver examples, cost rules, return formats, and batch proces
 See the [README](https://github.com/rathaROG/lapx/blob/main/README.md#-installation) for installation instructions.
 
 - [Cost values](https://github.com/rathaROG/lapx/blob/main/USAGE.md#cost-values)
+- [Numerical precision limits](https://github.com/rathaROG/lapx/blob/main/USAGE.md#numerical-precision-limits)
 - [Single-matrix solvers](https://github.com/rathaROG/lapx/blob/main/USAGE.md#single-matrix-solvers)
 - [Batch solvers](https://github.com/rathaROG/lapx/blob/main/USAGE.md#batch-solvers)
 
@@ -62,6 +63,15 @@ It removes pairs without solving again, so it cannot replace discarded matches.
 - The global interpreter lock (GIL) limits concurrent execution of Python code within one interpreter.
 
 </details>
+
+### Numerical precision limits
+
+Large finite penalties can hide small cost differences during optimization.
+Some such inputs give suboptimal assignments in the JV/JVX/JVC/JVS families, even with float64 costs.
+The R/H families pass the reproduced cases. Their floating-point arithmetic still cannot guarantee exact assignments for arbitrary cost ranges.
+
+See the [precision regression guide](https://github.com/rathaROG/lapx/blob/main/tests/README.md#precision-cases-from-src-dlapjv-issue-94)
+for reproduced cases and solver coverage.
 
 <a id="single-matrix-solvers"></a>
 
