@@ -23,7 +23,7 @@ Run these commands from the [tests directory](https://github.com/rathaROG/lapx/t
   python -m pip install ..
   ```
   A source build requires C++ and Rust compilers.
-  See the [build guide](../README.md#-installation) for requirements and optional legacy-only builds.
+  See the [build guide](../INSTALLATION.md) for requirements and optional legacy-only builds.
 
 - Run the full solver test suite:
   ```bash

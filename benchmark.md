@@ -15,6 +15,36 @@ The [paper benchmark guide](https://github.com/rathaROG/lap-paper/blob/main/benc
 documents a separate protocol for assignment, cached tracking/replay, and LSAPE experiments.
 To reproduce the paper's tables and figures, use that protocol, its pinned dependencies, and its recorded evidence.
 
+## Summary figure
+
+![Horizontal bars compare single, batch, and tracking totals in seconds. Lower is better.](docs/benchmark_summary.png)
+
+The figure sums the recorded case times below, in seconds. Lower is better.
+Each panel uses a linear axis that starts at zero, with its own range.
+Labels show each total, including the small bars beside the large `lapjvc` single total.
+These totals combine reported medians and one-round timings. They are not the elapsed time of a complete benchmark run.
+
+- **Single:** all 12 recorded matrices and all nine solvers.
+- **Batch:** five dense and two sparse batches, with automatic thread selection.
+  The figure compares the seven batch API rows with SciPy's sequential loop.
+  The detailed results retain the LAPX loop rows and `lapmod`, which covers only the two sparse cases.
+- **Tracking:** nine sizes across five thresholds, using the published overall rankings for their higher precision.
+  The figure includes solvers that filter after solving.
+  `LAPJV-IFT` remains in the detailed results because it applies the threshold during optimization and can produce different assignments.
+
+The recorded precision settings are unchanged. JVS uses float32 costs by default.
+The batch row marked `f64` uses float64. R/H use native float64 inputs.
+The sample environment and complete per-case results appear below.
+
+To regenerate the PNG and [SVG](docs/benchmark_summary.svg) from this checkout, run:
+
+```bash
+python -m pip install matplotlib
+python benchmarks/plot_summary.py
+```
+
+The [plot script](benchmarks/plot_summary.py) reads the saved text in this file. It does not run benchmarks.
+
 ## 💡 Run the benchmarks
 
 Install the published package and obtain the scripts:
@@ -562,7 +592,7 @@ The overall ranking follows and includes all solvers.
 `✗` marks a difference in any round.
 `LAPX LAPJV-IFT` can differ because its threshold is applied during optimization.
 The overall ranking sums median times across sizes and counts each solver's placements with 🥇, 🥈, 🥉, 🚩, 🏳️, 🥴, 🗿, and 🙅‍♂️.
-See [Cost values in the README](README.md#cost-values) for the distinction between the threshold methods.
+See [Cost values in the usage guide](USAGE.md#cost-values) for the distinction between the threshold methods.
 
 The full run uses thresholds **0.05, 0.1, 0.5, 1.0, and 1e9**.
 `--quick` uses **0.05 and 0.5** and omits 5000x5000.

@@ -20,6 +20,10 @@ The sparse batch section is skipped when `lapmod_batch` is unavailable.
 The scripts retain JVS's default float32 precision.
 The batch `jvsa64` row uses float64.
 
+`plot_summary.py` generates the three-panel total-time figure from the recorded
+results in `benchmark.md`. It does not run solvers. See the
+[summary figure](../benchmark.md#summary-figure) for its scope and regeneration commands.
+
 These package benchmarks do not reproduce the paper's full protocol.
 The [paper benchmark guide](https://github.com/rathaROG/lap-paper/blob/main/benchmark/README.md)
 covers assignment, cached tracking/replay, and LSAPE experiments.
